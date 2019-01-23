@@ -171,10 +171,11 @@ namespace ray
     template <typename T>
     constexpr Vec3<T> cross(const Vec3<T>& lhs, const Vec3<T>& rhs)
     {
-        return
-            lhs.x * rhs.x +
-            lhs.y * rhs.y +
-            lhs.z * rhs.z;
+        return Vec3<T>(
+            lhs.y*rhs.z - lhs.z*rhs.y, 
+            lhs.z*rhs.x - lhs.x*rhs.z, 
+            lhs.x*rhs.y - lhs.y*rhs.x
+        );
     }
 
     template <typename T>
