@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "src/Image.h"
+#include "src/Vec3.h"
 
 using namespace ray;
 

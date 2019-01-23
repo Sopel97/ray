@@ -38,5 +38,8 @@
     <ClInclude Include="src\Array2.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Vec3.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

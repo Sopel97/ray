@@ -12,17 +12,29 @@ namespace ray
 {
     struct Image
     {
+        using ColorType = ColorRGBi;
+
         Image(int width, int height) :
             m_width(width),
             m_height(height),
-            m_pixelColors(width, height, ColorRGBi8(255, 255, 0))
+            m_pixelColors(width, height, ColorRGBi(255, 255, 0))
         {
 
         }
 
+        const ColorType& operator()(int x, int y) const
+        {
+            return m_pixelColors(x, y);
+        }
+
+        ColorType& operator()(int x, int y)
+        {
+            return m_pixelColors(x, y);
+        }
+
         sf::Image toSfImage() const
         {
-            auto pixels = rawRGBAi8();
+            auto pixels = rawRGBAi();
 
             sf::Image img;
             img.create(m_width, m_height, pixels.data());
@@ -30,7 +42,7 @@ namespace ray
             return img;
         }
 
-        std::vector<std::uint8_t> rawRGBAi8() const
+        std::vector<std::uint8_t> rawRGBAi() const
         {
             std::vector<std::uint8_t> data;
             data.reserve(m_width * m_height * 4);
@@ -39,7 +51,7 @@ namespace ray
             {
                 for (int x = 0; x < m_width; ++x)
                 {
-                    ColorRGBi8 pixel = m_pixelColors(x, y);
+                    ColorType pixel = m_pixelColors(x, y);
                     data.emplace_back(pixel.r);
                     data.emplace_back(pixel.g);
                     data.emplace_back(pixel.b);
@@ -53,6 +65,6 @@ namespace ray
     private:
         int m_width;
         int m_height;
-        Array2<ColorRGBi8> m_pixelColors;
+        Array2<ColorType> m_pixelColors;
     };
 }
