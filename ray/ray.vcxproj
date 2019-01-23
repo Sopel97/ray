@@ -150,6 +150,8 @@
     <ClInclude Include="src\Array2.h" />
     <ClInclude Include="src\Color.h" />
     <ClInclude Include="src\Image.h" />
+    <ClInclude Include="src\Ray.h" />
+    <ClInclude Include="src\Sphere.h" />
     <ClInclude Include="src\Vec3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

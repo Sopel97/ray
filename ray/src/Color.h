@@ -7,9 +7,9 @@ namespace ray
     struct ColorRGBf
     {
         constexpr ColorRGBf() :
-            r(0.0f),
-            g(0.0f),
-            b(0.0f)
+            r{},
+            g{},
+            b{}
         {
         }
 
@@ -32,9 +32,9 @@ namespace ray
     struct ColorRGBi
     {
         constexpr ColorRGBi() :
-            r(0),
-            g(0),
-            b(0)
+            r{},
+            g{},
+            b{}
         {
         }
 
