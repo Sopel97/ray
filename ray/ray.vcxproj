@@ -147,9 +147,12 @@
     <ClCompile Include="src\Image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Angle.h" />
     <ClInclude Include="src\Array2.h" />
+    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Color.h" />
     <ClInclude Include="src\Image.h" />
+    <ClInclude Include="src\MathConstants.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="src\Sphere.h" />
     <ClInclude Include="src\Vec3.h" />

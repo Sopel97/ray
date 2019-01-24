@@ -1,6 +1,8 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
+#include "src/Angle.h"
+#include "src/Camera.h"
 #include "src/Image.h"
 #include "src/Vec3.h"
 
@@ -19,6 +21,9 @@ int main()
     texture.loadFromImage(sfImg);
     sf::Sprite sprite;
     sprite.setTexture(texture, true);
+
+    //Camera camera(Image(7, 5), {}, Vec3f(0, 0, -1), Vec3f(0, 1, 0), Angle::degrees(45));
+    //camera.forEachPixelRay([](auto r) {std::cout << r.direction().x << '\n'; });
 
     for (;;)
     {

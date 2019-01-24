@@ -62,6 +62,16 @@ namespace ray
             return data;
         }
 
+        int width() const
+        {
+            return m_width;
+        }
+
+        int height() const
+        {
+            return m_height;
+        }
+
     private:
         int m_width;
         int m_height;
