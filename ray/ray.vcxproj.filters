@@ -71,5 +71,11 @@
     <ClInclude Include="src\ShapeTraits.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Raycast.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RaycastHit.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

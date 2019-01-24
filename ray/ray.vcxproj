@@ -155,6 +155,8 @@
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MathConstants.h" />
     <ClInclude Include="src\Ray.h" />
+    <ClInclude Include="src\Raycast.h" />
+    <ClInclude Include="src\RaycastHit.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneObject.h" />
     <ClInclude Include="src\SceneObjectArray.h" />
