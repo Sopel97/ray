@@ -472,28 +472,28 @@ namespace ray
 
     // projection of v on n
     template <typename T>
-    constexpr T projection(const Vec3<T>& v, const Vec3<T>& n)
+    constexpr Vec3<T> projection(const Vec3<T>& v, const Vec3<T>& n)
     {
         return n * (dot(v, n) / dot(n, n));
     }
 
     // projection of v on n
     template <typename T>
-    constexpr T projection(const Vec3<T>& v, const Normal3<T>& n)
+    constexpr Vec3<T> projection(const Vec3<T>& v, const Normal3<T>& n)
     {
         return n * dot(v, n);
     }
 
     // projection of v on n
     template <typename T>
-    constexpr T projection(const Normal3<T>& v, const Vec3<T>& n)
+    constexpr Vec3<T> projection(const Normal3<T>& v, const Vec3<T>& n)
     {
         return n * (dot(v, n) / dot(n, n));
     }
 
     // projection of v on n
     template <typename T>
-    constexpr T projection(const Normal3<T>& v, const Normal3<T>& n)
+    constexpr Vec3<T> projection(const Normal3<T>& v, const Normal3<T>& n)
     {
         return n * dot(v, n);
     }
@@ -539,7 +539,7 @@ namespace ray
 
     // refraction of v through a surface with normal n with refractive index ratio of r
     template <typename T>
-    constexpr Vec3<T> refraction(const Normal3<T>& v, const Vec3<T>& n, const T& r)
+    constexpr Normal3<T> refraction(const Normal3<T>& v, const Vec3<T>& n, const T& r)
     {
         using std::sqrt;
 
@@ -561,7 +561,7 @@ namespace ray
 
     // refraction of v through a surface with normal n with refractive index ratio of r
     template <typename T>
-    constexpr Vec3<T> refraction(const Normal3<T>& v, const Normal3<T>& n, const T& r)
+    constexpr Normal3<T> refraction(const Normal3<T>& v, const Normal3<T>& n, const T& r)
     {
         using std::sqrt;
 
