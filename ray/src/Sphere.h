@@ -13,14 +13,14 @@ namespace ray
 
         }
 
-        constexpr Sphere(const Vec3f& center, float radius) :
+        constexpr Sphere(const Point3f& center, float radius) :
             m_center(center),
             m_radius(radius)
         {
 
         }
 
-        constexpr const Vec3f& center() const
+        constexpr const Point3f& center() const
         {
             return m_center;
         }
@@ -30,7 +30,7 @@ namespace ray
             return m_radius;
         }
 
-        void setCenter(const Vec3f& newCenter)
+        void setCenter(const Point3f& newCenter)
         {
             m_center = newCenter;
         }
@@ -51,7 +51,7 @@ namespace ray
         }
 
     private:
-        Vec3f m_center;
+        Point3f m_center;
         float m_radius;
     };
 }

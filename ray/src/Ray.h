@@ -6,31 +6,31 @@ namespace ray
 {
     struct Ray
     {
-        constexpr Ray(const Vec3f& origin, const Vec3f& direction) :
+        constexpr Ray(const Point3f& origin, const Normal3f& direction) :
             m_origin(origin),
-            m_direction(direction.normalized())
+            m_direction(direction)
         {
 
         }
 
-        constexpr const Vec3f& origin() const
+        constexpr const Point3f& origin() const
         {
             return m_origin;
         }
 
-        constexpr const Vec3f& direction() const
+        constexpr const Normal3f& direction() const
         {
             return m_direction;
         }
 
-        void setOrigin(const Vec3f& newOrigin)
+        void setOrigin(const Point3f& newOrigin)
         {
             m_origin = newOrigin;
         }
 
-        void setDirection(const Vec3f& newDirection)
+        void setDirection(const Normal3f& newDirection)
         {
-            m_direction = newDirection.normalized();
+            m_direction = newDirection;
         }
     
         void translate(const Vec3f& v)
@@ -44,7 +44,7 @@ namespace ray
         }
 
     private:
-        Vec3f m_origin;
-        Vec3f m_direction;
+        Point3f m_origin;
+        Normal3f m_direction;
     };
 }

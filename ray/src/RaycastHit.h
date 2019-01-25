@@ -7,8 +7,8 @@ namespace ray
 {
     struct RaycastHit
     {
-        Vec3f point;
-        Vec3f normal;
+        Point3f point;
+        Normal3f normal;
         int shapeNo;
         int materialNo;
     };

@@ -26,8 +26,10 @@ int main()
     sf::Sprite sprite;
     sprite.setTexture(texture, true);
 
-    //Camera camera(Image(7, 5), {}, Vec3f(0, 0, -1), Vec3f(0, 1, 0), Angle::degrees(45));
-    //camera.forEachPixelRay([](auto r) {std::cout << r.direction().x << '\n'; });
+    /*
+    Camera camera(Image(7, 5), {}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), Angle::degrees(45));
+    camera.forEachPixelRay([](auto r) {std::cout << r.direction().x << '\n'; });
+    */
 
     /*
     Scene s;
@@ -36,9 +38,9 @@ int main()
     */
 
     /*
-    expected 2 - sqrt(3)/2 = ~1.133
-    const Vec3f O(0, 0.5f, 0);
-    std::cout << distance(raycast(Ray(Vec3f(0, 0.5f, 0), Vec3f(0, 0, -1)), Sphere(Vec3f(0, 0, -2), 1.0f)).value().point, O);
+    //expected 2 - sqrt(3)/2 = ~1.133
+    const Point3f O(0, 0.5f, 0);
+    std::cout << distance(raycast(Ray(O, Normal3f(0, 0, -1)), Sphere(Point3f(0, 0, -2), 1.0f)).value().point, O);
     */
 
     for (;;)

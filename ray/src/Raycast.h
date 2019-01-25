@@ -40,9 +40,9 @@ namespace ray
         */
 
         /*
-        const Vec3f O = ray.origin();
-        const Vec3f D = ray.direction();
-        const Vec3f C = sphere.center();
+        const Point3f O = ray.origin();
+        const Normal3f D = ray.direction();
+        const Point3f C = sphere.center();
         const float R = sphere.radius();
 
         const Vec3f P = O - C;
@@ -91,9 +91,9 @@ namespace ray
         */
 
         // doesn't work if we're inside? surely doesn't work if we're past the sphere origin
-        const Vec3f O = ray.origin();
-        const Vec3f D = ray.direction();
-        const Vec3f C = sphere.center();
+        const Point3f O = ray.origin();
+        const Normal3f D = ray.direction();
+        const Point3f C = sphere.center();
         const float R = sphere.radius();
 
         const Vec3f L = C - O;
@@ -114,8 +114,8 @@ namespace ray
         float t = t2;
         if (t1 > 0.0f) t = t1;
 
-        const Vec3f hitPoint = O + t * D;
-        const Vec3f normal = (C - hitPoint).normalized();
+        const Point3f hitPoint = O + t * D;
+        const Normal3f normal = (C - hitPoint).normalized();
         const int shapeNo = 0;
         const int materialNo = 0;
         return RaycastHit{ hitPoint, normal, shapeNo, materialNo };
