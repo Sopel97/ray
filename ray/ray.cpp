@@ -4,6 +4,7 @@
 #include "src/Angle.h"
 #include "src/Camera.h"
 #include "src/Image.h"
+#include "src/Raycast.h"
 #include "src/Scene.h"
 #include "src/SceneObject.h"
 #include "src/Sphere.h"
@@ -32,6 +33,12 @@ int main()
     Scene s;
     Material m;
     s.add(SceneObject<Sphere>(Sphere{}, { &m }));
+    */
+
+    /*
+    expected 2 - sqrt(3)/2 = ~1.133
+    const Vec3f O(0, 0.5f, 0);
+    std::cout << distance(raycast(Ray(Vec3f(0, 0.5f, 0), Vec3f(0, 0, -1)), Sphere(Vec3f(0, 0, -2), 1.0f)).value().point, O);
     */
 
     for (;;)
