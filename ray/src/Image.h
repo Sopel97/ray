@@ -17,7 +17,7 @@ namespace ray
         Image(int width, int height) :
             m_width(width),
             m_height(height),
-            m_pixelColors(width, height, ColorRGBi(255, 255, 0))
+            m_pixelColors(width, height, ColorRGBi(0, 0, 0))
         {
 
         }

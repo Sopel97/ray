@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "Angle.h"
-#include "Image.h"
 #include "Ray.h"
 #include "Vec3.h"
 
@@ -14,11 +13,12 @@ namespace ray
     {
         constexpr static float viewportDistance = 1.0f;
 
-        Camera(Image img, const Point3f& position, const Normal3f& direction, const Normal3f& up, Angle fov) :
-            m_image(std::move(img)),
+        Camera(const Point3f& position, const Normal3f& direction, const Normal3f& up, int width, int height, Angle fov) :
             m_position(position),
             m_direction(direction),
             m_up(up),
+            m_width(width),
+            m_height(height),
             m_fov(fov)
         {
 
@@ -30,8 +30,8 @@ namespace ray
             const float a = aspectRatio();
             const float viewportHeight = 2.0f * viewportDistance * m_fov.tan();
             const float viewportWidth = viewportHeight * a;
-            const int viewportWidthPixels = m_image.width();
-            const int viewportHeightPixels = m_image.height();
+            const int viewportWidthPixels = m_width;
+            const int viewportHeightPixels = m_height;
             const float pixelWidth = viewportWidth / static_cast<float>(viewportWidthPixels);
             const float pixelHeight = viewportHeight / static_cast<float>(viewportHeightPixels);
             const Normal3f viewportRight = cross(m_direction, m_up).normalized();
@@ -62,14 +62,25 @@ namespace ray
 
         float aspectRatio() const
         {
-            return static_cast<float>(m_image.width()) / static_cast<float>(m_image.height());
+            return static_cast<float>(m_width) / static_cast<float>(m_height);
+        }
+
+        int width() const
+        {
+            return m_width;
+        }
+
+        int height() const
+        {
+            return m_height;
         }
 
     private:
-        Image m_image;
         Point3f m_position;
         Normal3f m_direction;
         Normal3f m_up;
+        int m_width;
+        int m_height;
         Angle m_fov;
     };
 }

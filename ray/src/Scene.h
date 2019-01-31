@@ -33,10 +33,27 @@ namespace ray
             objectsOfType<ShapeT>().add(so);
         }
 
+        void setLightPosition(const Point3f& pos)
+        {
+            m_lightPosition = pos;
+        }
+
+        const Point3f& lightPosition() const
+        {
+            return m_lightPosition;
+        }
+
+        ResolvedRaycastHit castRay(const Ray& ray) const
+        {
+            // TODO:
+        }
+
     private:
         std::tuple<
             ObjectStorageType<Sphere>
         > m_objects;
+
+        Point3f m_lightPosition;
 
         template <typename ShapeT>
         ObjectStorageType<ShapeT>& objectsOfType()

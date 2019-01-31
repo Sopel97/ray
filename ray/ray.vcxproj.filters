@@ -77,5 +77,8 @@
     <ClInclude Include="src\RaycastHit.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Raytracer.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

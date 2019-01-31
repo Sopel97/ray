@@ -12,4 +12,11 @@ namespace ray
         int shapeNo;
         int materialNo;
     };
+
+    struct ResolvedRaycastHit
+    {
+        Point3f point;
+        Normal3f normal;
+        const Material* material;
+    };
 }

@@ -5,6 +5,7 @@
 #include "src/Camera.h"
 #include "src/Image.h"
 #include "src/Raycast.h"
+#include "src/Raytracer.h"
 #include "src/Scene.h"
 #include "src/SceneObject.h"
 #include "src/Sphere.h"
@@ -19,7 +20,9 @@ int main()
 
     sf::RenderWindow window(sf::VideoMode(width, height), "ray");
 
-    Image img(width, height);
+    Scene scene;
+    Raytracer raytracer(scene);
+    Image img = raytracer.capture(Camera({}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45)));
     sf::Image sfImg = img.toSfImage();
     sf::Texture texture;
     texture.loadFromImage(sfImg);
