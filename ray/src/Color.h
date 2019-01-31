@@ -48,8 +48,8 @@ namespace ray
 
         constexpr explicit ColorRGBi(const ColorRGBf& other) :
             r(static_cast<std::uint8_t>(other.r * 255.0f + 0.5f)),
-            g(static_cast<std::uint8_t>(other.r * 255.0f + 0.5f)),
-            b(static_cast<std::uint8_t>(other.r * 255.0f + 0.5f))
+            g(static_cast<std::uint8_t>(other.g * 255.0f + 0.5f)),
+            b(static_cast<std::uint8_t>(other.b * 255.0f + 0.5f))
         {
 
         }

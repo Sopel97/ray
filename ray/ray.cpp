@@ -21,6 +21,10 @@ int main()
     sf::RenderWindow window(sf::VideoMode(width, height), "ray");
 
     Scene scene;
+    Material mat{ ColorRGBf(1.0f, 0.0f, 0.0f) };
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(0, 0, -2), 1.0f), { &mat }));
+
+
     Raytracer raytracer(scene);
     Image img = raytracer.capture(Camera({}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45)));
     sf::Image sfImg = img.toSfImage();

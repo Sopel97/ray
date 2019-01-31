@@ -26,7 +26,19 @@ namespace ray
 
         ColorRGBi traceResult(const Ray& ray) const
         {
-            return ColorRGBi(255, 0, 255);
+            std::optional<ResolvedRaycastHit> hitOpt = m_scene->castRay(ray);
+            if (hitOpt)
+            {
+                ResolvedRaycastHit& hit = *hitOpt;
+                return resolveColor(hit);
+            }
+
+            return {};
+        }
+
+        ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const
+        {
+            return ColorRGBi(hit.material->color);
         }
     };
 }
