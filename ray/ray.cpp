@@ -50,7 +50,7 @@ int main()
     /*
     //expected 2 - sqrt(3)/2 = ~1.133
     const Point3f O(0, 0.5f, 0);
-    std::cout << raycast(Ray(O, Normal3f(0, 0, -1)), Sphere(O, 6.0f)).value().point.z;
+    std::cout << raycastOutside(Ray(O, Normal3f(0, 0, -1)), Sphere(O, 6.0f)).value().point.z;
     */
 
     for (;;)

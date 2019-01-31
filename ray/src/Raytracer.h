@@ -39,8 +39,8 @@ namespace ray
                 // do refraction
                 // TODO: properly
                 const Normal3f refractedDirection = ray.direction();
+                // this should always return a value, but edge cases due to bad precision should be expected
                 std::optional<ResolvedRaycastHit> outHitOpt = hit.next(refractedDirection);
-                // TODO: make sure that the current raycasting algorithm works properly for points inside a sphere
 
                 if (!isObstructedFromLight(hit.point + hit.normal * paddingDistance))
                 {
