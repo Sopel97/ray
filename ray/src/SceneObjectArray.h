@@ -49,11 +49,11 @@ namespace ray
             }
         }
 
-        const ShapeType& shape(int shapeNo) const
+        decltype(auto) shape(int shapeNo) const
         {
             if constexpr (isPack)
             {
-                // TODO: can't just return a reference
+                // should return a proxy reference
                 return m_shapes[shapeNo / numShapesInPack].get(shapeNo % numShapesInPack);
             }
             else
@@ -94,7 +94,7 @@ namespace ray
             return end(m_shapes);
         }
 
-        std::optional<ResolvedRaycastHit> queryNearest(const Ray& ray) const
+        std::optional<ResolvedTypedRaycastHit<BaseShapeType>> queryNearest(const Ray& ray) const
         {
             const int size = static_cast<int>(m_shapes.size());
             std::optional<RaycastHit> nearestHit{};
@@ -119,13 +119,14 @@ namespace ray
             if (nearestHit)
             {
                 RaycastHit& hit = *nearestHit;
-                return ResolvedRaycastHit{ hit.point, hit.normal, &(material(nearestHitPackNo*numShapesInPack + hit.shapeNo, hit.materialNo)) };
+                const int shapeNo = nearestHitPackNo * numShapesInPack + hit.shapeNo;
+                return ResolvedTypedRaycastHit<BaseShapeType>{ hit.point, hit.normal, &shape(shapeNo), &material(shapeNo, hit.materialNo) };
             }
 
             return std::nullopt;
         }
 
-        std::optional<ResolvedRaycastHit> queryAny(const Ray& ray) const
+        std::optional<ResolvedTypedRaycastHit<BaseShapeType>> queryAny(const Ray& ray) const
         {
             const int size = static_cast<int>(m_shapes.size());
             for (int packNo = 0; packNo < size; ++packNo)
@@ -134,7 +135,8 @@ namespace ray
                 if (hitOpt)
                 {
                     RaycastHit& hit = *hitOpt;
-                    return ResolvedRaycastHit{ hit.point, hit.normal, &(material(packNo*numShapesInPack + hit.shapeNo, hit.materialNo)) };
+                    const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
+                    return ResolvedTypedRaycastHit<BaseShapeType>{ hit.point, hit.normal, &shape(shapeNo), &material(shapeNo, hit.materialNo) };
                 }
             }
 

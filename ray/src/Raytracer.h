@@ -31,10 +31,10 @@ namespace ray
 
         ColorRGBi traceResult(const Ray& ray) const
         {
-            std::optional<ResolvedRaycastHit> hitOpt = m_scene->queryNearest(ray);
+            std::optional<ResolvedUntypedRaycastHit> hitOpt = m_scene->queryNearest(ray);
             if (hitOpt)
             {
-                ResolvedRaycastHit& hit = *hitOpt;
+                ResolvedUntypedRaycastHit& hit = *hitOpt;
                 if (!isObstructedFromLight(hit.point + hit.normal * paddingDistance))
                 {
                     return resolveColor(hit);
@@ -50,7 +50,7 @@ namespace ray
             return m_scene->queryAny(ray).has_value();
         }
 
-        ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const
+        ColorRGBi resolveColor(const ResolvedUntypedRaycastHit& hit) const
         {
             return ColorRGBi(hit.material->color);
         }
