@@ -5,6 +5,7 @@
 #include "ShapeTraits.h"
 
 #include <array>
+#include <functional>
 #include <vector>
 
 namespace ray
@@ -94,7 +95,7 @@ namespace ray
             return end(m_shapes);
         }
 
-        std::optional<ResolvedTypedRaycastHit<BaseShapeType>> queryNearest(const Ray& ray) const
+        std::optional<ResolvedLocallyContinuableRaycastHit> queryNearest(const Ray& ray) const
         {
             const int size = static_cast<int>(m_shapes.size());
             std::optional<RaycastHit> nearestHit{};
@@ -120,13 +121,13 @@ namespace ray
             {
                 RaycastHit& hit = *nearestHit;
                 const int shapeNo = nearestHitPackNo * numShapesInPack + hit.shapeNo;
-                return ResolvedTypedRaycastHit<BaseShapeType>{ hit.point, hit.normal, &shape(shapeNo), &material(shapeNo, hit.materialNo) };
+                return ResolvedLocallyContinuableRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), createLocalRaycaster(shapeNo));
             }
 
             return std::nullopt;
         }
 
-        std::optional<ResolvedTypedRaycastHit<BaseShapeType>> queryAny(const Ray& ray) const
+        std::optional<ResolvedLocallyContinuableRaycastHit> queryAny(const Ray& ray) const
         {
             const int size = static_cast<int>(m_shapes.size());
             for (int packNo = 0; packNo < size; ++packNo)
@@ -136,8 +137,22 @@ namespace ray
                 {
                     RaycastHit& hit = *hitOpt;
                     const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
-                    return ResolvedTypedRaycastHit<BaseShapeType>{ hit.point, hit.normal, &shape(shapeNo), &material(shapeNo, hit.materialNo) };
+                    return ResolvedLocallyContinuableRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), createLocalRaycaster(shapeNo));
                 }
+            }
+
+            return std::nullopt;
+        }
+
+        std::optional<ResolvedRaycastHit> querySpecificShape(const Ray& ray, int shapeNo) const
+        {
+            const int packNo = shapeNo / numShapesInPack;
+            std::optional<RaycastHit> hitOpt = raycast(ray, m_shapes[packNo]);
+            if (hitOpt)
+            {
+                RaycastHit& hit = *hitOpt;
+                const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
+                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo));
             }
 
             return std::nullopt;
@@ -147,5 +162,17 @@ namespace ray
         ShapeStorageType m_shapes;
         MaterialStorageType m_materials;
         int m_size;
+
+        std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Normal3f&)> createLocalRaycaster(int shapeNo) const
+        {
+            // Used to ensure for example that the hit point is
+            // inside the shape. May need tuning.
+            static constexpr float paddingDistance = 0.0001f;
+
+            return [this, shapeNo](const ResolvedLocallyContinuableRaycastHit& prevHit, const Normal3f& direction) {
+                const Point3f nextOrigin = prevHit.point - prevHit.normal * paddingDistance;
+                return this->querySpecificShape(Ray(nextOrigin, direction), shapeNo);
+            };
+        }
     };
 }

@@ -45,9 +45,9 @@ namespace ray
             return m_lightPosition;
         }
 
-        std::optional<ResolvedUntypedRaycastHit> queryNearest(const Ray& ray) const
+        std::optional<ResolvedLocallyContinuableRaycastHit> queryNearest(const Ray& ray) const
         {
-            std::optional<ResolvedTypedRaycastHit<Sphere>> hitOpt = objectsOfType<Sphere>().queryNearest(ray);
+            std::optional<ResolvedLocallyContinuableRaycastHit> hitOpt = objectsOfType<Sphere>().queryNearest(ray);
             if (hitOpt) return hitOpt;
 
             // possibly other types
@@ -55,9 +55,9 @@ namespace ray
             return std::nullopt;
         }
 
-        std::optional<ResolvedUntypedRaycastHit> queryAny(const Ray& ray) const
+        std::optional<ResolvedLocallyContinuableRaycastHit> queryAny(const Ray& ray) const
         {
-            std::optional<ResolvedTypedRaycastHit<Sphere>> hitOpt = objectsOfType<Sphere>().queryAny(ray);
+            std::optional<ResolvedLocallyContinuableRaycastHit> hitOpt = objectsOfType<Sphere>().queryAny(ray);
             if (hitOpt) return hitOpt;
 
             // possibly other types

@@ -31,10 +31,17 @@ namespace ray
 
         ColorRGBi traceResult(const Ray& ray) const
         {
-            std::optional<ResolvedUntypedRaycastHit> hitOpt = m_scene->queryNearest(ray);
+            std::optional<ResolvedLocallyContinuableRaycastHit> hitOpt = m_scene->queryNearest(ray);
             if (hitOpt)
             {
-                ResolvedUntypedRaycastHit& hit = *hitOpt;
+                ResolvedLocallyContinuableRaycastHit& hit = *hitOpt;
+
+                // do refraction
+                // TODO: properly
+                const Normal3f refractedDirection = ray.direction();
+                std::optional<ResolvedRaycastHit> outHitOpt = hit.next(refractedDirection);
+                // TODO: make sure that the current raycasting algorithm works properly for points inside a sphere
+
                 if (!isObstructedFromLight(hit.point + hit.normal * paddingDistance))
                 {
                     return resolveColor(hit);
@@ -50,7 +57,7 @@ namespace ray
             return m_scene->queryAny(ray).has_value();
         }
 
-        ColorRGBi resolveColor(const ResolvedUntypedRaycastHit& hit) const
+        ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const
         {
             return ColorRGBi(hit.material->color);
         }

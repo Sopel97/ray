@@ -3,6 +3,9 @@
 #include "Material.h"
 #include "Vec3.h"
 
+#include <functional>
+#include <optional>
+
 namespace ray
 {
     struct RaycastHit
@@ -13,22 +16,12 @@ namespace ray
         int materialNo;
     };
 
-    template <typename ShapeT>
-    struct ResolvedTypedRaycastHit
+    struct ResolvedRaycastHit
     {
-        Point3f point;
-        Normal3f normal;
-        const ShapeT* shape;
-        const Material* material;
-    };
-
-    struct ResolvedUntypedRaycastHit
-    {
-        template <typename ShapeT>
-        ResolvedUntypedRaycastHit(const ResolvedTypedRaycastHit<ShapeT>& typed) :
-            point(typed.point),
-            normal(typed.normal),
-            material(typed.material)
+        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material) :
+            point(point),
+            normal(normal),
+            material(&material)
         {
 
         }
@@ -38,9 +31,23 @@ namespace ray
         const Material* material;
     };
 
-    struct ResolvedUntypedInOutRaycastHit
+    // allows fast queries from inside the shape
+    struct ResolvedLocallyContinuableRaycastHit : ResolvedRaycastHit
     {
-        ResolvedUntypedRaycastHit in;
-        ResolvedUntypedRaycastHit out;
+        template <typename FuncT>
+        ResolvedLocallyContinuableRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material, FuncT&& func) :
+            ResolvedRaycastHit(point, normal, material),
+            m_continuation(std::forward<FuncT>(func))
+        {
+
+        }
+
+        std::optional<ResolvedRaycastHit> next(const Normal3f& direction) const
+        {
+            return m_continuation(*this, direction);
+        }
+
+    private:
+        std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Normal3f&)> m_continuation;
     };
 }
