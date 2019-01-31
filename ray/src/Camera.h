@@ -25,7 +25,7 @@ namespace ray
         }
 
         template <typename FuncT>
-        void forEachPixelRay(FuncT&& func)
+        void forEachPixelRay(FuncT&& func) const
         {
             const float a = aspectRatio();
             const float viewportHeight = 2.0f * viewportDistance * m_fov.tan();
@@ -55,7 +55,7 @@ namespace ray
 
                     const Normal3f direction = (viewportPoint - m_position).normalized();
 
-                    func(Ray(m_position, direction));
+                    func(Ray(m_position, direction), x, y);
                 }
             }
         }

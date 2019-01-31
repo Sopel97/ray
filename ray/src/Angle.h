@@ -29,17 +29,17 @@ namespace ray
             return Angle(d * (pi / 180.0f));
         }
 
-        float sin()
+        float sin() const
         {
             return std::sin(m_radians);
         }
 
-        float cos()
+        float cos() const
         {
             return std::cos(m_radians);
         }
 
-        float tan()
+        float tan() const
         {
             return std::tan(m_radians);
         }

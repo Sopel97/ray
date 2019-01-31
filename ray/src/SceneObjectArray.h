@@ -23,6 +23,7 @@ namespace ray
         static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
         using ShapeStorageType = std::vector<ShapeType>;
         using MaterialStorageType = std::vector<std::array<Material*, numMaterialsPerShape>>;
+        using ConstIterator = typename ShapeStorageType::const_iterator;
 
         SceneObjectArray() :
             m_size(0)
@@ -79,6 +80,34 @@ namespace ray
         int size() const
         {
             return m_size;
+        }
+
+        ConstIterator begin() const
+        {
+            using std::begin;
+            return begin(m_shapes);
+        }
+
+        ConstIterator end() const
+        {
+            using std::end;
+            return end(m_shapes);
+        }
+
+        std::optional<ResolvedRaycastHit> castRay(const Ray& ray) const
+        {
+            const int size = static_cast<int>(m_shapes.size());
+            for (int packNo = 0; packNo < size; ++packNo)
+            {
+                std::optional<RaycastHit> hitOpt = raycast(ray, m_shapes[packNo]);
+                if (hitOpt)
+                {
+                    RaycastHit& hit = *hitOpt;
+                    return ResolvedRaycastHit{ hit.point, hit.normal, &(material(packNo*numShapesInPack + hit.shapeNo, hit.materialNo)) };
+                }
+            }
+
+            return std::nullopt;
         }
 
     private:

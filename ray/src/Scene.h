@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Raycast.h"
+#include "RaycastHit.h"
 #include "SceneObjectArray.h"
 #include "ShapeTraits.h"
 #include "Sphere.h"
@@ -43,9 +45,14 @@ namespace ray
             return m_lightPosition;
         }
 
-        ResolvedRaycastHit castRay(const Ray& ray) const
+        std::optional<ResolvedRaycastHit> castRay(const Ray& ray) const
         {
-            // TODO:
+            std::optional<ResolvedRaycastHit> hitOpt = objectsOfType<Sphere>().castRay(ray);
+            if (hitOpt) return hitOpt;
+
+            // possibly other types
+
+            return std::nullopt;
         }
 
     private:

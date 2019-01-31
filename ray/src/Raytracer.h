@@ -16,10 +16,17 @@ namespace ray
 
         Image capture(const Camera& camera) const
         {
-            return Image(camera.width(), camera.height());
+            Image img(camera.width(), camera.height());
+            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = traceResult(ray); });
+            return img;
         }
 
     private:
         const Scene* m_scene;
+
+        ColorRGBi traceResult(const Ray& ray) const
+        {
+            return ColorRGBi(255, 0, 255);
+        }
     };
 }
