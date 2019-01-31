@@ -22,7 +22,9 @@ int main()
 
     Scene scene;
     Material mat{ ColorRGBf(1.0f, 0.0f, 0.0f) };
+    Material mat2{ ColorRGBf(0.0f, 1.0f, 0.0f) };
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0, 0, -2), 1.0f), { &mat }));
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(0, -1, -3), 2.0f), { &mat2 }));
 
 
     Raytracer raytracer(scene);

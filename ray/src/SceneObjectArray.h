@@ -97,14 +97,29 @@ namespace ray
         std::optional<ResolvedRaycastHit> castRay(const Ray& ray) const
         {
             const int size = static_cast<int>(m_shapes.size());
+            std::optional<RaycastHit> nearestHit{};
+            float nearestHitDistance = std::numeric_limits<float>::max();
+            int nearestHitPackNo{};
             for (int packNo = 0; packNo < size; ++packNo)
             {
                 std::optional<RaycastHit> hitOpt = raycast(ray, m_shapes[packNo]);
                 if (hitOpt)
                 {
                     RaycastHit& hit = *hitOpt;
-                    return ResolvedRaycastHit{ hit.point, hit.normal, &(material(packNo*numShapesInPack + hit.shapeNo, hit.materialNo)) };
+                    const float dist = distance(ray.origin(), hit.point);
+                    if (dist < nearestHitDistance)
+                    {
+                        nearestHit = hit;
+                        nearestHitDistance = dist;
+                        nearestHitPackNo = packNo;
+                    }
                 }
+            }
+
+            if (nearestHit)
+            {
+                RaycastHit& hit = *nearestHit;
+                return ResolvedRaycastHit{ hit.point, hit.normal, &(material(nearestHitPackNo*numShapesInPack + hit.shapeNo, hit.materialNo)) };
             }
 
             return std::nullopt;
