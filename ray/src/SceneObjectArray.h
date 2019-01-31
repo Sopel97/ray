@@ -94,7 +94,7 @@ namespace ray
             return end(m_shapes);
         }
 
-        std::optional<ResolvedRaycastHit> castRay(const Ray& ray) const
+        std::optional<ResolvedRaycastHit> queryNearest(const Ray& ray) const
         {
             const int size = static_cast<int>(m_shapes.size());
             std::optional<RaycastHit> nearestHit{};
@@ -120,6 +120,22 @@ namespace ray
             {
                 RaycastHit& hit = *nearestHit;
                 return ResolvedRaycastHit{ hit.point, hit.normal, &(material(nearestHitPackNo*numShapesInPack + hit.shapeNo, hit.materialNo)) };
+            }
+
+            return std::nullopt;
+        }
+
+        std::optional<ResolvedRaycastHit> queryAny(const Ray& ray) const
+        {
+            const int size = static_cast<int>(m_shapes.size());
+            for (int packNo = 0; packNo < size; ++packNo)
+            {
+                std::optional<RaycastHit> hitOpt = raycast(ray, m_shapes[packNo]);
+                if (hitOpt)
+                {
+                    RaycastHit& hit = *hitOpt;
+                    return ResolvedRaycastHit{ hit.point, hit.normal, &(material(packNo*numShapesInPack + hit.shapeNo, hit.materialNo)) };
+                }
             }
 
             return std::nullopt;

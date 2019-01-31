@@ -31,7 +31,7 @@ namespace ray
 
         ColorRGBi traceResult(const Ray& ray) const
         {
-            std::optional<ResolvedRaycastHit> hitOpt = m_scene->castRay(ray);
+            std::optional<ResolvedRaycastHit> hitOpt = m_scene->queryNearest(ray);
             if (hitOpt)
             {
                 ResolvedRaycastHit& hit = *hitOpt;
@@ -47,7 +47,7 @@ namespace ray
         bool isObstructedFromLight(const Point3f& point) const
         {
             Ray ray = Ray::between(point, m_scene->lightPosition());
-            return m_scene->castRay(ray).has_value();
+            return m_scene->queryAny(ray).has_value();
         }
 
         ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const
