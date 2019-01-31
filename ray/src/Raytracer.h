@@ -8,6 +8,11 @@ namespace ray
 {
     struct Raytracer
     {
+        // Used to ensure for example that the hit point is
+        // not considered obstructed by the shape it is on
+        // due to floating point inaccuracies
+        static constexpr float paddingDistance = 0.0001f;
+
         Raytracer(const Scene& scene) :
             m_scene(&scene)
         {
@@ -30,10 +35,19 @@ namespace ray
             if (hitOpt)
             {
                 ResolvedRaycastHit& hit = *hitOpt;
-                return resolveColor(hit);
+                if (!isObstructedFromLight(hit.point + hit.normal * paddingDistance))
+                {
+                    return resolveColor(hit);
+                }
             }
 
             return {};
+        }
+
+        bool isObstructedFromLight(const Point3f& point) const
+        {
+            Ray ray = Ray::between(point, m_scene->lightPosition());
+            return m_scene->castRay(ray).has_value();
         }
 
         ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const

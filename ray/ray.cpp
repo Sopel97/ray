@@ -21,14 +21,15 @@ int main()
     sf::RenderWindow window(sf::VideoMode(width, height), "ray");
 
     Scene scene;
+    scene.setLightPosition({ 0.0f, 7.0f, 1.0f });
     Material mat{ ColorRGBf(1.0f, 0.0f, 0.0f) };
     Material mat2{ ColorRGBf(0.0f, 1.0f, 0.0f) };
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0, 0, -2), 1.0f), { &mat }));
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(0, -1, -3), 2.0f), { &mat2 }));
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(0, 1.0f, -1.2f), 0.5f), { &mat2 }));
 
 
     Raytracer raytracer(scene);
-    Image img = raytracer.capture(Camera({}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45)));
+    Image img = raytracer.capture(Camera({0, 0.5f, 0}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45)));
     sf::Image sfImg = img.toSfImage();
     sf::Texture texture;
     texture.loadFromImage(sfImg);

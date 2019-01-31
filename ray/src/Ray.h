@@ -6,6 +6,11 @@ namespace ray
 {
     struct Ray
     {
+        static constexpr Ray between(const Point3f& from, const Point3f& to)
+        {
+            return Ray(from, (to - from).normalized());
+        }
+
         constexpr Ray(const Point3f& origin, const Normal3f& direction) :
             m_origin(origin),
             m_direction(direction)
