@@ -15,8 +15,8 @@ namespace ray
         static constexpr float paddingDistance = 0.0001f;
         static constexpr int maxRayDepth = 5;
         static constexpr float airRefractiveIndex = 1.00027717;
-        // highest opacity that is not yet considered transparent
-        static constexpr float opacityThreshold = 0.99f;
+        // smallest transparenct that is not considered zero
+        static constexpr float transparencyThreshold = 0.01f;
         // smallest reflectivity that is still considered reflective
         static constexpr float reflectivityThreshold = 0.01f;
         // smallest diffuse that makes it trace shadow ray
@@ -58,8 +58,8 @@ namespace ray
             const float fresnelEffect = fresnelReflectAmount(ray, hit);
 
             return hit.material->surfaceColor * (
-                reflectionColor * fresnelEffect
-                + refractionColor * (1.0f - fresnelEffect)
+                reflectionColor * (fresnelEffect * hit.material->reflectivity)
+                + refractionColor * ((1.0f - fresnelEffect) * hit.material->transparency)
                 + diffusionColor);
         }
         
@@ -71,7 +71,7 @@ namespace ray
             const float n1 = airRefractiveIndex;
             const float n2 = hit.material->refractiveIndex;
             const float r0 = sqr((n1 - n2) / (n1 + n2));
-            float cosX = -dot(hit.normal, ray.direction());
+            float cosX = dot(hit.normal, ray.direction());
             if (n1 > n2)
             {
                 const float n = n1 / n2;
@@ -122,15 +122,17 @@ namespace ray
 
             // outside->inside
             const float eta = hit.material->refractiveIndex / airRefractiveIndex;
-
+            
             // do outside->inside refraction
-            const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
+            const Normal3f refractionDirection = refraction(ray.direction(), -hit.normal, eta);
             std::optional<ResolvedRaycastHit> outHitOpt = hit.next(refractionDirection);
+            // TODO: fix. Something is wrong. outHitOpt should never be nullopt but is when the incidence angle is low
             if (!outHitOpt) return {};
 
+            // TODO: handle reflection
             // do inside->outside refraction
             ResolvedRaycastHit& outHit = *outHitOpt;
-            const Normal3f outRefractionDirection = refraction(ray.direction(), outHit.normal, 1.0f / eta);
+            const Normal3f outRefractionDirection = refraction(refractionDirection, outHit.normal, 1.0f / eta);
             return trace(Ray(outHit.point + outHit.normal * paddingDistance, outRefractionDirection), depth + 1);
         }
 
@@ -141,7 +143,7 @@ namespace ray
 
         bool isTransparent(const Material& material) const
         {
-            return material.opacity < opacityThreshold;
+            return material.transparency >= transparencyThreshold;
         }
 
         bool isReflective(const Material& material) const

@@ -159,7 +159,6 @@ namespace ray
             if (hitOpt)
             {
                 RaycastHit& hit = *hitOpt;
-                const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
                 return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo));
             }
 

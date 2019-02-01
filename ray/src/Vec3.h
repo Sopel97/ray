@@ -532,7 +532,7 @@ namespace ray
     {
         using std::sqrt;
 
-        const T c = dot(v, n);
+        const T c = -dot(v, n);
         const T s = sqrt(static_cast<T>(1) - r * r*(static_cast<T>(1) - c * c));
         return r * v + (r*c - s)*n;
     }
@@ -543,7 +543,7 @@ namespace ray
     {
         using std::sqrt;
 
-        const T c = dot(v, n);
+        const T c = -dot(v, n);
         const T s = sqrt(static_cast<T>(1) - r * r*(static_cast<T>(1) - c * c));
         return (r * v + (r*c - s)*n).assumeNormalized();
     }
@@ -554,7 +554,7 @@ namespace ray
     {
         using std::sqrt;
 
-        const T c = dot(v, n);
+        const T c = -dot(v, n);
         const T s = sqrt(static_cast<T>(1) - r * r*(static_cast<T>(1) - c * c));
         return r * v + (r*c - s)*n;
     }
@@ -565,7 +565,7 @@ namespace ray
     {
         using std::sqrt;
 
-        const T c = dot(v, n);
+        const T c = -dot(v, n);
         const T s = sqrt(static_cast<T>(1) - r * r*(static_cast<T>(1) - c * c));
         return (r * v + (r*c - s)*n).assumeNormalized();
     }

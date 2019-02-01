@@ -8,7 +8,7 @@ namespace ray
     {
         ColorRGBf surfaceColor;
         ColorRGBf emissionColor;
-        float opacity;
+        float transparency;
         float refractiveIndex;
         float reflectivity;
         float diffuse;
