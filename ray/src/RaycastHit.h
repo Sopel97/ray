@@ -44,12 +44,12 @@ namespace ray
 
         }
 
-        std::optional<ResolvedRaycastHit> next(const Normal3f& direction) const
+        std::optional<ResolvedRaycastHit> next(const Ray& ray) const
         {
-            return m_continuation(*this, direction);
+            return m_continuation(*this, ray);
         }
 
     private:
-        std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Normal3f&)> m_continuation;
+        std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Ray&)> m_continuation;
     };
 }

@@ -545,7 +545,7 @@ namespace ray
 
         const T c = -dot(v, n);
         const T s = sqrt(static_cast<T>(1) - r * r*(static_cast<T>(1) - c * c));
-        return (r * v + (r*c - s)*n).assumeNormalized();
+        return (r * v + (r*c - s)*n).normalized();
     }
 
     // refraction of v through a surface with normal n with refractive index ratio of r

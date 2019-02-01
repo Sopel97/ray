@@ -111,7 +111,7 @@ namespace ray
             int nearestHitPackNo{};
             for (int packNo = 0; packNo < size; ++packNo)
             {
-                std::optional<RaycastHit> hitOpt = raycastOutside(ray, m_shapes[packNo]);
+                std::optional<RaycastHit> hitOpt = raycast(ray, m_shapes[packNo]);
                 if (hitOpt)
                 {
                     RaycastHit& hit = *hitOpt;
@@ -140,7 +140,7 @@ namespace ray
             const int size = static_cast<int>(m_shapes.size());
             for (int packNo = 0; packNo < size; ++packNo)
             {
-                std::optional<RaycastHit> hitOpt = raycastOutside(ray, m_shapes[packNo]);
+                std::optional<RaycastHit> hitOpt = raycast(ray, m_shapes[packNo]);
                 if (hitOpt)
                 {
                     RaycastHit& hit = *hitOpt;
@@ -155,7 +155,7 @@ namespace ray
         std::optional<ResolvedRaycastHit> queryInsideSpecificShape(const Ray& ray, int shapeNo) const
         {
             const int packNo = shapeNo / numShapesInPack;
-            std::optional<RaycastHit> hitOpt = raycastInside(ray, m_shapes[packNo]);
+            std::optional<RaycastHit> hitOpt = raycast(ray, m_shapes[packNo]);
             if (hitOpt)
             {
                 RaycastHit& hit = *hitOpt;
@@ -171,10 +171,10 @@ namespace ray
         IdStorageType m_ids;
         int m_size;
 
-        std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Normal3f&)> createLocalRaycaster(int shapeNo) const
+        std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Ray&)> createLocalRaycaster(int shapeNo) const
         {
-            return [this, shapeNo](const ResolvedLocallyContinuableRaycastHit& prevHit, const Normal3f& direction) {
-                return this->queryInsideSpecificShape(Ray(prevHit.point, direction), shapeNo);
+            return [this, shapeNo](const ResolvedLocallyContinuableRaycastHit& prevHit, const Ray& ray) {
+                return this->queryInsideSpecificShape(ray, shapeNo);
             };
         }
     };

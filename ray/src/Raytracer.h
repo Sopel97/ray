@@ -22,6 +22,9 @@ namespace ray
         // smallest diffuse that makes it trace shadow ray
         static constexpr float diffuseThreshold = 0.01f;
 
+        // not sure if it should be used
+        static constexpr float gamma = 0.43f;
+
         Raytracer(const Scene& scene) :
             m_scene(&scene)
         {
@@ -31,7 +34,7 @@ namespace ray
         Image capture(const Camera& camera) const
         {
             Image img(camera.width(), camera.height());
-            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray)); }, std::execution::par_unseq);
+            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ gamma); }, std::execution::par_unseq);
             return img;
         }
 
@@ -50,28 +53,45 @@ namespace ray
             ColorRGBf reflectionColor = computeReflectionColor(ray, hit, depth);
             ColorRGBf diffusionColor = computeDiffusionColor(ray, hit);
 
-            return combineFresnel(ray, hit, refractionColor, reflectionColor, diffusionColor) + hit.material->emissionColor;
+            return combineFresnel(ray, hit, refractionColor, reflectionColor, diffusionColor, true) + hit.material->emissionColor;
         }
 
-        ColorRGBf combineFresnel(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit, const ColorRGBf& refractionColor, const ColorRGBf& reflectionColor, const ColorRGBf& diffusionColor) const
+        ColorRGBf trace(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& inHit, int depth = 1) const
         {
-            const float fresnelEffect = fresnelReflectAmount(ray, hit);
+            // we are doing the inside part of the refraction
+            std::optional<ResolvedRaycastHit> hitOpt = inHit.next(ray);
+            if (!hitOpt) return {};
+
+            ResolvedRaycastHit& hit = *hitOpt;
+            hit.normal = -hit.normal;
+
+            ColorRGBf refractionColor = computeRefractionColor(ray, hit, depth);
+            ColorRGBf reflectionColor = computeReflectionColor(ray, hit, depth);
+            ColorRGBf diffusionColor = computeDiffusionColor(ray, hit);
+
+            return combineFresnel(ray, hit, refractionColor, reflectionColor, diffusionColor, false) + hit.material->emissionColor;
+        }
+
+        ColorRGBf combineFresnel(const Ray& ray, const ResolvedRaycastHit& hit, const ColorRGBf& refractionColor, const ColorRGBf& reflectionColor, const ColorRGBf& diffusionColor, bool inside = false) const
+        {
+            float n1 = airRefractiveIndex;
+            float n2 = hit.material->refractiveIndex;
+            if (inside) std::swap(n1, n2);
+            const float fresnelEffect = fresnelReflectAmount(ray, hit.normal, hit.material->reflectivity, n1, n2);
 
             return hit.material->surfaceColor * (
-                reflectionColor * (fresnelEffect * hit.material->reflectivity)
+                reflectionColor * (fresnelEffect)
                 + refractionColor * ((1.0f - fresnelEffect) * hit.material->transparency)
                 + diffusionColor);
         }
         
-        float fresnelReflectAmount(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit) const
+        float fresnelReflectAmount(const Ray& ray, const Normal3f& normal, float reflectivity, float n1, float n2) const
         {
             auto sqr = [](float f) {return f * f; };
 
             // Schlick aproximation
-            const float n1 = airRefractiveIndex;
-            const float n2 = hit.material->refractiveIndex;
             const float r0 = sqr((n1 - n2) / (n1 + n2));
-            float cosX = dot(hit.normal, ray.direction());
+            float cosX = -dot(normal, ray.direction());
             if (n1 > n2)
             {
                 const float n = n1 / n2;
@@ -85,12 +105,10 @@ namespace ray
             const float ret = r0 + (1.0f - r0)*x*x*x*x*x;
 
             // adjust reflect multiplier for object reflectivity
-            const float reflectivity = hit.material->reflectivity;
-            //const float transparency = 1.0f - hit.material->opacity;
             return (reflectivity + (1.0f - reflectivity) * ret);
         }
 
-        ColorRGBf computeDiffusionColor(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit) const
+        ColorRGBf computeDiffusionColor(const Ray& ray, const ResolvedRaycastHit& hit) const
         {
             if (!isDiffusive(*hit.material))
                 return {};
@@ -101,18 +119,18 @@ namespace ray
             for (auto& lightHit : visibleLightHits)
             {
                 const Normal3f lightDirection = (lightHit.point - hit.point).normalized();
-                color += lightHit.material->emissionColor * std::max(0.0f, -dot(hit.normal, lightDirection));
+                color += lightHit.material->emissionColor * std::max(0.0f, dot(hit.normal, lightDirection));
             }
             return color * hit.material->diffuse;
         }
 
-        ColorRGBf computeReflectionColor(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit, int depth) const
+        ColorRGBf computeReflectionColor(const Ray& ray, const ResolvedRaycastHit& hit, int depth) const
         {
             if (!isReflective(*hit.material) || depth > maxRayDepth)
                 return {};
 
             const Normal3f reflectionDirection = reflection(ray.direction(), hit.normal);
-            return trace(Ray(hit.point - hit.normal * paddingDistance, reflectionDirection), depth + 1);
+            return trace(Ray(hit.point + hit.normal * paddingDistance, reflectionDirection), depth + 1);
         }
 
         ColorRGBf computeRefractionColor(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit, int depth) const
@@ -124,16 +142,21 @@ namespace ray
             const float eta = hit.material->refractiveIndex / airRefractiveIndex;
             
             // do outside->inside refraction
-            const Normal3f refractionDirection = refraction(ray.direction(), -hit.normal, eta);
-            std::optional<ResolvedRaycastHit> outHitOpt = hit.next(refractionDirection);
-            // TODO: fix. Something is wrong. outHitOpt should never be nullopt but is when the incidence angle is low
-            if (!outHitOpt) return {};
+            const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
+            return trace(Ray(hit.point - hit.normal * paddingDistance, refractionDirection), hit, depth + 1);
+        }
 
-            // TODO: handle reflection
-            // do inside->outside refraction
-            ResolvedRaycastHit& outHit = *outHitOpt;
-            const Normal3f outRefractionDirection = refraction(refractionDirection, outHit.normal, 1.0f / eta);
-            return trace(Ray(outHit.point + outHit.normal * paddingDistance, outRefractionDirection), depth + 1);
+        ColorRGBf computeRefractionColor(const Ray& ray, const ResolvedRaycastHit& hit, int depth) const
+        {
+            if (!isTransparent(*hit.material) || depth > maxRayDepth)
+                return {};
+
+            // outside->inside
+            const float eta = airRefractiveIndex / hit.material->refractiveIndex;
+
+            // do outside->inside refraction
+            const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
+            return trace(Ray(hit.point + hit.normal * paddingDistance, refractionDirection), depth + 1);
         }
 
         ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const

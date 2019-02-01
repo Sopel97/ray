@@ -15,7 +15,7 @@ namespace ray
 
     }
 
-    std::optional<RaycastHit> raycastOutside(const Ray& ray, const Sphere& sphere)
+    std::optional<RaycastHit> raycast(const Ray& ray, const Sphere& sphere)
     {
         /*  
             O -- ray origin
@@ -115,69 +115,7 @@ namespace ray
         if (t1 > 0.0f) t = t1;
 
         const Point3f hitPoint = O + t * D;
-        const Normal3f normal = (C - hitPoint).normalized();
-        const int shapeNo = 0;
-        const int materialNo = 0;
-        return RaycastHit{ hitPoint, normal, shapeNo, materialNo };
-    }
-
-    std::optional<RaycastHit> raycastInside(const Ray& ray, const Sphere& sphere)
-    {
-        /*
-            O -- ray origin
-            D -- ray direction
-            C -- sphere origin
-            R -- sphere radius
-
-            r: O + tD - C
-            o: R^2 = 0
-
-            L = (C - O) -- |OC|
-            t_ca = LD -- ||L||cos(a), where a is the angle between ray direction and the |OC|
-            t_ca < 0 means that the angle is >180 degrees, so the sphere is behind
-
-            Let P be the point on the ray, closest to sphere's center.
-            Then we have a triangle
-            |OP| = t_ca
-            |OC| = ||L||
-            |PC| = d
-            With a right angle by P.
-            L^2 = t_ca^2 + d^2
-            d^2 = L^2 - t_ca^2
-
-            But there's also a right triangle d, R, t_hc (inside the sphere)
-            d^2 + t_hc^2 = R^2
-            t_hc = sqrt(R^2 - d^2)
-
-            Then
-            t = t_ca +- t_hc
-        */
-
-        // doesn't work if we're inside? surely doesn't work if we're past the sphere origin
-        const Point3f O = ray.origin();
-        const Normal3f D = ray.direction();
-        const Point3f C = sphere.center();
-        const float R = sphere.radius();
-
-        const Vec3f L = C - O;
-        const float t_ca = dot(L, D);
-        if (t_ca < 0.0f) return std::nullopt;
-
-        const float d2 = dot(L, L) - t_ca * t_ca;
-        const float r = R * R - d2;
-        if (r < 0.0f) return std::nullopt;
-        const float t_hc = std::sqrt(r);
-
-        float t1 = t_ca - t_hc;
-        float t2 = t_ca + t_hc;
-
-        // we know that at least one is positive
-        // and that t2 is greater
-        // so select t2 because it is on the far end - on inside->outside boundary
-        float t = t2;
-
-        const Point3f hitPoint = O + t * D;
-        const Normal3f normal = (C - hitPoint).normalized();
+        const Normal3f normal = (hitPoint - C).normalized();
         const int shapeNo = 0;
         const int materialNo = 0;
         return RaycastHit{ hitPoint, normal, shapeNo, materialNo };

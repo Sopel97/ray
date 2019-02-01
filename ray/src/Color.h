@@ -64,6 +64,15 @@ namespace ray
         return ColorRGBf(lhs.r * rhs.r, lhs.g * rhs.g, lhs.b * rhs.b);
     }
 
+    inline ColorRGBf operator^(const ColorRGBf& lhs, float gamma)
+    {
+        return ColorRGBf(
+            std::pow(lhs.r, gamma),
+            std::pow(lhs.g, gamma),
+            std::pow(lhs.b, gamma)
+        );
+    }
+
     struct ColorRGBi
     {
         constexpr ColorRGBi() :
@@ -83,9 +92,9 @@ namespace ray
 
         // gamma correction temporarily here
         explicit ColorRGBi(const ColorRGBf& other) :
-            r(static_cast<std::uint8_t>(std::pow(std::clamp(other.r, 0.0f, 1.0f), 0.43f) * 255.0f + 0.5f)),
-            g(static_cast<std::uint8_t>(std::pow(std::clamp(other.g, 0.0f, 1.0f), 0.43f) * 255.0f + 0.5f)),
-            b(static_cast<std::uint8_t>(std::pow(std::clamp(other.b, 0.0f, 1.0f), 0.43f) * 255.0f + 0.5f))
+            r(static_cast<std::uint8_t>(std::clamp(other.r, 0.0f, 1.0f) * 255.0f + 0.5f)),
+            g(static_cast<std::uint8_t>(std::clamp(other.g, 0.0f, 1.0f) * 255.0f + 0.5f)),
+            b(static_cast<std::uint8_t>(std::clamp(other.b, 0.0f, 1.0f) * 255.0f + 0.5f))
         {
 
         }
