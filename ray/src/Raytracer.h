@@ -14,7 +14,6 @@ namespace ray
         // due to floating point inaccuracies
         static constexpr float paddingDistance = 0.0001f;
         static constexpr int maxRayDepth = 5;
-        static constexpr ColorRGBf backgroundColor = ColorRGBf(0.0f, 0.0f, 0.0f);
         static constexpr float airRefractiveIndex = 1.00027717;
         // highest opacity that is not yet considered transparent
         static constexpr float opacityThreshold = 0.99f;
@@ -42,31 +41,56 @@ namespace ray
         ColorRGBf trace(const Ray& ray, int depth = 1) const
         {
             std::optional<ResolvedLocallyContinuableRaycastHit> hitOpt = m_scene->queryNearest(ray);
-            if (!hitOpt) return backgroundColor;
+            if (!hitOpt) return m_scene->backgroundColor();
 
             // reflection, refraction
             ResolvedLocallyContinuableRaycastHit& hit = *hitOpt;
 
             ColorRGBf refractionColor = computeRefractionColor(ray, hit, depth);
             ColorRGBf reflectionColor = computeReflectionColor(ray, hit, depth);
-            ColorRGBf diffusionColor = computeDiffusionColor(ray, hit, depth);
+            ColorRGBf diffusionColor = computeDiffusionColor(ray, hit);
 
             return combineFresnel(ray, hit, refractionColor, reflectionColor, diffusionColor) + hit.material->emissionColor;
         }
 
         ColorRGBf combineFresnel(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit, const ColorRGBf& refractionColor, const ColorRGBf& reflectionColor, const ColorRGBf& diffusionColor) const
         {
-            const float transparency = 1.0f - hit.material->opacity;
-            const float facingRatio = dot(ray.direction(), hit.normal);
-            const float fresnelEffect = mix(std::pow(1.0f - facingRatio, 3), 1.0f, 0.1f);
+            const float fresnelEffect = fresnelReflectAmount(ray, hit);
 
             return hit.material->surfaceColor * (
                 reflectionColor * fresnelEffect
-                + refractionColor * (1.0f - fresnelEffect) * transparency
+                + refractionColor * (1.0f - fresnelEffect)
                 + diffusionColor);
         }
+        
+        float fresnelReflectAmount(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit) const
+        {
+            auto sqr = [](float f) {return f * f; };
 
-        ColorRGBf computeDiffusionColor(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit, int depth) const
+            // Schlick aproximation
+            const float n1 = airRefractiveIndex;
+            const float n2 = hit.material->refractiveIndex;
+            const float r0 = sqr((n1 - n2) / (n1 + n2));
+            float cosX = -dot(hit.normal, ray.direction());
+            if (n1 > n2)
+            {
+                const float n = n1 / n2;
+                const float sinT2 = n * n*(1.0f - cosX * cosX);
+                // Total internal reflection
+                if (sinT2 > 1.0f)
+                    return 1.0f;
+                cosX = std::sqrt(1.0f - sinT2);
+            }
+            const float x = 1.0f - cosX;
+            const float ret = r0 + (1.0f - r0)*x*x*x*x*x;
+
+            // adjust reflect multiplier for object reflectivity
+            const float reflectivity = hit.material->reflectivity;
+            //const float transparency = 1.0f - hit.material->opacity;
+            return (reflectivity + (1.0f - reflectivity) * ret);
+        }
+
+        ColorRGBf computeDiffusionColor(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit) const
         {
             if (!isDiffusive(*hit.material))
                 return {};

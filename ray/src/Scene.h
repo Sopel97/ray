@@ -83,6 +83,16 @@ namespace ray
             return visibleLights;
         }
 
+        const ColorRGBf& backgroundColor() const
+        {
+            return m_backgroundColor;
+        }
+
+        void setBackgroundColor(const ColorRGBf& color)
+        {
+            m_backgroundColor = color;
+        }
+
     private:
         std::tuple<
             ObjectStorageType<Sphere>
@@ -90,6 +100,8 @@ namespace ray
 
         std::vector<Point3f> m_lightPositions;
         std::vector<std::uint64_t> m_lightObjectIds;
+
+        ColorRGBf m_backgroundColor;
 
         template <typename ShapeT>
         ObjectStorageType<ShapeT>& objectsOfType()
