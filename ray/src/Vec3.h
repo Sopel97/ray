@@ -516,14 +516,14 @@ namespace ray
     template <typename T>
     constexpr Normal3<T> reflection(const Normal3<T>& v, const Vec3<T>& n)
     {
-        return (v - static_cast<T>(2) * projection(v, n)).assumeNormalized();
+        return (Vec3<T>(v) - static_cast<T>(2) * projection(v, n)).assumeNormalized();
     }
 
     // reflection of v from a surface with normal n (like light reflection)
     template <typename T>
     constexpr Normal3<T> reflection(const Normal3<T>& v, const Normal3<T>& n)
     {
-        return (v - static_cast<T>(2) * projection(v, n)).assumeNormalized();
+        return (Vec3<T>(v) - static_cast<T>(2) * projection(v, n)).assumeNormalized();
     }
 
     // refraction of v through a surface with normal n with refractive index ratio of r

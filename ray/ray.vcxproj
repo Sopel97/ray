@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="src\Image.cpp" />
+    <ClCompile Include="src\SceneObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Angle.h" />
@@ -164,6 +165,7 @@
     <ClInclude Include="src\SceneObjectArray.h" />
     <ClInclude Include="src\ShapeTraits.h" />
     <ClInclude Include="src\Sphere.h" />
+    <ClInclude Include="src\Util.h" />
     <ClInclude Include="src\Vec3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

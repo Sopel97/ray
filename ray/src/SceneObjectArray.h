@@ -24,6 +24,7 @@ namespace ray
         static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
         using ShapeStorageType = std::vector<ShapeType>;
         using MaterialStorageType = std::vector<std::array<Material*, numMaterialsPerShape>>;
+        using IdStorageType = std::vector<std::uint64_t>;
         using ConstIterator = typename ShapeStorageType::const_iterator;
 
         SceneObjectArray() :
@@ -40,12 +41,14 @@ namespace ray
                 ShapeType& pack = subindex == 0 ? m_shapes.emplace_back() : m_shapes.back();
                 pack.set(subindex, so.shape());
                 m_materials.emplace_back(so.materials());
+                m_ids.emplace_back(so.id());
                 ++m_size;
             }
             else
             {
                 m_shapes.emplace_back(so.shape());
                 m_materials.emplace_back(so.materials());
+                m_ids.emplace_back(so.id());
                 ++m_size;
             }
         }
@@ -71,6 +74,11 @@ namespace ray
         const Material& material(int shapeNo, int materialNo) const
         {
             return *(m_materials[shapeNo][materialNo]);
+        }
+
+        std::uint64_t id(int shapeNo) const
+        {
+            return m_ids[shapeNo];
         }
 
         const MaterialStorageType& materials() const
@@ -121,7 +129,7 @@ namespace ray
             {
                 RaycastHit& hit = *nearestHit;
                 const int shapeNo = nearestHitPackNo * numShapesInPack + hit.shapeNo;
-                return ResolvedLocallyContinuableRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), createLocalRaycaster(shapeNo));
+                return ResolvedLocallyContinuableRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), createLocalRaycaster(shapeNo));
             }
 
             return std::nullopt;
@@ -137,7 +145,7 @@ namespace ray
                 {
                     RaycastHit& hit = *hitOpt;
                     const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
-                    return ResolvedLocallyContinuableRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), createLocalRaycaster(shapeNo));
+                    return ResolvedLocallyContinuableRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), createLocalRaycaster(shapeNo));
                 }
             }
 
@@ -152,7 +160,7 @@ namespace ray
             {
                 RaycastHit& hit = *hitOpt;
                 const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
-                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo));
+                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo));
             }
 
             return std::nullopt;
@@ -161,6 +169,7 @@ namespace ray
     private:
         ShapeStorageType m_shapes;
         MaterialStorageType m_materials;
+        IdStorageType m_ids;
         int m_size;
 
         std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Normal3f&)> createLocalRaycaster(int shapeNo) const

@@ -27,6 +27,9 @@
     <ClCompile Include="src\Image.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\SceneObject.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Image.h">
@@ -81,6 +84,9 @@
       <Filter>Header Files\src</Filter>
     </ClInclude>
     <ClInclude Include="src\IterableNumber.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
   </ItemGroup>

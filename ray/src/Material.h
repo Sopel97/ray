@@ -6,6 +6,11 @@ namespace ray
 {
     struct Material
     {
-        ColorRGBf color;
+        ColorRGBf surfaceColor;
+        ColorRGBf emissionColor;
+        float opacity;
+        float refractiveIndex;
+        float reflectivity;
+        float diffuse;
     };
 }

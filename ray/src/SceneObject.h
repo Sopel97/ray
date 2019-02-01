@@ -7,6 +7,8 @@
 
 namespace ray
 {
+    static std::uint64_t nextSceneObjectId;
+
     // Stores a shape and its material[s].
     template <typename ShapeT>
     struct SceneObject
@@ -23,7 +25,8 @@ namespace ray
 
         SceneObject(const ShapeType& shape, const MaterialStorageType& materials) :
             m_shape(shape),
-            m_materials(materials)
+            m_materials(materials),
+            m_id(nextSceneObjectId++)
         {
 
         }
@@ -43,8 +46,23 @@ namespace ray
             return m_materials;
         }
 
+        bool isLight() const
+        {
+            for (const auto& mat : m_materials)
+            {
+                if (mat->emissionColor.total() > 0.0001f) return true;
+            }
+            return false;
+        }
+
+        std::uint64_t id() const
+        {
+            return m_id;
+        }
+
     private:
         ShapeType m_shape;
         MaterialStorageType m_materials;
+        std::uint64_t m_id;
     };
 }

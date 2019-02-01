@@ -21,11 +21,12 @@ int main()
     sf::RenderWindow window(sf::VideoMode(width, height), "ray");
 
     Scene scene;
-    scene.setLightPosition({ 0.0f, 7.0f, 1.0f });
-    Material mat{ ColorRGBf(1.0f, 0.0f, 0.0f) };
-    Material mat2{ ColorRGBf(0.0f, 1.0f, 0.0f) };
+    Material mat{ ColorRGBf(1.0f, 0.0f, 0.0f), ColorRGBf(0.0f, 0.0f, 0.0f), 0.2f, 1.458f, 0.07f, 0.1f };
+    Material mat2{ ColorRGBf(0.0f, 1.0f, 0.0f), ColorRGBf(0.0f, 0.0f, 0.0f), 0.2f, 1.458f, 0.07f, 0.1f };
+    Material lightMat{ ColorRGBf(1.0f, 1.0f, 1.0f), ColorRGBf(3.0f, 3.0f, 3.0f), 1.0f, 1.0f, 1.0f, 1.0f };
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0, 0, -2), 1.0f), { &mat }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0, 1.0f, -1.2f), 0.5f), { &mat2 }));
+    scene.add(SceneObject<Sphere>(Sphere({ 0.0f, 7.0f, 1.0f }, 0.5f), { &lightMat }));
 
 
     Raytracer raytracer(scene);

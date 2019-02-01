@@ -18,10 +18,11 @@ namespace ray
 
     struct ResolvedRaycastHit
     {
-        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material) :
+        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material, std::uint64_t objectId) :
             point(point),
             normal(normal),
-            material(&material)
+            material(&material),
+            objectId(objectId)
         {
 
         }
@@ -29,14 +30,15 @@ namespace ray
         Point3f point;
         Normal3f normal;
         const Material* material;
+        std::uint64_t objectId;
     };
 
     // allows fast queries from inside the shape
     struct ResolvedLocallyContinuableRaycastHit : ResolvedRaycastHit
     {
         template <typename FuncT>
-        ResolvedLocallyContinuableRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material, FuncT&& func) :
-            ResolvedRaycastHit(point, normal, material),
+        ResolvedLocallyContinuableRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material, std::uint64_t objectId, FuncT&& func) :
+            ResolvedRaycastHit(point, normal, material, objectId),
             m_continuation(std::forward<FuncT>(func))
         {
 

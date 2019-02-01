@@ -45,7 +45,7 @@ namespace ray
             m_center += v;
         }
 
-        Sphere translated(const Vec3f& v) const
+        constexpr Sphere translated(const Vec3f& v) const
         {
             return Sphere(m_center + v, m_radius);
         }

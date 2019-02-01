@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 
 namespace ray
 {
@@ -26,8 +27,41 @@ namespace ray
         constexpr ColorRGBf& operator=(const ColorRGBf&) = default;
         constexpr ColorRGBf& operator=(ColorRGBf&&) = default;
 
+        ColorRGBf& operator+=(const ColorRGBf& rhs)
+        {
+            r += rhs.r;
+            g += rhs.g;
+            b += rhs.b;
+            return *this;
+        }
+
+        constexpr float total() const
+        {
+            return r + g + b;
+        }
+
         float r, g, b;
     };
+
+    constexpr ColorRGBf operator*(const ColorRGBf& lhs, float rhs)
+    {
+        return ColorRGBf(lhs.r * rhs, lhs.g * rhs, lhs.b * rhs);
+    }
+
+    constexpr ColorRGBf operator*(float lhs, const ColorRGBf& rhs)
+    {
+        return ColorRGBf(lhs * rhs.r, lhs * rhs.g, lhs * rhs.b);
+    }
+
+    constexpr ColorRGBf operator+(const ColorRGBf& lhs, const ColorRGBf& rhs)
+    {
+        return ColorRGBf(lhs.r + rhs.r, lhs.g + rhs.g, lhs.b + rhs.b);
+    }
+
+    constexpr ColorRGBf operator*(const ColorRGBf& lhs, const ColorRGBf& rhs)
+    {
+        return ColorRGBf(lhs.r * rhs.r, lhs.g * rhs.g, lhs.b * rhs.b);
+    }
 
     struct ColorRGBi
     {
@@ -47,9 +81,9 @@ namespace ray
         }
 
         constexpr explicit ColorRGBi(const ColorRGBf& other) :
-            r(static_cast<std::uint8_t>(other.r * 255.0f + 0.5f)),
-            g(static_cast<std::uint8_t>(other.g * 255.0f + 0.5f)),
-            b(static_cast<std::uint8_t>(other.b * 255.0f + 0.5f))
+            r(static_cast<std::uint8_t>(std::clamp(other.r, 0.0f, 1.0f) * 255.0f + 0.5f)),
+            g(static_cast<std::uint8_t>(std::clamp(other.g, 0.0f, 1.0f) * 255.0f + 0.5f)),
+            b(static_cast<std::uint8_t>(std::clamp(other.b, 0.0f, 1.0f) * 255.0f + 0.5f))
         {
 
         }
