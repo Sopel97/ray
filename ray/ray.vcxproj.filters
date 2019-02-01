@@ -80,5 +80,8 @@
     <ClInclude Include="src\Raytracer.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\IterableNumber.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

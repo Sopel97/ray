@@ -154,6 +154,7 @@
     <ClInclude Include="src\Image.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MathConstants.h" />
+    <ClInclude Include="src\IterableNumber.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="src\Raycast.h" />
     <ClInclude Include="src\Raytracer.h" />

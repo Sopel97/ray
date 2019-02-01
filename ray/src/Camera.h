@@ -1,11 +1,14 @@
 #pragma once
 
-#include <cmath>
-#include <iostream>
-
 #include "Angle.h"
+#include "IterableNumber.h"
 #include "Ray.h"
 #include "Vec3.h"
+
+#include <algorithm>
+#include <cmath>
+#include <execution>
+#include <iostream>
 
 namespace ray
 {
@@ -24,8 +27,8 @@ namespace ray
 
         }
 
-        template <typename FuncT>
-        void forEachPixelRay(FuncT&& func) const
+        template <typename FuncT, typename ExecT = std::execution::sequenced_policy>
+        void forEachPixelRay(FuncT&& func, ExecT exec = std::execution::seq) const
         {
             const float a = aspectRatio();
             const float viewportHeight = 2.0f * viewportDistance * m_fov.tan();
@@ -44,20 +47,19 @@ namespace ray
                 - ((viewportWidth - pixelWidth) / 2.0f * viewportRight) 
                 - ((viewportHeight - pixelHeight) / 2.0f * viewportDown);
 
-            for (int y = 0; y < viewportHeightPixels; ++y)
-            {
+            std::for_each_n(exec, IterableNumber(0), viewportHeightPixels, [&](int y) {
                 for (int x = 0; x < viewportWidthPixels; ++x)
                 {
                     const Point3f viewportPoint =
                         (viewportTopLeft
-                        + static_cast<float>(x) * pixelWidth * viewportRight
-                        + static_cast<float>(y) * pixelHeight * viewportDown);
+                            + static_cast<float>(x) * pixelWidth * viewportRight
+                            + static_cast<float>(y) * pixelHeight * viewportDown);
 
                     const Normal3f direction = (viewportPoint - m_position).normalized();
 
                     func(Ray(m_position, direction), x, y);
                 }
-            }
+            });
         }
 
         float aspectRatio() const

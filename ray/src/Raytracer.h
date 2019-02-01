@@ -22,7 +22,7 @@ namespace ray
         Image capture(const Camera& camera) const
         {
             Image img(camera.width(), camera.height());
-            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = traceResult(ray); });
+            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = traceResult(ray); }, std::execution::par_unseq);
             return img;
         }
 
