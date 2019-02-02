@@ -73,6 +73,24 @@ namespace ray
         );
     }
 
+    constexpr ColorRGBf operator-(const ColorRGBf& lhs)
+    {
+        return ColorRGBf(
+            -lhs.r,
+            -lhs.g,
+            -lhs.b
+        );
+    }
+
+    inline ColorRGBf exp(const ColorRGBf& lhs)
+    {
+        return ColorRGBf(
+            std::exp(lhs.r),
+            std::exp(lhs.g),
+            std::exp(lhs.b)
+        );
+    }
+
     struct ColorRGBi
     {
         constexpr ColorRGBi() :

@@ -28,20 +28,38 @@ int main()
         float reflectivity;
         float diffuse;
     */
+
+    
     Scene scene;
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
     Material m1{ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.3f, 0.4f};
-    Material m2{ ColorRGBf(1.00, 0.32, 0.36), ColorRGBf(0, 0, 0), 0.5f, 1.1f, 0.4f, 0.01f };
-    Material m3{ ColorRGBf(0.90, 0.76, 0.46), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.05f, 0.01f };
-    Material m4{ ColorRGBf(0.65, 0.77, 0.97), ColorRGBf(0, 0, 0), 0.1f, 1.1f, 0.8f, 0.01f };
-    Material m5{ ColorRGBf(0.90, 0.90, 0.90), ColorRGBf(0, 0, 0), 0.1f, 1.1f, 0.8f, 0.01f };
+    Material m2{ ColorRGBf(1.00, 0.32, 0.36), ColorRGBf(0, 0, 0), 0.5f, 1.1f, 0.4f, 0.0f };
+    Material m3{ ColorRGBf(0.90, 0.76, 0.46), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f };
+    Material m4{ ColorRGBf(0.65, 0.77, 0.97), ColorRGBf(0, 0, 0), 0.1f, 1.1f, 0.8f, 0.0f };
+    Material m5{ ColorRGBf(0.90, 0.90, 0.90), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f };
     Material m6{ ColorRGBf(0.00, 0.00, 0.00), ColorRGBf(3, 3, 3), 0.0f, 1.1f, 0.0f, 0.0f };
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, -104, -20), 100), { &m1 }));
+    Material m7{ ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 1.13f, 0.05f, 0.0f };
+    Material m8{ ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.0f, 1.13f, 1.0f, 0.0f };
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    
+
+    /*
+    Scene scene;
+    scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
+    Material m1{ ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.0f, 0.7f };
+    Material m2{ ColorRGBf(1.00, 1, 1), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f };
+    Material m6{ ColorRGBf(0.00, 0.00, 0.00), ColorRGBf(3, 3, 3), 0.0f, 1.1f, 0.0f, 0.0f };
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, -9995, -1000), 10000), { &m1 }));
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, -1, -7), 3.5), { &m2 }));
+    scene.add(SceneObject<Sphere>(Sphere(Point3f(20, 30, 10), 3), { &m6 }));
+    */
 
     /*
     Scene scene;

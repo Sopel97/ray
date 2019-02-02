@@ -12,5 +12,6 @@ namespace ray
         float refractiveIndex;
         float reflectivity;
         float diffuse;
+        ColorRGBf absorbtion;
     };
 }

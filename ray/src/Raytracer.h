@@ -13,8 +13,8 @@ namespace ray
         // not considered obstructed by the shape it is on
         // due to floating point inaccuracies
         static constexpr float paddingDistance = 0.0001f;
-        static constexpr int maxRayDepth = 5;
-        static constexpr float airRefractiveIndex = 1.00027717;
+        static constexpr int maxRayDepth = 6;
+        static constexpr float airRefractiveIndex = 1.00027717f;
         // smallest transparenct that is not considered zero
         static constexpr float transparencyThreshold = 0.01f;
         // smallest reflectivity that is still considered reflective
@@ -65,7 +65,7 @@ namespace ray
             ResolvedRaycastHit& hit = *hitOpt;
             hit.normal = -hit.normal;
 
-            ColorRGBf refractionColor = computeRefractionColor(ray, hit, depth);
+            ColorRGBf refractionColor = computeRefractionColor(ray, inHit, hit, depth);
             ColorRGBf reflectionColor = computeReflectionColor(ray, hit, depth);
             ColorRGBf diffusionColor = computeDiffusionColor(ray, hit);
 
@@ -79,6 +79,25 @@ namespace ray
             if (inside) std::swap(n1, n2);
             const float fresnelEffect = fresnelReflectAmount(ray, hit.normal, hit.material->reflectivity, n1, n2);
 
+            /*
+            if (hit.objectId == 0)
+            {
+                // In this particular case, the normal is simular to a point on a unit sphere
+                // centred around the origin. We can thus use the normal coordinates to compute
+                // the spherical coordinates of Phit.
+                // atan2 returns a value in the range [-pi, pi] and we need to remap it to range [0, 1]
+                // acosf returns a value in the range [0, pi] and we also need to remap it to the range [0, 1]
+                float x = (1.0f + std::atan2(hit.normal.z, hit.normal.x) / pi) * 0.5f;
+                float y = std::acosf(hit.normal.y) / pi;
+                float scale = 30;
+                float pattern = (std::fmodf(x * scale, 1) > 0.5) ^ (fmodf(y * scale * 4.0f, 1) > 0.5) ? 1.0f : 0.8f;
+
+                return hit.material->surfaceColor * pattern * (
+                    reflectionColor * (fresnelEffect) * 0.0f
+                    +refractionColor * ((1.0f - fresnelEffect) * hit.material->transparency)
+                    + diffusionColor);
+            }
+            */
             return hit.material->surfaceColor * (
                 reflectionColor * (fresnelEffect)
                 + refractionColor * ((1.0f - fresnelEffect) * hit.material->transparency)
@@ -87,11 +106,12 @@ namespace ray
         
         float fresnelReflectAmount(const Ray& ray, const Normal3f& normal, float reflectivity, float n1, float n2) const
         {
+            std::swap(n1, n2);
             auto sqr = [](float f) {return f * f; };
 
             // Schlick aproximation
             const float r0 = sqr((n1 - n2) / (n1 + n2));
-            float cosX = -dot(normal, ray.direction());
+            float cosX = dot(normal, ray.direction());
             if (n1 > n2)
             {
                 const float n = n1 / n2;
@@ -101,6 +121,8 @@ namespace ray
                     return 1.0f;
                 cosX = std::sqrt(1.0f - sinT2);
             }
+
+            cosX = std::abs(cosX);
             const float x = 1.0f - cosX;
             const float ret = r0 + (1.0f - r0)*x*x*x*x*x;
 
@@ -110,6 +132,7 @@ namespace ray
 
         ColorRGBf computeDiffusionColor(const Ray& ray, const ResolvedRaycastHit& hit) const
         {
+            // TODO: handle transparency?
             if (!isDiffusive(*hit.material))
                 return {};
 
@@ -130,7 +153,7 @@ namespace ray
                 return {};
 
             const Normal3f reflectionDirection = reflection(ray.direction(), hit.normal);
-            return trace(Ray(hit.point + hit.normal * paddingDistance, reflectionDirection), depth + 1);
+            return trace(Ray(hit.point + reflectionDirection * paddingDistance, reflectionDirection), depth + 1);
         }
 
         ColorRGBf computeRefractionColor(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& hit, int depth) const
@@ -139,24 +162,29 @@ namespace ray
                 return {};
 
             // outside->inside
-            const float eta = hit.material->refractiveIndex / airRefractiveIndex;
+            const float eta = airRefractiveIndex / hit.material->refractiveIndex;
             
             // do outside->inside refraction
             const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
-            return trace(Ray(hit.point - hit.normal * paddingDistance, refractionDirection), hit, depth + 1);
+            return trace(Ray(hit.point + refractionDirection * paddingDistance, refractionDirection), hit, depth + 1);
         }
 
-        ColorRGBf computeRefractionColor(const Ray& ray, const ResolvedRaycastHit& hit, int depth) const
+        ColorRGBf computeRefractionColor(const Ray& ray, const ResolvedLocallyContinuableRaycastHit& inHit, const ResolvedRaycastHit& hit, int depth) const
         {
             if (!isTransparent(*hit.material) || depth > maxRayDepth)
                 return {};
 
             // outside->inside
-            const float eta = airRefractiveIndex / hit.material->refractiveIndex;
+            const float eta = hit.material->refractiveIndex / airRefractiveIndex;
 
             // do outside->inside refraction
             const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
-            return trace(Ray(hit.point + hit.normal * paddingDistance, refractionDirection), depth + 1);
+            const ColorRGBf color = trace(Ray(hit.point + refractionDirection * paddingDistance, refractionDirection), depth + 1);
+            
+            // do absorbtion
+            // Beer's law
+            const float dist = distance(hit.point, inHit.point);
+            return exp(-hit.material->absorbtion * dist) * color;
         }
 
         ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const
