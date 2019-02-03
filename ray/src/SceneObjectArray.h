@@ -2,6 +2,7 @@
 
 #include "Material.h"
 #include "SceneObject.h"
+#include "SceneObjectCollection.h"
 #include "ShapeTraits.h"
 
 #include <array>
@@ -14,7 +15,7 @@ namespace ray
     // So there are two separate arrays for shapes and materials
     // Handles packs by abstracting insertion and access to be done on with granularity of a single shape.
     template <typename ShapeT>
-    struct SceneObjectArray
+    struct SceneObjectArray : SceneObjectCollection
     {
         using ShapeType = ShapeT;
         using ShapeTraits = ShapeTraits<ShapeType>;
@@ -103,7 +104,7 @@ namespace ray
             return end(m_shapes);
         }
 
-        std::optional<ResolvedLocallyContinuableRaycastHit> queryNearest(const Ray& ray) const
+        std::optional<ResolvedRaycastHit> queryNearest(const Ray& ray) const
         {
             const int size = static_cast<int>(m_shapes.size());
             std::optional<RaycastHit> nearestHit{};
@@ -129,13 +130,13 @@ namespace ray
             {
                 RaycastHit& hit = *nearestHit;
                 const int shapeNo = nearestHitPackNo * numShapesInPack + hit.shapeNo;
-                return ResolvedLocallyContinuableRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), createLocalRaycaster(shapeNo));
+                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, true);
             }
 
             return std::nullopt;
         }
 
-        std::optional<ResolvedLocallyContinuableRaycastHit> queryAny(const Ray& ray) const
+        std::optional<ResolvedRaycastHit> queryAny(const Ray& ray) const
         {
             const int size = static_cast<int>(m_shapes.size());
             for (int packNo = 0; packNo < size; ++packNo)
@@ -145,21 +146,21 @@ namespace ray
                 {
                     RaycastHit& hit = *hitOpt;
                     const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
-                    return ResolvedLocallyContinuableRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), createLocalRaycaster(shapeNo));
+                    return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, true);
                 }
             }
 
             return std::nullopt;
         }
 
-        std::optional<ResolvedRaycastHit> queryInsideSpecificShape(const Ray& ray, int shapeNo) const
+        std::optional<ResolvedRaycastHit> queryLocal(const Ray& ray, int shapeNo) const override
         {
             const int packNo = shapeNo / numShapesInPack;
             std::optional<RaycastHit> hitOpt = raycast(ray, m_shapes[packNo]);
             if (hitOpt)
             {
                 RaycastHit& hit = *hitOpt;
-                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo));
+                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, false);
             }
 
             return std::nullopt;
@@ -170,12 +171,5 @@ namespace ray
         MaterialStorageType m_materials;
         IdStorageType m_ids;
         int m_size;
-
-        std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Ray&)> createLocalRaycaster(int shapeNo) const
-        {
-            return [this, shapeNo](const ResolvedLocallyContinuableRaycastHit& prevHit, const Ray& ray) {
-                return this->queryInsideSpecificShape(ray, shapeNo);
-            };
-        }
     };
 }

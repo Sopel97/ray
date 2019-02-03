@@ -112,12 +112,24 @@ namespace ray
         // we know that at least one is positive
         // and that t2 is greater
         float t = t2;
-        if (t1 > 0.0f) t = t1;
+        if (t1 > 0.0f)
+        {
+            // hit from outside
+            const Point3f hitPoint = O + t1 * D;
+            const Normal3f normal = (hitPoint - C).normalized();
+            const int shapeNo = 0;
+            const int materialNo = 0;
+            return RaycastHit{ hitPoint, normal, shapeNo, materialNo, false };
+        }
+        else
+        {
+            // hit from inside
+            const Point3f hitPoint = O + t2 * D;
+            const Normal3f normal = (hitPoint - C).normalized();
+            const int shapeNo = 0;
+            const int materialNo = 0;
+            return RaycastHit{ hitPoint, -normal, shapeNo, materialNo, true };
+        }
 
-        const Point3f hitPoint = O + t * D;
-        const Normal3f normal = (hitPoint - C).normalized();
-        const int shapeNo = 0;
-        const int materialNo = 0;
-        return RaycastHit{ hitPoint, normal, shapeNo, materialNo };
     }
 }

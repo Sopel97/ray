@@ -1,19 +1,24 @@
 #pragma once
 
+#include "SceneObjectCollection.h"
 #include "Material.h"
 #include "Vec3.h"
 
+#include <cstdint>
 #include <functional>
 #include <optional>
 
 namespace ray
 {
+    struct SceneObjectCollction;
+
     struct RaycastHit
     {
         Point3f point;
         Normal3f normal;
         int shapeNo;
         int materialNo;
+        bool isInside;
     };
 
     struct ResolvedRaycastHit
@@ -22,7 +27,23 @@ namespace ray
             point(point),
             normal(normal),
             material(&material),
-            objectId(objectId)
+            objectId(objectId),
+            owner(nullptr),
+            shapeNo(0),
+            isLocallyContinuable(false)
+        {
+
+        }
+
+        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material, std::uint64_t objectId, bool isInside, const SceneObjectCollection& owner, int shapeNo, bool local) :
+            point(point),
+            normal(normal),
+            material(&material),
+            objectId(objectId),
+            isInside(isInside),
+            owner(&owner),
+            shapeNo(shapeNo),
+            isLocallyContinuable(local)
         {
 
         }
@@ -31,25 +52,16 @@ namespace ray
         Normal3f normal;
         const Material* material;
         std::uint64_t objectId;
-    };
-
-    // allows fast queries from inside the shape
-    struct ResolvedLocallyContinuableRaycastHit : ResolvedRaycastHit
-    {
-        template <typename FuncT>
-        ResolvedLocallyContinuableRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material, std::uint64_t objectId, FuncT&& func) :
-            ResolvedRaycastHit(point, normal, material, objectId),
-            m_continuation(std::forward<FuncT>(func))
-        {
-
-        }
+        bool isInside;
+        const SceneObjectCollection* owner;
+        int shapeNo;
+        bool isLocallyContinuable;
 
         std::optional<ResolvedRaycastHit> next(const Ray& ray) const
         {
-            return m_continuation(*this, ray);
-        }
+            if (!owner || !isLocallyContinuable) return std::nullopt;
 
-    private:
-        std::function<std::optional<ResolvedRaycastHit>(const ResolvedLocallyContinuableRaycastHit& prevHit, const Ray&)> m_continuation;
+            return owner->queryLocal(ray, shapeNo);
+        }
     };
 }

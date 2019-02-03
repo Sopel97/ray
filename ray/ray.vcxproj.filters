@@ -89,5 +89,8 @@
     <ClInclude Include="src\Util.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\SceneObjectCollection.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
