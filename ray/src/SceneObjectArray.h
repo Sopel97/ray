@@ -23,6 +23,7 @@ namespace ray
         static constexpr int numShapesInPack = ShapeTraits::numShapes;
         static constexpr bool isPack = numShapesInPack > 1;
         static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
+        static constexpr bool hasVolume = ShapeTraits::hasVolume;
         using ShapeStorageType = std::vector<ShapeType>;
         using MaterialStorageType = std::vector<std::array<Material*, numMaterialsPerShape>>;
         using IdStorageType = std::vector<std::uint64_t>;
@@ -130,7 +131,7 @@ namespace ray
             {
                 RaycastHit& hit = *nearestHit;
                 const int shapeNo = nearestHitPackNo * numShapesInPack + hit.shapeNo;
-                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, true);
+                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, hasVolume);
             }
 
             return std::nullopt;
@@ -146,7 +147,7 @@ namespace ray
                 {
                     RaycastHit& hit = *hitOpt;
                     const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
-                    return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, true);
+                    return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, hasVolume);
                 }
             }
 
@@ -160,7 +161,7 @@ namespace ray
             if (hitOpt)
             {
                 RaycastHit& hit = *hitOpt;
-                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, false);
+                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, hasVolume);
             }
 
             return std::nullopt;

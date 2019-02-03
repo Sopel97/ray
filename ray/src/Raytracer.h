@@ -44,7 +44,10 @@ namespace ray
 
         ColorRGBf trace(const Ray& ray, int depth = 1, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
         {
-            std::optional<ResolvedRaycastHit> hitOpt = prevHit && prevHit->isLocallyContinuable && isInside ? prevHit->next(ray) : m_scene->queryNearest(ray);
+            std::optional<ResolvedRaycastHit> hitOpt = 
+                prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
+                ? prevHit->next(ray) 
+                : m_scene->queryNearest(ray);
             if (!hitOpt) return m_scene->backgroundColor();
 
             ResolvedRaycastHit& hit = *hitOpt;
