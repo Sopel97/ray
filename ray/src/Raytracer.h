@@ -74,27 +74,9 @@ namespace ray
             float n2 = hit.material->refractiveIndex;
             if (inside) std::swap(n1, n2);
             const float fresnelEffect = fresnelReflectAmount(ray, hit.normal, hit.material->reflectivity, n1, n2);
+            const ColorRGBf textureColor = hit.material->sampleTexture(hit.texCoords);
 
-            /*
-            if (hit.objectId == 0)
-            {
-                // In this particular case, the normal is simular to a point on a unit sphere
-                // centred around the origin. We can thus use the normal coordinates to compute
-                // the spherical coordinates of Phit.
-                // atan2 returns a value in the range [-pi, pi] and we need to remap it to range [0, 1]
-                // acosf returns a value in the range [0, pi] and we also need to remap it to the range [0, 1]
-                float x = (1.0f + std::atan2(hit.normal.z, hit.normal.x) / pi) * 0.5f;
-                float y = std::acosf(hit.normal.y) / pi;
-                float scale = 30;
-                float pattern = (std::fmodf(x * scale, 1) > 0.5) ^ (fmodf(y * scale * 4.0f, 1) > 0.5) ? 1.0f : 0.8f;
-
-                return hit.material->surfaceColor * pattern * (
-                    reflectionColor * (fresnelEffect) * 0.0f
-                    +refractionColor * ((1.0f - fresnelEffect) * hit.material->transparency)
-                    + diffusionColor);
-            }
-            */
-            return hit.material->surfaceColor * (
+            return hit.material->surfaceColor * textureColor * (
                 reflectionColor * (fresnelEffect)
                 + refractionColor * ((1.0f - fresnelEffect) * hit.material->transparency)
                 + diffusionColor);

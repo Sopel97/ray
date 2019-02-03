@@ -4,6 +4,7 @@
 #include "SceneObject.h"
 #include "SceneObjectCollection.h"
 #include "ShapeTraits.h"
+#include "TextureCoordinateResolver.h"
 
 #include <array>
 #include <functional>
@@ -131,7 +132,7 @@ namespace ray
             {
                 RaycastHit& hit = *nearestHit;
                 const int shapeNo = nearestHitPackNo * numShapesInPack + hit.shapeNo;
-                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, hasVolume);
+                return resolveHit(hit, nearestHitPackNo, shapeNo);
             }
 
             return std::nullopt;
@@ -147,7 +148,7 @@ namespace ray
                 {
                     RaycastHit& hit = *hitOpt;
                     const int shapeNo = packNo * numShapesInPack + hit.shapeNo;
-                    return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, hasVolume);
+                    return resolveHit(hit, packNo, shapeNo);
                 }
             }
 
@@ -161,7 +162,7 @@ namespace ray
             if (hitOpt)
             {
                 RaycastHit& hit = *hitOpt;
-                return ResolvedRaycastHit(hit.point, hit.normal, material(shapeNo, hit.materialNo), id(shapeNo), hit.isInside, *this, shapeNo, hasVolume);
+                return resolveHit(hit, packNo, shapeNo);
             }
 
             return std::nullopt;
@@ -172,5 +173,12 @@ namespace ray
         MaterialStorageType m_materials;
         IdStorageType m_ids;
         int m_size;
+
+        ResolvedRaycastHit resolveHit(const RaycastHit& hit, int packNo, int shapeNo) const
+        {
+            const Material& mat = material(shapeNo, hit.materialNo);
+            const TexCoords texCoords = mat.texture ? resolveTexCoords(m_shapes[packNo], hit) : TexCoords{ 0.0f, 0.0f };
+            return ResolvedRaycastHit(hit.point, hit.normal, texCoords, mat, id(shapeNo), hit.isInside, *this, shapeNo, hasVolume);
+        }
     };
 }

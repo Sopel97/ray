@@ -4,6 +4,7 @@
 #include "src/Angle.h"
 #include "src/Camera.h"
 #include "src/Image.h"
+#include "src/Patterns.h"
 #include "src/Raycast.h"
 #include "src/Raytracer.h"
 #include "src/Scene.h"
@@ -32,7 +33,8 @@ int main()
     
     Scene scene;
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
-    Material m1{ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.3f, 0.4f};
+    SquarePattern pat(ColorRGBf(0.8f, 0.8f, 0.8f), ColorRGBf(0.6f, 0.6f, 0.6f), 30.0f);
+    Material m1{ ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.3f, 0.4f, {}, &pat };
     Material m2{ ColorRGBf(1.00, 0.32, 0.36), ColorRGBf(0, 0, 0), 0.5f, 1.1f, 0.4f, 0.0f };
     Material m3{ ColorRGBf(0.90, 0.76, 0.46), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f };
     Material m4{ ColorRGBf(0.65, 0.77, 0.97), ColorRGBf(0, 0, 0), 0.1f, 1.1f, 0.8f, 0.0f };

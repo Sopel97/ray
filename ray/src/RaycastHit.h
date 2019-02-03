@@ -2,6 +2,7 @@
 
 #include "SceneObjectCollection.h"
 #include "Material.h"
+#include "TexCoords.h"
 #include "Vec3.h"
 
 #include <cstdint>
@@ -35,9 +36,10 @@ namespace ray
 
         }
 
-        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material, std::uint64_t objectId, bool isInside, const SceneObjectCollection& owner, int shapeNo, bool local) :
+        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const TexCoords& texCoords, const Material& material, std::uint64_t objectId, bool isInside, const SceneObjectCollection& owner, int shapeNo, bool local) :
             point(point),
             normal(normal),
+            texCoords(texCoords),
             material(&material),
             objectId(objectId),
             isInside(isInside),
@@ -50,6 +52,7 @@ namespace ray
 
         Point3f point;
         Normal3f normal;
+        TexCoords texCoords;
         const Material* material;
         std::uint64_t objectId;
         bool isInside;
