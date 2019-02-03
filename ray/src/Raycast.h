@@ -111,7 +111,6 @@ namespace ray
         // select smallest positive
         // we know that at least one is positive
         // and that t2 is greater
-        float t = t2;
         if (t1 > 0.0f)
         {
             // hit from outside
