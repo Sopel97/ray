@@ -30,9 +30,6 @@
     <ClCompile Include="src\SceneObject.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\RaycastHit.cpp">
-      <Filter>Header Files\src</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Image.h">

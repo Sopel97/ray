@@ -13,8 +13,8 @@ namespace ray
     template <typename ShapeT>
     struct SceneObject
     {
-        using ShapePackType = ShapeT;
-        using ShapeTraits = ShapeTraits<ShapePackType>;
+        using ShapeType = ShapeT;
+        using ShapeTraits = ShapeTraits<ShapeType>;
         using BaseShapeType = typename ShapeTraits::BaseShapeType;
         static constexpr int numShapesInPack = ShapeTraits::numShapes;
         static constexpr bool isPack = numShapesInPack > 1;
@@ -23,7 +23,7 @@ namespace ray
 
         static_assert(!isPack, "A single scene object must not be a pack. Use SceneObjectArray.");
 
-        SceneObject(const ShapePackType& shape, const MaterialStorageType& materials) :
+        SceneObject(const ShapeType& shape, const MaterialStorageType& materials) :
             m_shape(shape),
             m_materials(materials),
             m_id(nextSceneObjectId++)
@@ -31,7 +31,7 @@ namespace ray
 
         }
 
-        const ShapePackType& shape() const
+        const ShapeType& shape() const
         {
             return m_shape;
         }
@@ -61,7 +61,7 @@ namespace ray
         }
 
     private:
-        ShapePackType m_shape;
+        ShapeType m_shape;
         MaterialStorageType m_materials;
         std::uint64_t m_id;
     };
