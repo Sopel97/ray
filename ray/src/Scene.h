@@ -40,9 +40,9 @@ namespace ray
             }
         }
 
-        std::optional<ResolvedRaycastHit> queryNearest(const Ray& ray) const
+        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
         {
-            std::optional<ResolvedRaycastHit> hitOpt = objectsOfType<Sphere>().queryNearest(ray);
+            std::optional<ResolvableRaycastHit> hitOpt = objectsOfType<Sphere>().queryNearest(ray);
             if (hitOpt) return hitOpt;
 
             // possibly other types
@@ -50,9 +50,9 @@ namespace ray
             return std::nullopt;
         }
 
-        std::optional<ResolvedRaycastHit> queryAny(const Ray& ray) const
+        std::optional<ResolvableRaycastHit> queryAny(const Ray& ray) const
         {
-            std::optional<ResolvedRaycastHit> hitOpt = objectsOfType<Sphere>().queryAny(ray);
+            std::optional<ResolvableRaycastHit> hitOpt = objectsOfType<Sphere>().queryAny(ray);
             if (hitOpt) return hitOpt;
 
             // possibly other types
@@ -60,18 +60,17 @@ namespace ray
             return std::nullopt;
         }
 
-        std::vector<ResolvedRaycastHit> queryVisibleLights(const Point3f& point) const
+        std::vector<ResolvableRaycastHit> queryVisibleLights(const Point3f& point) const
         {
-            std::vector<ResolvedRaycastHit> visibleLights{};
+            std::vector<ResolvableRaycastHit> visibleLights{};
             for (int i = 0; i < m_lightPositions.size(); ++i)
             {
                 const Ray ray = Ray::between(point, m_lightPositions[i]);
-                std::optional<ResolvedRaycastHit> hitOpt = objectsOfType<Sphere>().queryNearest(ray);
+                std::optional<ResolvableRaycastHit> hitOpt = objectsOfType<Sphere>().queryNearest(ray);
                 if (hitOpt)
                 {
-                    const ResolvedRaycastHit& hit = *hitOpt;
+                    ResolvableRaycastHit& hit = *hitOpt;
                     if (hit.objectId != m_lightObjectIds[i]) continue;
-                    if (!isLight(*hit.material)) continue;
                     
                     // we hit something and it's exactly the light we were looking for
                     visibleLights.emplace_back(std::move(hit));
@@ -79,7 +78,6 @@ namespace ray
             }
 
             // possibly other types
-
             return visibleLights;
         }
 

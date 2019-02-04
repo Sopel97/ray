@@ -116,18 +116,18 @@ namespace ray
             // hit from outside
             const Point3f hitPoint = O + t1 * D;
             const Normal3f normal = (hitPoint - C).normalized();
-            const int shapeNo = 0;
+            const int shapeInPackNo = 0;
             const int materialNo = 0;
-            return RaycastHit{ hitPoint, normal, shapeNo, materialNo, false };
+            return RaycastHit{ hitPoint, normal, shapeInPackNo, materialNo, false };
         }
         else
         {
             // hit from inside
             const Point3f hitPoint = O + t2 * D;
             const Normal3f normal = (hitPoint - C).normalized();
-            const int shapeNo = 0;
+            const int shapeInPackNo = 0;
             const int materialNo = 0;
-            return RaycastHit{ hitPoint, -normal, shapeNo, materialNo, true };
+            return RaycastHit{ hitPoint, -normal, shapeInPackNo, materialNo, true };
         }
 
     }

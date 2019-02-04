@@ -9,7 +9,7 @@
 
 namespace ray
 {
-    inline TexCoords resolveTexCoords(const Sphere& sphere, const RaycastHit& hit)
+    inline TexCoords resolveTexCoords(const Sphere& sphere, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         const Normal3f normal = hit.isInside ? -hit.normal : hit.normal;
 
