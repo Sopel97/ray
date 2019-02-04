@@ -174,7 +174,7 @@ namespace ray
             const int shapeInPackNo = hit.shapeNo % numShapesInPack;
             const Material& mat = material(hit.shapeNo, hit.materialNo);
             const TexCoords texCoords = mat.texture ? resolveTexCoords(m_shapePacks[packNo], hit, shapeInPackNo) : TexCoords{ 0.0f, 0.0f };
-            return ResolvedRaycastHit(hit.point, hit.normal, texCoords, mat, hit.isInside, *this, hit.shapeNo, hasVolume);
+            return ResolvedRaycastHit(hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, hasVolume);
         }
 
         SceneObjectId objectId(int shapeNo) const override
@@ -190,7 +190,7 @@ namespace ray
 
         ResolvableRaycastHit resolveHitPartially(const RaycastHit& hit, int packNo, int shapeNo) const
         {
-            return ResolvableRaycastHit{ hit.point, hit.normal, shapeNo, hit.materialNo, hit.isInside, this };
+            return ResolvableRaycastHit(hit.point, hit.normal, shapeNo, hit.materialNo, *this, hit.isInside);
         }
     };
 }

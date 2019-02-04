@@ -13,7 +13,7 @@
 
 namespace ray
 {
-    struct SceneObjectCollction;
+    struct SceneObjectCollection;
     struct ResolvedRaycastHit;
 
     struct RaycastHit
@@ -27,12 +27,23 @@ namespace ray
 
     struct ResolvableRaycastHit
     {
+        ResolvableRaycastHit(const Point3f& point, const Normal3f& normal, int shapeNo, int materialNo, const SceneObjectCollection& owner, bool isInside) :
+            point(point),
+            normal(normal),
+            shapeNo(shapeNo),
+            materialNo(materialNo),
+            owner(&owner),
+            isInside(isInside)
+        {
+
+        }
+
         Point3f point;
         Normal3f normal;
         int shapeNo;
         int materialNo;
-        bool isInside;
         const SceneObjectCollection* owner;
+        bool isInside;
 
         ResolvedRaycastHit resolve() const;
 
@@ -44,25 +55,14 @@ namespace ray
 
     struct ResolvedRaycastHit
     {
-        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const Material& material) :
-            point(point),
-            normal(normal),
-            material(&material),
-            owner(nullptr),
-            shapeNo(0),
-            isLocallyContinuable(false)
-        {
-
-        }
-
-        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const TexCoords& texCoords, const Material& material, bool isInside, const SceneObjectCollection& owner, int shapeNo, bool local) :
+        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const TexCoords& texCoords, int shapeNo, const Material& material, const SceneObjectCollection& owner, bool isInside, bool local) :
             point(point),
             normal(normal),
             texCoords(texCoords),
-            material(&material),
-            isInside(isInside),
-            owner(&owner),
             shapeNo(shapeNo),
+            material(&material),
+            owner(&owner),
+            isInside(isInside),
             isLocallyContinuable(local)
         {
 
@@ -71,10 +71,10 @@ namespace ray
         Point3f point;
         Normal3f normal;
         TexCoords texCoords;
-        const Material* material;
-        bool isInside;
-        const SceneObjectCollection* owner;
         int shapeNo;
+        const Material* material;
+        const SceneObjectCollection* owner;
+        bool isInside;
         bool isLocallyContinuable;
 
         std::optional<ResolvableRaycastHit> next(const Ray& ray) const
