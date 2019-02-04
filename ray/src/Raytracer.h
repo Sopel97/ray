@@ -49,13 +49,13 @@ namespace ray
 
         ColorRGBf trace(const Ray& ray, int depth = 1, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
         {
-            std::optional<ResolvedRaycastHit> hitOpt = 
+            std::optional<ResolvableRaycastHit> hitOpt = 
                 prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
-                ? prevHit->next(ray) 
+                ? prevHit->next(ray)
                 : m_scene->queryNearest(ray);
             if (!hitOpt) return m_scene->backgroundColor();
 
-            const ResolvedRaycastHit& hit = *hitOpt;
+            const ResolvedRaycastHit hit = hitOpt->resolve();
 
             const ColorRGBf refractionColor = computeRefractionColor(ray, prevHit, hit, depth);
             const ColorRGBf reflectionColor = computeReflectionColor(ray, prevHit, hit, depth);
@@ -123,8 +123,9 @@ namespace ray
             const auto visibleLightHits = m_scene->queryVisibleLights(hit.point + hit.normal * m_options.paddingDistance);
 
             ColorRGBf color{};
-            for (auto& lightHit : visibleLightHits)
+            for (const auto& h : visibleLightHits)
             {
+                auto lightHit = h.resolve();
                 const Normal3f lightDirection = (lightHit.point - hit.point).normalized();
                 color += lightHit.material->emissionColor * std::max(0.0f, dot(hit.normal, lightDirection));
             }

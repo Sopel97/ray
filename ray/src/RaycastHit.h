@@ -13,14 +13,28 @@
 namespace ray
 {
     struct SceneObjectCollction;
+    struct ResolvedRaycastHit;
 
     struct RaycastHit
     {
         Point3f point;
         Normal3f normal;
-        int shapeNo;
+        int shapeInPackNo;
         int materialNo;
         bool isInside;
+    };
+
+    struct ResolvableRaycastHit
+    {
+        Point3f point;
+        Normal3f normal;
+        int shapeNo;
+        int materialNo;
+        std::uint64_t objectId;
+        bool isInside;
+        const SceneObjectCollection* owner;
+
+        ResolvedRaycastHit resolve() const;
     };
 
     struct ResolvedRaycastHit
@@ -61,7 +75,7 @@ namespace ray
         int shapeNo;
         bool isLocallyContinuable;
 
-        std::optional<ResolvedRaycastHit> next(const Ray& ray) const
+        std::optional<ResolvableRaycastHit> next(const Ray& ray) const
         {
             if (!owner || !isLocallyContinuable) return std::nullopt;
 
