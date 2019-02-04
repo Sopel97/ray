@@ -69,7 +69,7 @@ namespace ray
                 std::optional<ResolvedRaycastHit> hitOpt = objectsOfType<Sphere>().queryNearest(ray);
                 if (hitOpt)
                 {
-                    ResolvedRaycastHit& hit = *hitOpt;
+                    const ResolvedRaycastHit& hit = *hitOpt;
                     if (hit.objectId != m_lightObjectIds[i]) continue;
                     if (!isLight(*hit.material)) continue;
                     

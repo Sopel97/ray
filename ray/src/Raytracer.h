@@ -55,13 +55,13 @@ namespace ray
                 : m_scene->queryNearest(ray);
             if (!hitOpt) return m_scene->backgroundColor();
 
-            ResolvedRaycastHit& hit = *hitOpt;
+            const ResolvedRaycastHit& hit = *hitOpt;
 
-            ColorRGBf refractionColor = computeRefractionColor(ray, prevHit, hit, depth);
-            ColorRGBf reflectionColor = computeReflectionColor(ray, prevHit, hit, depth);
-            ColorRGBf diffusionColor = computeDiffusionColor(ray, prevHit, hit);
+            const ColorRGBf refractionColor = computeRefractionColor(ray, prevHit, hit, depth);
+            const ColorRGBf reflectionColor = computeReflectionColor(ray, prevHit, hit, depth);
+            const ColorRGBf diffusionColor = computeDiffusionColor(ray, prevHit, hit);
 
-            ColorRGBf color = combineFresnel(ray, hit, refractionColor, reflectionColor, diffusionColor, hit.isInside) + hit.material->emissionColor;
+            const ColorRGBf color = combineFresnel(ray, hit, refractionColor, reflectionColor, diffusionColor);
 
             if (hit.isInside && prevHit)
             {
@@ -73,18 +73,18 @@ namespace ray
             return color;
         }
 
-        ColorRGBf combineFresnel(const Ray& ray, const ResolvedRaycastHit& hit, const ColorRGBf& refractionColor, const ColorRGBf& reflectionColor, const ColorRGBf& diffusionColor, bool inside = false) const
+        ColorRGBf combineFresnel(const Ray& ray, const ResolvedRaycastHit& hit, const ColorRGBf& refractionColor, const ColorRGBf& reflectionColor, const ColorRGBf& diffusionColor) const
         {
             float n1 = m_options.airRefractiveIndex;
             float n2 = hit.material->refractiveIndex;
-            if (inside) std::swap(n1, n2);
+            if (hit.isInside) std::swap(n1, n2);
             const float fresnelEffect = fresnelReflectAmount(ray, hit.normal, hit.material->reflectivity, n1, n2);
             const ColorRGBf textureColor = hit.material->sampleTexture(hit.texCoords);
 
             return hit.material->surfaceColor * textureColor * (
                 reflectionColor * (fresnelEffect)
                 + refractionColor * ((1.0f - fresnelEffect) * hit.material->transparency)
-                + diffusionColor);
+                + diffusionColor) + hit.material->emissionColor;
         }
         
         float fresnelReflectAmount(const Ray& ray, const Normal3f& normal, float reflectivity, float n1, float n2) const
@@ -120,7 +120,7 @@ namespace ray
             if (!isDiffusive(*hit.material) && !hit.isInside) // if inside we could potentially do it wrong
                 return {};
 
-            auto visibleLightHits = m_scene->queryVisibleLights(hit.point + hit.normal * m_options.paddingDistance);
+            const auto visibleLightHits = m_scene->queryVisibleLights(hit.point + hit.normal * m_options.paddingDistance);
 
             ColorRGBf color{};
             for (auto& lightHit : visibleLightHits)
