@@ -2,6 +2,7 @@
 
 #include "SceneObjectCollection.h"
 #include "Material.h"
+#include "Ray.h"
 #include "TexCoords.h"
 #include "Vec3.h"
 

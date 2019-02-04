@@ -10,24 +10,28 @@ namespace ray
 {
     struct Raytracer
     {
-        // Used to ensure for example that the hit point is
-        // not considered obstructed by the shape it is on
-        // due to floating point inaccuracies
-        static constexpr float paddingDistance = 0.0001f;
-        static constexpr int maxRayDepth = 6;
-        static constexpr float airRefractiveIndex = 1.00027717f;
-        // smallest transparenct that is not considered zero
-        static constexpr float transparencyThreshold = 0.01f;
-        // smallest reflectivity that is still considered reflective
-        static constexpr float reflectivityThreshold = 0.01f;
-        // smallest diffuse that makes it trace shadow ray
-        static constexpr float diffuseThreshold = 0.01f;
+        struct Options
+        {
+            // Used to ensure for example that the hit point is
+            // not considered obstructed by the shape it is on
+            // due to floating point inaccuracies
+            float paddingDistance = 0.0001f;
+            int maxRayDepth = 6;
+            float airRefractiveIndex = 1.00027717f;
+            // smallest transparenct that is not considered zero
+            float transparencyThreshold = 0.01f;
+            // smallest reflectivity that is still considered reflective
+            float reflectivityThreshold = 0.01f;
+            // smallest diffuse that makes it trace shadow ray
+            float diffuseThreshold = 0.01f;
 
-        // not sure if it should be used
-        static constexpr float gamma = 0.43f;
+            // not sure if it should be used
+            float gamma = 0.43f;
+        };
 
-        Raytracer(const Scene& scene) :
-            m_scene(&scene)
+        Raytracer(const Scene& scene, const Options& options = {}) :
+            m_scene(&scene),
+            m_options(options)
         {
 
         }
@@ -35,12 +39,13 @@ namespace ray
         Image capture(const Camera& camera) const
         {
             Image img(camera.width(), camera.height());
-            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ gamma); }, std::execution::par_unseq);
+            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
             return img;
         }
 
     private:
         const Scene* m_scene;
+        Options m_options;
 
         ColorRGBf trace(const Ray& ray, int depth = 1, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
         {
@@ -70,7 +75,7 @@ namespace ray
 
         ColorRGBf combineFresnel(const Ray& ray, const ResolvedRaycastHit& hit, const ColorRGBf& refractionColor, const ColorRGBf& reflectionColor, const ColorRGBf& diffusionColor, bool inside = false) const
         {
-            float n1 = airRefractiveIndex;
+            float n1 = m_options.airRefractiveIndex;
             float n2 = hit.material->refractiveIndex;
             if (inside) std::swap(n1, n2);
             const float fresnelEffect = fresnelReflectAmount(ray, hit.normal, hit.material->reflectivity, n1, n2);
@@ -115,7 +120,7 @@ namespace ray
             if (!isDiffusive(*hit.material) && !hit.isInside) // if inside we could potentially do it wrong
                 return {};
 
-            auto visibleLightHits = m_scene->queryVisibleLights(hit.point + hit.normal * paddingDistance);
+            auto visibleLightHits = m_scene->queryVisibleLights(hit.point + hit.normal * m_options.paddingDistance);
 
             ColorRGBf color{};
             for (auto& lightHit : visibleLightHits)
@@ -128,25 +133,25 @@ namespace ray
 
         ColorRGBf computeReflectionColor(const Ray& ray, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
-            if (!isReflective(*hit.material) || depth > maxRayDepth)
+            if (!isReflective(*hit.material) || depth > m_options.maxRayDepth)
                 return {};
 
             const Normal3f reflectionDirection = reflection(ray.direction(), hit.normal);
-            return trace(Ray(hit.point + reflectionDirection * paddingDistance, reflectionDirection), depth + 1, &hit, hit.isInside);
+            return trace(Ray(hit.point + reflectionDirection * m_options.paddingDistance, reflectionDirection), depth + 1, &hit, hit.isInside);
         }
 
         ColorRGBf computeRefractionColor(const Ray& ray, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
-            if (!isTransparent(*hit.material) || depth > maxRayDepth)
+            if (!isTransparent(*hit.material) || depth > m_options.maxRayDepth)
                 return {};
 
             // outside->inside
-            float eta = airRefractiveIndex / hit.material->refractiveIndex;
+            float eta = m_options.airRefractiveIndex / hit.material->refractiveIndex;
             if (hit.isInside) eta = 1.0f / eta;
 
             // do outside->inside refraction
             const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
-            const ColorRGBf color = trace(Ray(hit.point + refractionDirection * paddingDistance, refractionDirection), depth + 1, &hit, !hit.isInside);
+            const ColorRGBf color = trace(Ray(hit.point + refractionDirection * m_options.paddingDistance, refractionDirection), depth + 1, &hit, !hit.isInside);
             
             return color;
         }
@@ -158,17 +163,17 @@ namespace ray
 
         bool isTransparent(const Material& material) const
         {
-            return material.transparency >= transparencyThreshold;
+            return material.transparency >= m_options.transparencyThreshold;
         }
 
         bool isReflective(const Material& material) const
         {
-            return material.reflectivity >= reflectivityThreshold;
+            return material.reflectivity >= m_options.reflectivityThreshold;
         }
 
         bool isDiffusive(const Material& material) const
         {
-            return material.diffuse >= diffuseThreshold;
+            return material.diffuse >= m_options.diffuseThreshold;
         }
     };
 }
