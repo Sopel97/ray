@@ -104,5 +104,11 @@
     <ClInclude Include="src\TexCoords.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\TextureDatabase.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MaterialDatabase.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

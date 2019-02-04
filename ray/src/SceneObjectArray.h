@@ -26,7 +26,7 @@ namespace ray
         static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
         static constexpr bool hasVolume = ShapeTraits::hasVolume;
         using ShapeStorageType = std::vector<ShapeType>;
-        using MaterialStorageType = std::vector<std::array<Material*, numMaterialsPerShape>>;
+        using MaterialStorageType = std::vector<std::array<const Material*, numMaterialsPerShape>>;
         using IdStorageType = std::vector<std::uint64_t>;
         using ConstIterator = typename ShapeStorageType::const_iterator;
 

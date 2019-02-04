@@ -19,7 +19,7 @@ namespace ray
         static constexpr int numShapesInPack = ShapeTraits::numShapes;
         static constexpr bool isPack = numShapesInPack > 1;
         static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
-        using MaterialStorageType = std::array<Material*, numMaterialsPerShape>;
+        using MaterialStorageType = std::array<const Material*, numMaterialsPerShape>;
 
         static_assert(!isPack, "A single scene object must not be a pack. Use SceneObjectArray.");
 

@@ -154,6 +154,7 @@
     <ClInclude Include="src\Color.h" />
     <ClInclude Include="src\Image.h" />
     <ClInclude Include="src\Material.h" />
+    <ClInclude Include="src\MaterialDatabase.h" />
     <ClInclude Include="src\MathConstants.h" />
     <ClInclude Include="src\IterableNumber.h" />
     <ClInclude Include="src\Patterns.h" />
@@ -170,6 +171,7 @@
     <ClInclude Include="src\TexCoords.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\TextureCoordinateResolver.h" />
+    <ClInclude Include="src\TextureDatabase.h" />
     <ClInclude Include="src\Util.h" />
     <ClInclude Include="src\Vec3.h" />
   </ItemGroup>
