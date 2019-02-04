@@ -70,7 +70,7 @@ namespace ray
                 if (hitOpt)
                 {
                     ResolvableRaycastHit& hit = *hitOpt;
-                    if (hit.objectId != m_lightObjectIds[i]) continue;
+                    if (hit.objectId() != m_lightObjectIds[i]) continue;
                     
                     // we hit something and it's exactly the light we were looking for
                     visibleLights.emplace_back(std::move(hit));

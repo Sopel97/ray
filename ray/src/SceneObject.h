@@ -7,7 +7,9 @@
 
 namespace ray
 {
-    static std::uint64_t nextSceneObjectId;
+    using SceneObjectId = std::uint64_t;
+
+    static inline SceneObjectId nextSceneObjectId = 0;
 
     // Stores a shape and its material[s].
     template <typename ShapeT>
@@ -55,7 +57,7 @@ namespace ray
             return false;
         }
 
-        std::uint64_t id() const
+        SceneObjectId id() const
         {
             return m_id;
         }
@@ -63,6 +65,6 @@ namespace ray
     private:
         ShapePackType m_shape;
         MaterialStorageType m_materials;
-        std::uint64_t m_id;
+        SceneObjectId m_id;
     };
 }
