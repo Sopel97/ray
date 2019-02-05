@@ -116,5 +116,14 @@
     <ClInclude Include="src\Scene.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\SceneObjectBlob.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticDeferredStorageScene.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SceneObjectStorage.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

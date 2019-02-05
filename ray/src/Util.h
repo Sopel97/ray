@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 namespace ray
@@ -29,4 +30,7 @@ namespace ray
         detail::for_each_impl(std::forward<TupleT>(tuple), std::forward<FuncT>(f),
             std::make_index_sequence<N>{});
     }
+
+    template <typename T>
+    using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 }

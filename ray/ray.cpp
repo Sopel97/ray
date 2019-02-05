@@ -10,7 +10,9 @@
 #include "src/Raycast.h"
 #include "src/Raytracer.h"
 #include "src/SceneObject.h"
+#include "src/SceneObjectBlob.h"
 #include "src/Sphere.h"
+#include "src/StaticDeferredStorageScene.h"
 #include "src/TextureDatabase.h"
 #include "src/Vec3.h"
 
@@ -46,8 +48,8 @@ int main()
     auto& m7 = matDb.emplace("mat7", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 1.13f, 0.05f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
     auto& m8 = matDb.emplace("mat8", ColorRGBf(0.9f, 0.9f, 0.9f), ColorRGBf(0, 0, 0), 0.0f, 1.13f, 1.0f, 0.0f, ColorRGBf(0, 0, 0));
 
+    /*
     BlobScene<Sphere> scene;
-    scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
@@ -56,6 +58,19 @@ int main()
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    */
+
+    std::vector<SceneObject<Sphere>> spheres;
+    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
+    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
+    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
+    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
+    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
+    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
+    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
+    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    StaticDeferredStorageScene<SceneObjectBlob<Sphere>> scene(std::move(spheres));
+    scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
     
 
     /*

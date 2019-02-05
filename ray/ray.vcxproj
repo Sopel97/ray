@@ -167,8 +167,11 @@
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneObject.h" />
     <ClInclude Include="src\SceneObjectArray.h" />
+    <ClInclude Include="src\SceneObjectBlob.h" />
     <ClInclude Include="src\SceneObjectCollection.h" />
     <ClInclude Include="src\ShapeTraits.h" />
+    <ClInclude Include="src\StaticDeferredStorageScene.h" />
+    <ClInclude Include="src\SceneObjectStorage.h" />
     <ClInclude Include="src\Sphere.h" />
     <ClInclude Include="src\TexCoords.h" />
     <ClInclude Include="src\Texture.h" />

@@ -120,10 +120,5 @@ namespace ray
         {
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }
-
-        bool isLight(const Material& mat) const
-        {
-            return mat.emissionColor.total() > 0.0001f;
-        }
     };
 }
