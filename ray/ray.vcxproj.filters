@@ -31,7 +31,7 @@
       <Filter>Source Files\src</Filter>
     </ClCompile>
     <ClCompile Include="src\RaycastHit.cpp">
-      <Filter>Header Files\src</Filter>
+      <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -60,9 +60,6 @@
       <Filter>Header Files\src</Filter>
     </ClInclude>
     <ClInclude Include="src\MathConstants.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
     <ClInclude Include="src\Material.h">
@@ -111,6 +108,12 @@
       <Filter>Header Files\src</Filter>
     </ClInclude>
     <ClInclude Include="src\MaterialDatabase.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BlobScene.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
   </ItemGroup>

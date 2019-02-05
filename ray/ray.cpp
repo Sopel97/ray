@@ -2,13 +2,13 @@
 #include <SFML/Graphics.hpp>
 
 #include "src/Angle.h"
+#include "src/BlobScene.h"
 #include "src/Camera.h"
 #include "src/Image.h"
 #include "src/MaterialDatabase.h"
 #include "src/Patterns.h"
 #include "src/Raycast.h"
 #include "src/Raytracer.h"
-#include "src/Scene.h"
 #include "src/SceneObject.h"
 #include "src/Sphere.h"
 #include "src/TextureDatabase.h"
@@ -46,7 +46,7 @@ int main()
     auto& m7 = matDb.emplace("mat7", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 1.13f, 0.05f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
     auto& m8 = matDb.emplace("mat8", ColorRGBf(0.9f, 0.9f, 0.9f), ColorRGBf(0, 0, 0), 0.0f, 1.13f, 1.0f, 0.0f, ColorRGBf(0, 0, 0));
 
-    Scene scene;
+    BlobScene<Sphere> scene;
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
@@ -59,7 +59,7 @@ int main()
     
 
     /*
-    Scene scene;
+    BlobScene scene;
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
     Material m1{ ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.0f, 0.7f };
     Material m2{ ColorRGBf(1.00, 1, 1), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f };
@@ -70,7 +70,7 @@ int main()
     */
 
     /*
-    Scene scene;
+    BlobScene scene;
     scene.setBackgroundColor(ColorRGBf(2.0f, 2.0f, 2.0f)*0.2f);
     Material mat{ ColorRGBf(1.0f, 0.0f, 0.0f), ColorRGBf(0.0f, 0.0f, 0.0f), 0.2f, 1.458f, 0.07f, 0.0f };
     Material mat2{ ColorRGBf(0.0f, 1.0f, 0.0f), ColorRGBf(0.0f, 0.0f, 0.0f), 0.2f, 1.458f, 0.07f, 0.0f };
@@ -94,7 +94,7 @@ int main()
     */
 
     /*
-    Scene s;
+    BlobScene s;
     Material m;
     s.add(SceneObject<Sphere>(Sphere{}, { &m }));
     */
