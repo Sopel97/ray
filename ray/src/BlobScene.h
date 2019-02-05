@@ -8,8 +8,9 @@
 #include "Sphere.h"
 #include "Util.h"
 
-#include <vector>
 #include <tuple>
+#include <type_traits>
+#include <vector>
 
 namespace ray
 {
@@ -18,6 +19,7 @@ namespace ray
     template <typename... ShapeTs>
     struct BlobScene : Scene
     {
+        static_assert(std::conjunction_v<std::integral_constant<bool, (ShapeTraits<ShapeTs>::numShapes == 1)>...>, "A scene must consist of singular objects");
     private:
         // specialized whenever a pack is used
         template <typename ShapeT>
@@ -35,8 +37,6 @@ namespace ray
         template <typename ShapeT>
         void add(const SceneObject<ShapeT>& so)
         {
-            static_assert(ShapeTraits<ShapeT>::numShapes == 1, "Only singular shapePacks can be added to a scene.");
-
             objectsOfType<ShapeT>().add(so);
             if(so.isLight())
             {
@@ -65,8 +65,6 @@ namespace ray
                 }
             });
             if (hitOpt) return hitOpt;
-
-            // possibly other types
 
             return std::nullopt;
         }
