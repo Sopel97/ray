@@ -14,6 +14,6 @@ namespace ray
     {
         virtual std::optional<ResolvableRaycastHit> queryLocal(const Ray& ray, int shapeNo) const = 0;
         virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
-        virtual SceneObjectId objectId(int shapeNo) const = 0;
+        virtual SceneObjectId id(int shapeNo) const = 0;
     };
 }

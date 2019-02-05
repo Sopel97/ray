@@ -49,7 +49,7 @@ namespace ray
 
         SceneObjectId objectId() const
         {
-            return owner->objectId(shapeNo);
+            return owner->id(shapeNo);
         }
     };
 
@@ -86,7 +86,7 @@ namespace ray
 
         SceneObjectId objectId() const
         {
-            return owner->objectId(shapeNo);
+            return owner->id(shapeNo);
         }
     };
 }

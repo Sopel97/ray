@@ -105,7 +105,7 @@ namespace ray
         > m_objects;
 
         std::vector<Point3f> m_lightPositions;
-        std::vector<std::uint64_t> m_lightObjectIds;
+        std::vector<SceneObjectId> m_lightObjectIds;
 
         ColorRGBf m_backgroundColor;
 

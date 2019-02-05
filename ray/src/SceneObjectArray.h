@@ -12,11 +12,14 @@
 
 namespace ray
 {
+    template <typename ShapeT, bool IsPolymorphicV = ShapeTraits<ShapeT>::isPolymorphic>
+    struct SceneObjectArray;
+
     // Analogical to SceneObject but shapePacks and materials are not interleaved.
     // So there are two separate arrays for shapePacks and materials
     // Handles packs by abstracting insertion and access to be done on with granularity of a single shape.
     template <typename ShapeT>
-    struct SceneObjectArray : SceneObjectCollection
+    struct SceneObjectArray<ShapeT, false> : SceneObjectCollection
     {
         using ShapePackType = ShapeT;
         using ShapeTraits = ShapeTraits<ShapePackType>;
@@ -27,8 +30,7 @@ namespace ray
         static constexpr bool hasVolume = ShapeTraits::hasVolume;
         using ShapeStorageType = std::vector<ShapePackType>;
         using MaterialStorageType = std::vector<std::array<const Material*, numMaterialsPerShape>>;
-        using IdStorageType = std::vector<std::uint64_t>;
-        using ConstIterator = typename ShapeStorageType::const_iterator;
+        using IdStorageType = std::vector<SceneObjectId>;
 
         SceneObjectArray() :
             m_size(0)
@@ -69,41 +71,19 @@ namespace ray
             }
         }
 
-        const ShapeStorageType& shapePacks() const
-        {
-            return m_shapePacks;
-        }
-
         const Material& material(int shapeNo, int materialNo) const
         {
             return *(m_materials[shapeNo][materialNo]);
         }
 
-        std::uint64_t id(int shapeNo) const
+        SceneObjectId id(int shapeNo) const
         {
             return m_ids[shapeNo];
-        }
-
-        const MaterialStorageType& materials() const
-        {
-            return m_materials;
         }
 
         int size() const
         {
             return m_size;
-        }
-
-        ConstIterator begin() const
-        {
-            using std::begin;
-            return begin(m_shapePacks);
-        }
-
-        ConstIterator end() const
-        {
-            using std::end;
-            return end(m_shapePacks);
         }
 
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
@@ -132,24 +112,7 @@ namespace ray
             {
                 RaycastHit& hit = *nearestHit;
                 const int shapeNo = nearestHitPackNo * numShapesInPack + hit.shapeInPackNo;
-                return resolveHitPartially(hit, nearestHitPackNo, shapeNo);
-            }
-
-            return std::nullopt;
-        }
-
-        std::optional<ResolvableRaycastHit> queryAny(const Ray& ray) const
-        {
-            const int size = static_cast<int>(m_shapePacks.size());
-            for (int packNo = 0; packNo < size; ++packNo)
-            {
-                std::optional<RaycastHit> hitOpt = raycast(ray, m_shapePacks[packNo]);
-                if (hitOpt)
-                {
-                    RaycastHit& hit = *hitOpt;
-                    const int shapeNo = packNo * numShapesInPack + hit.shapeInPackNo;
-                    return resolveHitPartially(hit, packNo, shapeNo);
-                }
+                return resolveHitPartially(hit, shapeNo);
             }
 
             return std::nullopt;
@@ -162,7 +125,7 @@ namespace ray
             if (hitOpt)
             {
                 RaycastHit& hit = *hitOpt;
-                return resolveHitPartially(hit, packNo, shapeNo);
+                return resolveHitPartially(hit, shapeNo);
             }
 
             return std::nullopt;
@@ -177,18 +140,118 @@ namespace ray
             return ResolvedRaycastHit(hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, hasVolume);
         }
 
-        SceneObjectId objectId(int shapeNo) const override
-        {
-            return id(shapeNo);
-        }
-
     private:
         ShapeStorageType m_shapePacks;
         MaterialStorageType m_materials;
         IdStorageType m_ids;
         int m_size;
 
-        ResolvableRaycastHit resolveHitPartially(const RaycastHit& hit, int packNo, int shapeNo) const
+        ResolvableRaycastHit resolveHitPartially(const RaycastHit& hit, int shapeNo) const
+        {
+            return ResolvableRaycastHit(hit.point, hit.normal, shapeNo, hit.materialNo, *this, hit.isInside);
+        }
+    };
+
+
+    // Specialization for polymorphic shapes
+    // We can't do better than just store an array of SceneObject<PolyShapeType>
+    // Only supports single shapes as base shape
+    template <typename ShapeT>
+    struct SceneObjectArray<ShapeT, true> : SceneObjectCollection
+    {
+        using ShapeType = ShapeT;
+        using ShapeTraits = ShapeTraits<ShapeType>;
+        static constexpr int numShapesInPack = ShapeTraits::numShapes;
+        static constexpr bool isPack = numShapesInPack > 1;
+        using ShapeStorageType = std::vector<SceneObject<ShapeType>>;
+
+        static_assert(!isPack, "A single polymorphic scene object must not be a pack.");
+
+        SceneObjectArray()
+        {
+
+        }
+
+        void add(const SceneObject<ShapeType>& so)
+        {
+            m_objects.emplace_back(so);
+        }
+
+        decltype(auto) shape(int shapeNo) const
+        {
+            return m_objects[shapeNo].shape();
+        }
+
+        const Material& material(int shapeNo, int materialNo) const
+        {
+            return m_objects[shapeNo].material(materialNo);
+        }
+
+        SceneObjectId id(int shapeNo) const
+        {
+            return m_objects[shapeNo].id();
+        }
+
+        int size() const
+        {
+            return static_cast<int>(m_objects.size());
+        }
+
+        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
+        {
+            const int size = static_cast<int>(m_objects.size());
+            std::optional<RaycastHit> nearestHit{};
+            float nearestHitDistance = std::numeric_limits<float>::max();
+            int nearestHitShapeNo{};
+            for (int shapeNo = 0; shapeNo < size; ++shapeNo)
+            {
+                std::optional<RaycastHit> hitOpt = raycast(ray, m_objects[shapeNo].shape());
+                if (hitOpt)
+                {
+                    RaycastHit& hit = *hitOpt;
+                    const float dist = distance(ray.origin(), hit.point);
+                    if (dist < nearestHitDistance)
+                    {
+                        nearestHit = hit;
+                        nearestHitDistance = dist;
+                        nearestHitShapeNo = shapeNo;
+                    }
+                }
+            }
+
+            if (nearestHit)
+            {
+                RaycastHit& hit = *nearestHit;
+                return resolveHitPartially(hit, nearestHitShapeNo);
+            }
+
+            return std::nullopt;
+        }
+
+        std::optional<ResolvableRaycastHit> queryLocal(const Ray& ray, int shapeNo) const override
+        {
+            std::optional<RaycastHit> hitOpt = raycast(ray, m_objects[shapeNo].shape());
+            if (hitOpt)
+            {
+                RaycastHit& hit = *hitOpt;
+                return resolveHitPartially(hit, shapeNo);
+            }
+
+            return std::nullopt;
+        }
+
+        ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        {
+            const auto& obj = m_objects[hit.shapeNo];
+            const Material& mat = material(hit.shapeNo, hit.materialNo);
+            const TexCoords texCoords = mat.texture ? resolveTexCoords(m_objects[hit.shapeNo].shape(), hit, 0) : TexCoords{ 0.0f, 0.0f };
+            return ResolvedRaycastHit(hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, obj.shape().hasVolume());
+        }
+
+    private:
+        ShapeStorageType m_objects;
+
+        ResolvableRaycastHit resolveHitPartially(const RaycastHit& hit, int shapeNo) const
         {
             return ResolvableRaycastHit(hit.point, hit.normal, shapeNo, hit.materialNo, *this, hit.isInside);
         }
