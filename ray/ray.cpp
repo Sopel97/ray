@@ -2,7 +2,6 @@
 #include <SFML/Graphics.hpp>
 
 #include "src/Angle.h"
-#include "src/AnyShape.h"
 #include "src/BlobScene.h"
 #include "src/Camera.h"
 #include "src/Image.h"
@@ -59,7 +58,7 @@ int main()
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     scene.add(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-    */
+    //*/
 
     /*
     std::vector<SceneObject<Sphere>> spheres;
@@ -72,18 +71,19 @@ int main()
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
     StaticDeferredStorageScene<SceneObjectBlob<Sphere>> scene(std::move(spheres));
-    */
+    //*/
 
-    BlobScene<AnyShape> scene;
-    scene.add(SceneObject<AnyShape>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
-    scene.add(SceneObject<AnyShape>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
-    scene.add(SceneObject<AnyShape>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
-    scene.add(SceneObject<AnyShape>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
-    scene.add(SceneObject<AnyShape>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
-    scene.add(SceneObject<AnyShape>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
-    scene.add(SceneObject<AnyShape>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
-    scene.add(SceneObject<AnyShape>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-
+    //*
+    BlobScene<SharedAnyShape> scene;
+    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
+    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
+    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
+    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
+    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
+    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
+    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
+    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    //*/
 
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
 

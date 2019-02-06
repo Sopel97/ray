@@ -1,7 +1,6 @@
 #pragma once
 
-#include "SceneObject.h"
-#include "SceneObjectCollection.h"
+#include "SceneObjectId.h"
 #include "Material.h"
 #include "Ray.h"
 #include "TexCoords.h"
@@ -47,10 +46,7 @@ namespace ray
 
         ResolvedRaycastHit resolve() const;
 
-        SceneObjectId objectId() const
-        {
-            return owner->id(shapeNo);
-        }
+        SceneObjectId objectId() const;
     };
 
     struct ResolvedRaycastHit
@@ -77,16 +73,8 @@ namespace ray
         bool isInside;
         bool isLocallyContinuable;
 
-        std::optional<ResolvableRaycastHit> next(const Ray& ray) const
-        {
-            if (!owner || !isLocallyContinuable) return std::nullopt;
+        std::optional<ResolvableRaycastHit> next(const Ray& ray) const;
 
-            return owner->queryLocal(ray, shapeNo);
-        }
-
-        SceneObjectId objectId() const
-        {
-            return owner->id(shapeNo);
-        }
+        SceneObjectId objectId() const;
     };
 }

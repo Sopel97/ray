@@ -19,8 +19,6 @@ namespace ray
     template <typename... ShapeTs>
     struct BlobScene : Scene
     {
-        static_assert(std::conjunction_v<std::integral_constant<bool, (ShapeTraits<ShapeTs>::numShapes == 1)>...>, "A scene must consist of singular objects");
-    private:
         // specialized whenever a pack is used
         template <typename ShapeT>
         struct ObjectStorage { using StorageType = SceneObjectArray<ShapeT>; };
@@ -40,7 +38,7 @@ namespace ray
             objectsOfType<ShapeT>().add(so);
             if(so.isLight())
             {
-                m_lights.emplace_back(so.shape().center(), so.id());
+                m_lights.emplace_back(so.center(), so.id());
             }
         }
 

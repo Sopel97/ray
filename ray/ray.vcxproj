@@ -160,7 +160,6 @@
     <ClInclude Include="src\MathConstants.h" />
     <ClInclude Include="src\IterableNumber.h" />
     <ClInclude Include="src\Patterns.h" />
-    <ClInclude Include="src\AnyShape.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="src\Raycast.h" />
     <ClInclude Include="src\Raytracer.h" />
@@ -172,6 +171,7 @@
     <ClInclude Include="src\SceneObjectArray.h" />
     <ClInclude Include="src\SceneObjectBlob.h" />
     <ClInclude Include="src\SceneObjectCollection.h" />
+    <ClInclude Include="src\SceneObjectId.h" />
     <ClInclude Include="src\ShapeTraits.h" />
     <ClInclude Include="src\StaticDeferredStorageScene.h" />
     <ClInclude Include="src\SceneObjectStorage.h" />

@@ -64,10 +64,9 @@ namespace ray
 
         void addTime(std::chrono::nanoseconds elapsed)
         {
-            std::chrono::nanoseconds s = m_duration.load();
-            std::chrono::nanoseconds new_s;
+            std::chrono::nanoseconds s, new_s;
             do {
-                new_s = s;
+                new_s = s = m_duration.load();
                 new_s += elapsed; // whatever modifications you want
             } while (!m_duration.compare_exchange_strong(s, new_s));
         }
