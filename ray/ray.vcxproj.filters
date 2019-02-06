@@ -128,5 +128,8 @@
     <ClInclude Include="src\AnyShape.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\RaytracerStats.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

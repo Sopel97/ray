@@ -4,6 +4,7 @@
 #include "Image.h"
 #include "Scene.h"
 #include "RaycastHit.h"
+#include "RaytracerStats.h"
 #include "Util.h"
 
 namespace ray
@@ -16,7 +17,7 @@ namespace ray
             // not considered obstructed by the shape it is on
             // due to floating point inaccuracies
             float paddingDistance = 0.0001f;
-            int maxRayDepth = 6;
+            int maxRayDepth = 5;
             float airRefractiveIndex = 1.00027717f;
             // smallest transparenct that is not considered zero
             float transparencyThreshold = 0.01f;
@@ -27,33 +28,66 @@ namespace ray
 
             // not sure if it should be used
             float gamma = 0.43f;
+
+            bool gatherStatistics = false;
         };
 
         Raytracer(const Scene& scene, const Options& options = {}) :
             m_scene(&scene),
             m_options(options)
         {
-
+            if (m_options.gatherStatistics)
+            {
+                m_stats = std::make_unique<RaytracerStats>(m_options.maxRayDepth);
+            }
         }
 
         Image capture(const Camera& camera) const
         {
             Image img(camera.width(), camera.height());
-            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
+            if (m_options.gatherStatistics)
+            {
+                auto t0 = std::chrono::high_resolution_clock().now();
+                camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
+                auto t1 = std::chrono::high_resolution_clock().now();
+                auto diff = t1 - t0;
+                m_stats->addTime(diff);
+            }
+            else
+            {
+                camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
+            }
             return img;
+        }
+
+        // user must ensure that right options were set
+        const RaytracerStats& stats() const
+        {
+            return *m_stats;
         }
 
     private:
         const Scene* m_scene;
         Options m_options;
+        std::unique_ptr<RaytracerStats> m_stats;
 
-        ColorRGBf trace(const Ray& ray, int depth = 1, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
+        ColorRGBf trace(const Ray& ray, int depth = 0, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
         {
+            if (m_stats)
+            {
+                m_stats->addRay(depth);
+            }
+
             std::optional<ResolvableRaycastHit> hitOpt = 
                 prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
                 ? prevHit->next(ray)
                 : m_scene->queryNearest(ray);
             if (!hitOpt) return m_scene->backgroundColor();
+
+            if (m_stats)
+            {
+                m_stats->addHit(depth);
+            }
 
             const ResolvedRaycastHit hit = hitOpt->resolve();
 

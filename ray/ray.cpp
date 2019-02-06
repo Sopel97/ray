@@ -109,8 +109,11 @@ int main()
     scene.add(SceneObject<Sphere>(Sphere({ 0.0f, 7.0f, 1.0f }, 0.5f), { &lightMat }));
     */
 
-    Raytracer raytracer(scene);
+    auto opt = Raytracer::Options{};
+    opt.gatherStatistics = true;
+    Raytracer raytracer(scene, opt);
     Image img = raytracer.capture(Camera({0, 0.5f, 0}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45)));
+    std::cout << raytracer.stats().summary();
     sf::Image sfImg = img.toSfImage();
     sf::Texture texture;
     texture.loadFromImage(sfImg);
