@@ -52,6 +52,11 @@ namespace ray
             ++m_numRaysByDepth[depth];
         }
 
+        void addRays(int depth, std::uint64_t count)
+        {
+            m_numRaysByDepth[depth].fetch_add(count);
+        }
+
         void addHit(int depth)
         {
             ++m_numRayHitsByDepth[depth];

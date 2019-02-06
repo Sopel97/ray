@@ -32,24 +32,9 @@ namespace ray
             return m_storage.queryNearest(ray);
         }
 
-        std::vector<ResolvableRaycastHit> queryVisibleLights(const Point3f& point) const
+        const std::vector<LightHandle>& lights() const override
         {
-            std::vector<ResolvableRaycastHit> visibleLights{};
-            for (int i = 0; i < m_lightPositions.size(); ++i)
-            {
-                const Ray ray = Ray::between(point, m_lightPositions[i]);
-                std::optional<ResolvableRaycastHit> hitOpt = queryNearest(ray);
-                if (hitOpt)
-                {
-                    ResolvableRaycastHit& hit = *hitOpt;
-                    if (hit.objectId() != m_lightObjectIds[i]) continue;
-
-                    // we hit something and it's exactly the light we were looking for
-                    visibleLights.emplace_back(std::move(hit));
-                }
-            }
-
-            return visibleLights;
+            return m_lights;
         }
 
         const ColorRGBf& backgroundColor() const
@@ -65,8 +50,7 @@ namespace ray
     private:
         StaticSpacePartitionedStorageT m_storage;
 
-        std::vector<Point3f> m_lightPositions;
-        std::vector<SceneObjectId> m_lightObjectIds;
+        std::vector<LightHandle> m_lights;
 
         ColorRGBf m_backgroundColor;
 
@@ -78,8 +62,7 @@ namespace ray
                 {
                     if (object.isLight())
                     {
-                        m_lightPositions.emplace_back(object.shape().center());
-                        m_lightObjectIds.emplace_back(object.id());
+                        m_lights.emplace_back(object.shape().center(), object.id());
                     }
                 }
             });

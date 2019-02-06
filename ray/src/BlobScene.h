@@ -40,8 +40,7 @@ namespace ray
             objectsOfType<ShapeT>().add(so);
             if(so.isLight())
             {
-                m_lightPositions.emplace_back(so.shape().center());
-                m_lightObjectIds.emplace_back(so.id());
+                m_lights.emplace_back(so.shape().center(), so.id());
             }
         }
 
@@ -69,24 +68,9 @@ namespace ray
             return std::nullopt;
         }
 
-        std::vector<ResolvableRaycastHit> queryVisibleLights(const Point3f& point) const
+        const std::vector<LightHandle>& lights() const override
         {
-            std::vector<ResolvableRaycastHit> visibleLights{};
-            for (int i = 0; i < m_lightPositions.size(); ++i)
-            {
-                const Ray ray = Ray::between(point, m_lightPositions[i]);
-                std::optional<ResolvableRaycastHit> hitOpt = queryNearest(ray);
-                if (hitOpt)
-                {
-                    ResolvableRaycastHit& hit = *hitOpt;
-                    if (hit.objectId() != m_lightObjectIds[i]) continue;
-                    
-                    // we hit something and it's exactly the light we were looking for
-                    visibleLights.emplace_back(std::move(hit));
-                }
-            }
-
-            return visibleLights;
+            return m_lights;
         }
 
         const ColorRGBf& backgroundColor() const
@@ -104,8 +88,7 @@ namespace ray
             ObjectStorageType<ShapeTs>...
         > m_objects;
 
-        std::vector<Point3f> m_lightPositions;
-        std::vector<SceneObjectId> m_lightObjectIds;
+        std::vector<LightHandle> m_lights;
 
         ColorRGBf m_backgroundColor;
 

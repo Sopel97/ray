@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Camera.h"
+#include "LightHandle.h"
 #include "Image.h"
 #include "Scene.h"
 #include "RaycastHit.h"
@@ -93,7 +94,7 @@ namespace ray
 
             const ColorRGBf refractionColor = computeRefractionColor(ray, prevHit, hit, depth);
             const ColorRGBf reflectionColor = computeReflectionColor(ray, prevHit, hit, depth);
-            const ColorRGBf diffusionColor = computeDiffusionColor(ray, prevHit, hit);
+            const ColorRGBf diffusionColor = computeDiffusionColor(ray, prevHit, hit, depth);
 
             const ColorRGBf color = combineFresnel(ray, hit, refractionColor, reflectionColor, diffusionColor);
 
@@ -148,21 +149,38 @@ namespace ray
             return (reflectivity + (1.0f - reflectivity) * ret);
         }
 
-        ColorRGBf computeDiffusionColor(const Ray& ray, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit) const
+        ColorRGBf computeDiffusionColor(const Ray& ray, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
             // TODO: handle transparency?
             if (!isDiffusive(*hit.material) && !hit.isInside) // if inside we could potentially do it wrong
                 return {};
 
-            const auto visibleLightHits = m_scene->queryVisibleLights(hit.point + hit.normal * m_options.paddingDistance);
+            const auto& lights = m_scene->lights();
+            const Point3f point = hit.point + hit.normal * m_options.paddingDistance;
+
+            if (m_stats)
+            {
+                m_stats->addRays(depth, lights.size());
+            }
 
             ColorRGBf color{};
-            for (const auto& h : visibleLightHits)
+            for (const auto& light : lights)
             {
-                auto lightHit = h.resolve();
-                const Normal3f lightDirection = (lightHit.point - hit.point).normalized();
-                color += lightHit.material->emissionColor * std::max(0.0f, dot(hit.normal, lightDirection));
+                const Ray ray = Ray::between(point, light.center());
+                std::optional<ResolvableRaycastHit> lightHitOpt = m_scene->queryNearest(ray);
+                if (!lightHitOpt) continue;
+                if (lightHitOpt->objectId() != light.id()) continue;
+
+                // we hit a light
+                if (m_stats)
+                {
+                    m_stats->addHit(depth);
+                }
+
+                auto lightHit = lightHitOpt->resolve();
+                color += lightHit.material->emissionColor * std::max(0.0f, dot(hit.normal, ray.direction()));
             }
+
             return color * hit.material->diffuse;
         }
 
