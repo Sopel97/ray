@@ -60,7 +60,7 @@ int main()
     scene.add(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
     //*/
 
-    /*
+    //*
     std::vector<SceneObject<Sphere>> spheres;
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
@@ -73,7 +73,7 @@ int main()
     StaticDeferredStorageScene<SceneObjectBlob<Sphere>> scene(std::move(spheres));
     //*/
 
-    //*
+    /*
     BlobScene<SharedAnyShape> scene;
     scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));

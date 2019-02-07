@@ -12,7 +12,11 @@ namespace ray
     {
         RaytracerStats(int maxDepth) :
             m_numRaysByDepth(maxDepth + 1),
-            m_numRayHitsByDepth(maxDepth + 1)
+            m_numRayHitsByDepth(maxDepth + 1),
+            m_duration{},
+            m_numTests{},
+            m_numHits{},
+            m_numUsed{}
         {
 
         }
@@ -64,16 +68,23 @@ namespace ray
 
         void addTime(std::chrono::nanoseconds elapsed)
         {
-            std::chrono::nanoseconds s, new_s;
+            std::chrono::nanoseconds s = m_duration.load();
+            std::chrono::nanoseconds new_s;
             do {
-                new_s = s = m_duration.load();
-                new_s += elapsed; // whatever modifications you want
+                new_s = s + elapsed;
             } while (!m_duration.compare_exchange_strong(s, new_s));
         }
 
         std::chrono::nanoseconds timeElapsed() const
         {
             return m_duration.load();
+        }
+
+        void addQueryStats(const RaycastQueryStats& stats)
+        {
+            m_numTests.fetch_add(stats.numTests);
+            m_numHits.fetch_add(stats.numHits);
+            m_numUsed.fetch_add(stats.numUsed);
         }
 
         std::string summary() const
@@ -94,6 +105,11 @@ namespace ray
             }
             out += "Rays/s: " + std::to_string(totalNumRays() / timeSeconds) + "\n";
 
+            out += "Intersection test stats:\n";
+            out += "Tests: " + std::to_string(m_numTests.load()) + "\n";
+            out += " Hits: " + std::to_string(m_numHits.load()) + "\n";
+            out += " Used: " + std::to_string(m_numUsed.load()) + "\n";
+
             return out;
         }
 
@@ -101,5 +117,8 @@ namespace ray
         std::vector<std::atomic<std::uint64_t>> m_numRaysByDepth;
         std::vector<std::atomic<std::uint64_t>> m_numRayHitsByDepth;
         std::atomic<std::chrono::nanoseconds> m_duration;
+        std::atomic<std::uint64_t> m_numTests;
+        std::atomic<std::uint64_t> m_numHits;
+        std::atomic<std::uint64_t> m_numUsed;
     };
 }

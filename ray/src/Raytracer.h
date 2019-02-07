@@ -10,6 +10,7 @@
 
 namespace ray
 {
+    // TODO: make statistics gathering everywhere be a constexpr switch
     struct Raytracer
     {
         struct Options
@@ -79,10 +80,24 @@ namespace ray
                 m_stats->addRay(depth);
             }
 
-            std::optional<ResolvableRaycastHit> hitOpt = 
-                prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
-                ? prevHit->next(ray)
-                : m_scene->queryNearest(ray);
+
+            std::optional<ResolvableRaycastHit> hitOpt;
+            if (m_stats)
+            {
+                RaycastQueryStats queryStats{};
+                hitOpt =
+                    prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
+                    ? prevHit->next(ray, &queryStats)
+                    : m_scene->queryNearest(ray, &queryStats);
+                m_stats->addQueryStats(queryStats);
+            }
+            else
+            {
+               hitOpt =
+                    prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
+                    ? prevHit->next(ray)
+                    : m_scene->queryNearest(ray);
+            }
             if (!hitOpt) return m_scene->backgroundColor();
 
             if (m_stats)
@@ -167,7 +182,17 @@ namespace ray
             for (const auto& light : lights)
             {
                 const Ray ray = Ray::between(point, light.center());
-                std::optional<ResolvableRaycastHit> lightHitOpt = m_scene->queryNearest(ray);
+                std::optional<ResolvableRaycastHit> lightHitOpt;
+                if(m_stats)
+                {
+                    RaycastQueryStats queryStats{};
+                    lightHitOpt = m_scene->queryNearest(ray, &queryStats);
+                    m_stats->addQueryStats(queryStats);
+                }
+                else
+                {
+                    lightHitOpt = m_scene->queryNearest(ray);
+                }
                 if (!lightHitOpt) continue;
                 if (lightHitOpt->objectId() != light.id()) continue;
 

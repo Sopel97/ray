@@ -14,6 +14,7 @@ namespace ray
 {
     struct SceneObjectCollection;
     struct ResolvedRaycastHit;
+    struct RaycastQueryStats;
 
     struct RaycastHit
     {
@@ -73,7 +74,7 @@ namespace ray
         bool isInside;
         bool isLocallyContinuable;
 
-        std::optional<ResolvableRaycastHit> next(const Ray& ray) const;
+        std::optional<ResolvableRaycastHit> next(const Ray& ray, RaycastQueryStats* stats = nullptr) const;
 
         SceneObjectId objectId() const;
     };

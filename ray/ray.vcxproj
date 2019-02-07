@@ -162,6 +162,7 @@
     <ClInclude Include="src\Patterns.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="src\Raycast.h" />
+    <ClInclude Include="src\RaycastQueryStats.h" />
     <ClInclude Include="src\Raytracer.h" />
     <ClInclude Include="src\RaycastHit.h" />
     <ClInclude Include="src\BlobScene.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="src\StaticDeferredStorageScene.h" />
     <ClInclude Include="src\SceneObjectStorage.h" />
     <ClInclude Include="src\Sphere.h" />
+    <ClInclude Include="src\StaticSceneObjectBvh.h" />
     <ClInclude Include="src\TexCoords.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\TextureCoordinateResolver.h" />

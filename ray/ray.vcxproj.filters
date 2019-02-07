@@ -134,5 +134,11 @@
     <ClInclude Include="src\SceneObjectId.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\StaticSceneObjectBvh.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RaycastQueryStats.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

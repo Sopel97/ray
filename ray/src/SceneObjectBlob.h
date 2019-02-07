@@ -17,7 +17,6 @@ namespace ray
     template <typename... ShapeTs>
     struct SceneObjectBlob : DynamicSceneObjectStorage
     {
-        static_assert(std::conjunction_v<std::integral_constant<bool, (ShapeTraits<ShapeTs>::numShapes == 1)>...>, "A scene must consist of singular objects");
     private:
         // specialized whenever a pack is used
         template <typename ShapeT>
@@ -38,14 +37,14 @@ namespace ray
             });
         }
 
-        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
+        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, RaycastQueryStats* stats = nullptr) const
         {
             std::optional<ResolvableRaycastHit> hitOpt = std::nullopt;
             float minDist = std::numeric_limits<float>::max();
             for_each(m_objects, [&](const auto& objects) {
                 if (objects.size() > 0)
                 {
-                    std::optional<ResolvableRaycastHit> hitOptNow = objects.queryNearest(ray);
+                    std::optional<ResolvableRaycastHit> hitOptNow = objects.queryNearest(ray, stats);
                     if (hitOptNow)
                     {
                         const float dist = distance(hitOptNow->point, ray.origin());
@@ -57,7 +56,11 @@ namespace ray
                     }
                 }
             });
-            if (hitOpt) return hitOpt;
+            if (hitOpt)
+            {
+                if (stats) ++stats->numUsed;
+                return hitOpt;
+            }
 
             return std::nullopt;
         }
