@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Box3.h"
 #include "Vec3.h"
 
 namespace ray
@@ -18,6 +19,12 @@ namespace ray
             m_radius(radius)
         {
 
+        }
+
+        Box3 aabb() const
+        {
+            const Vec3f halfExtent(m_radius, m_radius, m_radius);
+            return Box3(m_center - halfExtent, m_center + halfExtent);
         }
 
         constexpr const Point3f& center() const

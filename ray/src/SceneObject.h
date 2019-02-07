@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Box3.h"
 #include "RaycastHit.h"
 #include "SceneObjectId.h"
 #include "Material.h"
@@ -46,6 +47,11 @@ namespace ray
         decltype(auto) center() const
         {
             return m_shape.center();
+        }
+
+        decltype(auto) aabb() const
+        {
+            return m_shape.aabb();
         }
 
         const ShapePackType& shape() const
@@ -99,6 +105,7 @@ namespace ray
             virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
+            virtual Box3 aabb() const = 0;
             virtual const Material& material(int materialNo) const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
@@ -125,6 +132,10 @@ namespace ray
             Point3f center() const override
             {
                 return m_shape.center();
+            }
+            Box3 aabb() const override
+            {
+                return m_shape.aabb();
             }
             std::optional<RaycastHit> raycast(const Ray& ray) const override
             {

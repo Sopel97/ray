@@ -37,6 +37,12 @@ namespace ray
             });
         }
 
+        template <typename ShapeT>
+        void add(const SceneObject<ShapeT>& so)
+        {
+            objectsOfType<ShapeT>().add(so);
+        }
+
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, RaycastQueryStats* stats = nullptr) const
         {
             std::optional<ResolvableRaycastHit> hitOpt = std::nullopt;
