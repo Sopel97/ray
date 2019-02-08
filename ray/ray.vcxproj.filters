@@ -131,13 +131,28 @@
     <ClInclude Include="src\SceneObjectId.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\StaticSceneObjectBvh.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Box3.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
     <ClInclude Include="src\PerformanceStats.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoundingVolume.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticBvh.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BvhObject.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BvhNode.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticBvhObjectPartitioner.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticBvhObjectMedianPartitioner.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
   </ItemGroup>

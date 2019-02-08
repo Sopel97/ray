@@ -232,7 +232,10 @@
   <ItemGroup>
     <ClInclude Include="src\Angle.h" />
     <ClInclude Include="src\Array2.h" />
+    <ClInclude Include="src\BoundingVolume.h" />
     <ClInclude Include="src\Box3.h" />
+    <ClInclude Include="src\BvhNode.h" />
+    <ClInclude Include="src\BvhObject.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Color.h" />
     <ClInclude Include="src\Image.h" />
@@ -255,10 +258,12 @@
     <ClInclude Include="src\SceneObjectCollection.h" />
     <ClInclude Include="src\SceneObjectId.h" />
     <ClInclude Include="src\ShapeTraits.h" />
+    <ClInclude Include="src\StaticBvhObjectMedianPartitioner.h" />
     <ClInclude Include="src\StaticDeferredStorageScene.h" />
     <ClInclude Include="src\SceneObjectStorage.h" />
     <ClInclude Include="src\Sphere.h" />
-    <ClInclude Include="src\StaticSceneObjectBvh.h" />
+    <ClInclude Include="src\StaticBvh.h" />
+    <ClInclude Include="src\StaticBvhObjectPartitioner.h" />
     <ClInclude Include="src\TexCoords.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\TextureCoordinateResolver.h" />
