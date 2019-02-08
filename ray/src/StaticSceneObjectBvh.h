@@ -21,13 +21,51 @@
 
 namespace ray
 {
+    struct BoundedBvhNode;
+    struct BvhNodeHit;
+
+    using BvhNodeHitQueue = std::priority_queue<BvhNodeHit, std::vector<BvhNodeHit>, std::greater<BvhNodeHit>>;
+
     struct StaticSceneObjectBvhNode
     {
-        virtual bool isLeaf() const = 0;
+        virtual std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue& queue) const = 0;
+    };
+
+    struct BoundedBvhNode
+    {
+        BoundedBvhNode(std::unique_ptr<StaticSceneObjectBvhNode>&& node, const Box3& bb) :
+            node(std::move(node)),
+            aabb(bb)
+        {
+        }
+
+        std::unique_ptr<StaticSceneObjectBvhNode> node;
+        Box3 aabb;
+    };
+
+    struct BvhNodeHit
+    {
+        BvhNodeHit(float dist, const StaticSceneObjectBvhNode& node) :
+            dist(dist),
+            node(&node)
+        {
+        }
+
+        float dist;
+        const StaticSceneObjectBvhNode* node;
+
+        friend bool operator<(const BvhNodeHit& lhs, const BvhNodeHit& rhs) noexcept
+        {
+            return lhs.dist < rhs.dist;
+        }
+        friend bool operator>(const BvhNodeHit& lhs, const BvhNodeHit& rhs) noexcept
+        {
+            return lhs.dist > rhs.dist;
+        }
     };
 
     template <typename... ShapeTs>
-    struct StaticSceneObjectBvhLeaf : StaticSceneObjectBvhNode
+    struct StaticSceneObjectBvhLeafNode : StaticSceneObjectBvhNode
     {
         template <typename ShapeT>
         void add(const SceneObject<ShapeT>& so)
@@ -35,12 +73,7 @@ namespace ray
             m_objects.add(so);
         }
 
-        bool isLeaf() const override
-        {
-            return true;
-        }
-
-        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
+        std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue& queue) const override
         {
             return m_objects.queryNearest(ray);
         }
@@ -52,41 +85,8 @@ namespace ray
     template <typename... ShapeTs>
     struct StaticSceneObjectBvhPartitionNode : StaticSceneObjectBvhNode
     {
-        struct Entry
-        {
-            Entry(std::unique_ptr<StaticSceneObjectBvhNode>&& node, const Box3& bb) :
-                node(std::move(node)),
-                aabb(bb)
-            {
-            }
-
-            std::unique_ptr<StaticSceneObjectBvhNode> node;
-            Box3 aabb;
-        };
-
-        struct EntryHit
-        {
-            EntryHit(float dist, const StaticSceneObjectBvhNode& node) :
-                dist(dist),
-                node(&node)
-            {
-            }
-
-            float dist;
-            const StaticSceneObjectBvhNode* node;
-
-            bool operator<(const EntryHit& rhs) const noexcept
-            {
-                return dist < rhs.dist;
-            }
-            bool operator>(const EntryHit& rhs) const noexcept
-            {
-                return dist > rhs.dist;
-            }
-        };
-
         // provide memory from outside to prevent a lot of small allocations
-        void gatherHits(const Ray& ray, std::priority_queue<EntryHit, std::vector<EntryHit>, std::greater<EntryHit>>& hits) const
+        std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue& hits) const override
         {
             for (const auto& child : m_children)
             {
@@ -96,11 +96,7 @@ namespace ray
                     hits.emplace(hitOpt->dist, *child.node);
                 }
             }
-        }
-
-        bool isLeaf() const override
-        {
-            return false;
+            return std::nullopt;
         }
 
         void addChild(std::unique_ptr<StaticSceneObjectBvhNode>&& node, const Box3& bb)
@@ -109,23 +105,18 @@ namespace ray
         }
 
     private:
-        std::vector<Entry> m_children;
+        std::vector<BoundedBvhNode> m_children;
     };
 
     template <typename... ShapeTs>
     struct StaticSceneObjectBvh : StaticSceneObjectStorage
     {
         static constexpr int maxDepth = 16;
-        static constexpr int maxObjectsPerNode = 8;
-    private:
-        // specialized whenever a pack is used
-        template <typename ShapeT>
-        struct ObjectStorage { using StorageType = SceneObjectArray<ShapeT>; };
+        static constexpr int maxObjectsPerNode = 1;
 
-        template <typename T>
-        using ObjectStorageType = typename ObjectStorage<T>::StorageType;
+        using LeafNodeType = StaticSceneObjectBvhLeafNode<ShapeTs...>;
+        using PartitionNodeType = StaticSceneObjectBvhPartitionNode<ShapeTs...>;
 
-    public:
         template <typename... SceneObjectCollectionTs>
         StaticSceneObjectBvh(SceneObjectCollectionTs&&... collections)
         {
@@ -142,35 +133,25 @@ namespace ray
 
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
         {
-            using EntryHit = typename StaticSceneObjectBvhPartitionNode<ShapeTs...>::EntryHit;
-            std::priority_queue<EntryHit, std::vector<EntryHit>, std::greater<EntryHit>> queue;
-            queue.push(EntryHit(0.0f, *m_root));
+            BvhNodeHitQueue queue;
+            queue.push(BvhNodeHit(0.0f, *m_root));
             float nearestHitDist = std::numeric_limits<float>::max();
             std::optional<ResolvableRaycastHit> nearestHitOpt = std::nullopt;
             while (!queue.empty())
             {
-                EntryHit entry = queue.top();
+                BvhNodeHit entry = queue.top();
                 queue.pop();
                 if (entry.dist >= nearestHitDist) break;
 
-                if (entry.node->isLeaf())
+                std::optional<ResolvableRaycastHit> hitOpt = entry.node->nextHit(ray, queue);
+                if (hitOpt)
                 {
-                    const auto& leaf = static_cast<const StaticSceneObjectBvhLeaf<ShapeTs...>&>(*entry.node);
-                    std::optional<ResolvableRaycastHit> hitOpt = leaf.queryNearest(ray);
-                    if (hitOpt)
+                    const float dist = distance(ray.origin(), hitOpt->point);
+                    if (dist < nearestHitDist)
                     {
-                        const float dist = distance(ray.origin(), hitOpt->point);
-                        if (dist < nearestHitDist)
-                        {
-                            nearestHitOpt = *hitOpt;
-                            nearestHitDist = dist;
-                        }
+                        nearestHitOpt = *hitOpt;
+                        nearestHitDist = dist;
                     }
-                }
-                else
-                {
-                    const auto& node = static_cast<const StaticSceneObjectBvhPartitionNode<ShapeTs...>&>(*entry.node);
-                    node.gatherHits(ray, queue);
                 }
             }
 
@@ -182,10 +163,13 @@ namespace ray
 
         struct Object
         {
-            virtual void addTo(StaticSceneObjectBvhLeaf<ShapeTs...>& leaf) const = 0;
+            virtual void addTo(LeafNodeType& leaf) const = 0;
             virtual const Box3& aabb() const = 0;
             virtual const Point3f& center() const = 0;
         };
+
+        using ObjectVector = std::vector<std::unique_ptr<Object>>;
+        using ObjectVectorIterator = typename ObjectVector::iterator;
 
         template <typename ShapeT>
         struct SpecificObject : Object
@@ -198,7 +182,7 @@ namespace ray
 
             }
 
-            void addTo(StaticSceneObjectBvhLeaf<ShapeTs...>& leaf) const override
+            void addTo(LeafNodeType& leaf) const override
             {
                 leaf.add(object());
             }
@@ -233,17 +217,19 @@ namespace ray
         void construct(SceneObjectCollectionTs&&... collections)
         {
             std::vector<std::unique_ptr<Object>> allObjects;
-            for_each(std::tie(collections...), [&](auto&& collection) {
+            for_each(std::tie(std::forward<SceneObjectCollectionTs>(collections)...), [&](auto&& collection) {
                 for (auto&& object : collection)
                 {
-                    allObjects.emplace_back(std::make_unique<SpecificObject<remove_cvref_t<decltype(object.shape())>>>(object));
+                    using ObjectType = remove_cvref_t<decltype(object)>;
+                    using ShapeType = remove_cvref_t<decltype(object.shape())>;
+                    allObjects.emplace_back(std::make_unique<SpecificObject<ShapeType>>(std::forward<ObjectType>(object)));
                 }
             });
 
             constructFrom(allObjects);
         }
 
-        Box3 aabb(typename std::vector<std::unique_ptr<Object>>::iterator first, typename std::vector<std::unique_ptr<Object>>::iterator last) const
+        Box3 aabb(ObjectVectorIterator first, ObjectVectorIterator last) const
         {
             if (first == last) return {};
             Box3 bb = (*first)->aabb();
@@ -257,7 +243,7 @@ namespace ray
         }
 
         using Point3fMemberPtr = float(Point3f::*);
-        Point3fMemberPtr biggestExtentAxis(typename std::vector<std::unique_ptr<Object>>::iterator first, typename std::vector<std::unique_ptr<Object>>::iterator last) const
+        Point3fMemberPtr biggestExtentAxis(ObjectVectorIterator first, ObjectVectorIterator last) const
         {
             Box3 bb = aabb(first, last);
             const Vec3f extent = bb.extent();
@@ -266,42 +252,57 @@ namespace ray
             return &Point3f::z;
         }
 
-        std::unique_ptr<StaticSceneObjectBvhNode> makeNode(typename std::vector<std::unique_ptr<Object>>::iterator first, typename std::vector<std::unique_ptr<Object>>::iterator last, int depth = 0) const
+        ObjectVectorIterator partitionObjects(ObjectVectorIterator first, ObjectVectorIterator last) const
+        {
+            Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
+
+            const int size = static_cast<int>(std::distance(first, last));
+            auto mid = std::next(first, size / 2);
+            std::nth_element(first, mid, last, [cmpAxis](const auto& lhs, const auto& rhs) {
+                return lhs->center().*cmpAxis < rhs->center().*cmpAxis;
+            });
+         
+            const float partitionPoint = (*mid)->center().*cmpAxis;
+            return std::partition(first, last, [partitionPoint, cmpAxis](const auto& em) {
+                return em->center().*cmpAxis < partitionPoint;
+            });
+        }
+
+        std::unique_ptr<LeafNodeType> makeLeafNode(ObjectVectorIterator first, ObjectVectorIterator last) const
+        {
+            auto leaf = std::make_unique<LeafNodeType>();
+            while (first != last)
+            {
+                (*first)->addTo(*leaf);
+                ++first;
+            }
+            return leaf;
+        }
+
+        std::unique_ptr<PartitionNodeType> makePartitionNode(ObjectVectorIterator first, ObjectVectorIterator last, int depth) const
+        {
+            // partition into two sets (TODO: config)
+            // call recucively
+            ObjectVectorIterator mid = partitionObjects(first, last);
+            Box3 bb1 = aabb(first, mid);
+            Box3 bb2 = aabb(mid, last);
+
+            auto node = std::make_unique<PartitionNodeType>();
+            node->addChild(makeNode(first, mid, depth + 1), std::move(bb1));
+            node->addChild(makeNode(mid, last, depth + 1), std::move(bb2));
+            return node;
+        }
+
+        std::unique_ptr<StaticSceneObjectBvhNode> makeNode(ObjectVectorIterator first, ObjectVectorIterator last, int depth = 0) const
         {
             const int size = static_cast<int>(std::distance(first, last));
             if (size <= maxObjectsPerNode || depth >= maxDepth)
             {
-                // create a leaf
-                auto leaf = std::make_unique<StaticSceneObjectBvhLeaf<ShapeTs...>>();
-                while (first != last)
-                {
-                    (*first)->addTo(*leaf);
-                    ++first;
-                }
-                return leaf;
+                return makeLeafNode(first, last);
             }
             else
             {
-                // partition into two sets (TODO: config)
-                // call recucively
-
-                Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
-                auto mid = std::next(first, size / 2);
-                std::nth_element(first, mid, last, [cmpAxis](const std::unique_ptr<Object>& lhs, const std::unique_ptr<Object>& rhs) {
-                    return lhs->center().*cmpAxis < rhs->center().*cmpAxis;
-                });
-                const float partitionPoint = (*mid)->center().*cmpAxis;
-                mid = std::partition(first, last, [partitionPoint, cmpAxis](const std::unique_ptr<Object>& em) {
-                    return em->center().*cmpAxis < partitionPoint;
-                });
-
-                Box3 bb1 = aabb(first, mid);
-                Box3 bb2 = aabb(mid, last);
-
-                auto node = std::make_unique<StaticSceneObjectBvhPartitionNode<ShapeTs...>>();
-                node->addChild(makeNode(first, mid, depth + 1), bb1);
-                node->addChild(makeNode(mid, last, depth + 1), bb2);
-                return node;
+                return makePartitionNode(first, last, depth);
             }
         }
     };
