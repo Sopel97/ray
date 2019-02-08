@@ -63,7 +63,6 @@ namespace ray
             });
             if (hitOpt)
             {
-                if (stats) ++stats->numUsed;
                 return hitOpt;
             }
 

@@ -9,7 +9,6 @@
 #include "Image.h"
 #include "Scene.h"
 #include "RaycastHit.h"
-#include "RaytracerStats.h"
 #include "Util.h"
 
 namespace ray
@@ -35,18 +34,12 @@ namespace ray
 
             // not sure if it should be used
             float gamma = 0.43f;
-
-            bool gatherStatistics = false;
         };
 
         Raytracer(const Scene& scene, const Options& options = {}) :
             m_scene(&scene),
             m_options(options)
         {
-            if (m_options.gatherStatistics)
-            {
-                m_stats = std::make_unique<RaytracerStats>(m_options.maxRayDepth);
-            }
         }
 
         Image capture(const Camera& camera) const
@@ -55,18 +48,7 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
             auto t0 = std::chrono::high_resolution_clock().now();
 #endif
-            if (m_options.gatherStatistics)
-            {
-                auto t0 = std::chrono::high_resolution_clock().now();
-                camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
-                auto t1 = std::chrono::high_resolution_clock().now();
-                auto diff = t1 - t0;
-                m_stats->addTime(diff);
-            }
-            else
-            {
-                camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
-            }
+            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
 #if defined(RAY_GATHER_PERF_STATS)
             auto t1 = std::chrono::high_resolution_clock().now();
             auto diff = t1 - t0;
@@ -75,56 +57,24 @@ namespace ray
             return img;
         }
 
-        // user must ensure that right options were set
-        const RaytracerStats& stats() const
-        {
-            return *m_stats;
-        }
-
     private:
         const Scene* m_scene;
         Options m_options;
-        std::unique_ptr<RaytracerStats> m_stats;
 
         ColorRGBf trace(const Ray& ray, int depth = 0, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
         {
-            if (m_stats)
-            {
-                m_stats->addRay(depth);
-            }
-
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addTrace(depth);
 #endif
 
-            std::optional<ResolvableRaycastHit> hitOpt;
-            if (m_stats)
-            {
-                RaycastQueryStats queryStats{};
-                hitOpt =
-                    prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
-                    ? prevHit->next(ray, &queryStats)
-                    : m_scene->queryNearest(ray, &queryStats);
-                m_stats->addQueryStats(queryStats);
-            }
-            else
-            {
-               hitOpt =
-                    prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
-                    ? prevHit->next(ray)
-                    : m_scene->queryNearest(ray);
-            }
+            std::optional<ResolvableRaycastHit> hitOpt =
+                prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
+                ? prevHit->next(ray)
+                : m_scene->queryNearest(ray);
             if (!hitOpt) return m_scene->backgroundColor();
 
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addTraceHit(depth);
-#endif
-            if (m_stats)
-            {
-                m_stats->addHit(depth);
-            }
-
-#if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addTraceResolved(depth);
 #endif
             const ResolvedRaycastHit hit = hitOpt->resolve();
@@ -198,26 +148,12 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addTrace(depth, lights.size());
 #endif
-            if (m_stats)
-            {
-                m_stats->addRays(depth, lights.size());
-            }
 
             ColorRGBf color{};
             for (const auto& light : lights)
             {
                 const Ray ray = Ray::between(point, light.center());
-                std::optional<ResolvableRaycastHit> lightHitOpt;
-                if(m_stats)
-                {
-                    RaycastQueryStats queryStats{};
-                    lightHitOpt = m_scene->queryNearest(ray, &queryStats);
-                    m_stats->addQueryStats(queryStats);
-                }
-                else
-                {
-                    lightHitOpt = m_scene->queryNearest(ray);
-                }
+                std::optional<ResolvableRaycastHit> lightHitOpt = m_scene->queryNearest(ray);
                 if (!lightHitOpt) continue;
 
 #if defined(RAY_GATHER_PERF_STATS)
@@ -225,12 +161,6 @@ namespace ray
 #endif
 
                 if (lightHitOpt->objectId() != light.id()) continue;
-
-                // we hit a light
-                if (m_stats)
-                {
-                    m_stats->addHit(depth);
-                }
 
 #if defined(RAY_GATHER_PERF_STATS)
                 perf::gPerfStats.addTraceResolved(depth);

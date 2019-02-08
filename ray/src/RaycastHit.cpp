@@ -14,11 +14,11 @@ namespace ray
         return owner->id(shapeNo);
     }
 
-    std::optional<ResolvableRaycastHit> ResolvedRaycastHit::next(const Ray& ray, RaycastQueryStats* stats) const
+    std::optional<ResolvableRaycastHit> ResolvedRaycastHit::next(const Ray& ray) const
     {
         if (!owner || !isLocallyContinuable) return std::nullopt;
 
-        return owner->queryLocal(ray, shapeNo, stats);
+        return owner->queryLocal(ray, shapeNo);
     }
 
     SceneObjectId ResolvedRaycastHit::objectId() const

@@ -245,11 +245,9 @@
     <ClInclude Include="src\PerformanceStats.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="src\Raycast.h" />
-    <ClInclude Include="src\RaycastQueryStats.h" />
     <ClInclude Include="src\Raytracer.h" />
     <ClInclude Include="src\RaycastHit.h" />
     <ClInclude Include="src\BlobScene.h" />
-    <ClInclude Include="src\RaytracerStats.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneObject.h" />
     <ClInclude Include="src\SceneObjectArray.h" />

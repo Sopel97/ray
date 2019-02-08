@@ -125,9 +125,6 @@
     <ClInclude Include="src\SceneObjectStorage.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\RaytracerStats.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\LightHandle.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
@@ -135,9 +132,6 @@
       <Filter>Header Files\src</Filter>
     </ClInclude>
     <ClInclude Include="src\StaticSceneObjectBvh.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RaycastQueryStats.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
     <ClInclude Include="src\Box3.h">

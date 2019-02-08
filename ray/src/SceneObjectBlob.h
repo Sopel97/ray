@@ -43,32 +43,27 @@ namespace ray
             objectsOfType<ShapeT>().add(so);
         }
 
-        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, RaycastQueryStats* stats = nullptr) const
+        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
         {
             std::optional<ResolvableRaycastHit> hitOpt = std::nullopt;
             float minDist = std::numeric_limits<float>::max();
             for_each(m_objects, [&](const auto& objects) {
                 if (objects.size() > 0)
                 {
-                    std::optional<ResolvableRaycastHit> hitOptNow = objects.queryNearest(ray, stats);
+                    std::optional<ResolvableRaycastHit> hitOptNow = objects.queryNearest(ray);
                     if (hitOptNow)
                     {
                         const float dist = distance(hitOptNow->point, ray.origin());
                         if (dist < minDist)
                         {
                             minDist = dist;
-                            hitOpt = std::move(hitOptNow);
+                            hitOpt = std::move(*hitOptNow);
                         }
                     }
                 }
             });
-            if (hitOpt)
-            {
-                if (stats) ++stats->numUsed;
-                return hitOpt;
-            }
 
-            return std::nullopt;
+            return hitOpt;
         }
 
     private:

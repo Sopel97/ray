@@ -21,6 +21,9 @@
 #include "src/TextureDatabase.h"
 #include "src/Vec3.h"
 
+#include <chrono>
+#include <string>
+
 using namespace ray;
 
 int main() 
@@ -115,13 +118,18 @@ int main()
     scene.add(SceneObject<Sphere>(Sphere({ 0.0f, 7.0f, 1.0f }, 0.5f), { &lightMat }));
     */
 
-    auto opt = Raytracer::Options{};
-    opt.gatherStatistics = true;
-    Raytracer raytracer(scene, opt);
+#if !defined(RAY_GATHER_PERF_STATS)
+    auto t0 = std::chrono::high_resolution_clock().now();
+#endif
+    Raytracer raytracer(scene);
     Image img = raytracer.capture(Camera({0, 0.5f, 0}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45)));
 
 #if defined(RAY_GATHER_PERF_STATS)
     std::cout << perf::gPerfStats.summary();
+#else
+    auto t1 = std::chrono::high_resolution_clock().now();
+    auto diff = t1 - t0;
+    std::cout << std::to_string(static_cast<double>(diff.count()) / 1e9) << "s\n";
 #endif
     sf::Image sfImg = img.toSfImage();
     sf::Texture texture;

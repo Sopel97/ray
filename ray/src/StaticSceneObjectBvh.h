@@ -40,9 +40,9 @@ namespace ray
             return true;
         }
 
-        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, RaycastQueryStats* stats = nullptr) const
+        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
         {
-            return m_objects.queryNearest(ray, stats);
+            return m_objects.queryNearest(ray);
         }
         
     private:
@@ -140,7 +140,7 @@ namespace ray
 #endif
         }
 
-        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, RaycastQueryStats* stats = nullptr) const
+        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
         {
             using EntryHit = typename StaticSceneObjectBvhPartitionNode<ShapeTs...>::EntryHit;
             std::priority_queue<EntryHit, std::vector<EntryHit>, std::greater<EntryHit>> queue;
@@ -156,7 +156,7 @@ namespace ray
                 if (entry.node->isLeaf())
                 {
                     const auto& leaf = static_cast<const StaticSceneObjectBvhLeaf<ShapeTs...>&>(*entry.node);
-                    std::optional<ResolvableRaycastHit> hitOpt = leaf.queryNearest(ray, stats);
+                    std::optional<ResolvableRaycastHit> hitOpt = leaf.queryNearest(ray);
                     if (hitOpt)
                     {
                         const float dist = distance(ray.origin(), hitOpt->point);
