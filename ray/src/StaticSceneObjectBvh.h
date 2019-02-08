@@ -86,7 +86,7 @@ namespace ray
         {
             for (const auto& child : m_children)
             {
-                std::optional<RaycastBvHit> hitOpt = raycast(ray, child.aabb);
+                std::optional<RaycastBvHit> hitOpt = raycastBv(ray, child.aabb);
                 if (hitOpt)
                 {
                     hits.emplace(hitOpt->dist, *child.node);

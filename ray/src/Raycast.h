@@ -1,5 +1,8 @@
 #pragma once
 
+#if defined(RAY_GATHER_PERF_STATS)
+#include "PerformanceStats.h"
+#endif
 #include "Box3.h"
 #include "Ray.h"
 #include "RaycastHit.h"
@@ -20,7 +23,7 @@ namespace ray
             && point.z >= box.min.z && point.z <= box.max.z;
     }
 
-    std::optional<RaycastBvHit> raycast(const Ray& ray, const Box3& box)
+    std::optional<RaycastBvHit> raycastBv(const Ray& ray, const Box3& box)
     {
         if (contains(box, ray.origin())) return RaycastBvHit{ 0.0f };
 
