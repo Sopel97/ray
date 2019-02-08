@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(RAY_GATHER_PERF_STATS)
+#include "PerformanceStats.h"
+#endif
+
 #include "Box3.h"
 #include "RaycastHit.h"
 #include "SceneObjectArray.h"
@@ -125,7 +129,15 @@ namespace ray
         template <typename... SceneObjectCollectionTs>
         StaticSceneObjectBvh(SceneObjectCollectionTs&&... collections)
         {
+#if defined(RAY_GATHER_PERF_STATS)
+            auto t0 = std::chrono::high_resolution_clock().now();
+#endif
             construct(std::forward<SceneObjectCollectionTs>(collections)...);
+#if defined(RAY_GATHER_PERF_STATS)
+            auto t1 = std::chrono::high_resolution_clock().now();
+            auto diff = t1 - t0;
+            perf::gPerfStats.addConstructionTime(diff);
+#endif
         }
 
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, RaycastQueryStats* stats = nullptr) const

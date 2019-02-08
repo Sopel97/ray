@@ -242,6 +242,7 @@
     <ClInclude Include="src\MathConstants.h" />
     <ClInclude Include="src\IterableNumber.h" />
     <ClInclude Include="src\Patterns.h" />
+    <ClInclude Include="src\PerformanceStats.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="src\Raycast.h" />
     <ClInclude Include="src\RaycastQueryStats.h" />

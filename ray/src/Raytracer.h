@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(RAY_GATHER_PERF_STATS)
+#include "PerformanceStats.h"
+#endif
+
 #include "Camera.h"
 #include "LightHandle.h"
 #include "Image.h"
@@ -48,6 +52,9 @@ namespace ray
         Image capture(const Camera& camera) const
         {
             Image img(camera.width(), camera.height());
+#if defined(RAY_GATHER_PERF_STATS)
+            auto t0 = std::chrono::high_resolution_clock().now();
+#endif
             if (m_options.gatherStatistics)
             {
                 auto t0 = std::chrono::high_resolution_clock().now();
@@ -60,6 +67,11 @@ namespace ray
             {
                 camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
             }
+#if defined(RAY_GATHER_PERF_STATS)
+            auto t1 = std::chrono::high_resolution_clock().now();
+            auto diff = t1 - t0;
+            perf::gPerfStats.addTraceTime(diff);
+#endif
             return img;
         }
 
@@ -81,6 +93,9 @@ namespace ray
                 m_stats->addRay(depth);
             }
 
+#if defined(RAY_GATHER_PERF_STATS)
+            perf::gPerfStats.addTrace(depth);
+#endif
 
             std::optional<ResolvableRaycastHit> hitOpt;
             if (m_stats)
@@ -101,11 +116,17 @@ namespace ray
             }
             if (!hitOpt) return m_scene->backgroundColor();
 
+#if defined(RAY_GATHER_PERF_STATS)
+            perf::gPerfStats.addTraceHit(depth);
+#endif
             if (m_stats)
             {
                 m_stats->addHit(depth);
             }
 
+#if defined(RAY_GATHER_PERF_STATS)
+            perf::gPerfStats.addTraceResolved(depth);
+#endif
             const ResolvedRaycastHit hit = hitOpt->resolve();
 
             const ColorRGBf refractionColor = computeRefractionColor(ray, prevHit, hit, depth);
@@ -174,6 +195,9 @@ namespace ray
             const auto& lights = m_scene->lights();
             const Point3f point = hit.point + hit.normal * m_options.paddingDistance;
 
+#if defined(RAY_GATHER_PERF_STATS)
+            perf::gPerfStats.addTrace(depth, lights.size());
+#endif
             if (m_stats)
             {
                 m_stats->addRays(depth, lights.size());
@@ -195,6 +219,11 @@ namespace ray
                     lightHitOpt = m_scene->queryNearest(ray);
                 }
                 if (!lightHitOpt) continue;
+
+#if defined(RAY_GATHER_PERF_STATS)
+                perf::gPerfStats.addTraceHit(depth);
+#endif
+
                 if (lightHitOpt->objectId() != light.id()) continue;
 
                 // we hit a light
@@ -202,6 +231,10 @@ namespace ray
                 {
                     m_stats->addHit(depth);
                 }
+
+#if defined(RAY_GATHER_PERF_STATS)
+                perf::gPerfStats.addTraceResolved(depth);
+#endif
 
                 auto lightHit = lightHitOpt->resolve();
                 color += lightHit.material->emissionColor * std::max(0.0f, dot(hit.normal, ray.direction()));

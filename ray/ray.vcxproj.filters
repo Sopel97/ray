@@ -143,5 +143,8 @@
     <ClInclude Include="src\Box3.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\PerformanceStats.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

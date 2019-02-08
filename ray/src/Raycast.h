@@ -3,6 +3,7 @@
 #if defined(RAY_GATHER_PERF_STATS)
 #include "PerformanceStats.h"
 #endif
+
 #include "Box3.h"
 #include "Ray.h"
 #include "RaycastHit.h"
@@ -25,7 +26,17 @@ namespace ray
 
     std::optional<RaycastBvHit> raycastBv(const Ray& ray, const Box3& box)
     {
-        if (contains(box, ray.origin())) return RaycastBvHit{ 0.0f };
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addBoxBvRaycast();
+#endif
+
+        if (contains(box, ray.origin()))
+        {
+#if defined(RAY_GATHER_PERF_STATS)
+            perf::gPerfStats.addBoxBvRaycastHit();
+#endif
+            return RaycastBvHit{ 0.0f };
+        }
 
         const Vec3f invDir = ray.direction().inv();
         const bool sign[3] = {
@@ -60,11 +71,18 @@ namespace ray
 
         if (tmin < 0.0f) return std::nullopt;
 
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addBoxBvRaycastHit();
+#endif
+
         return RaycastBvHit{ tmin };
     }
 
     std::optional<RaycastHit> raycast(const Ray& ray, const Sphere& sphere)
     {
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addSphereRaycast();
+#endif
         /*  
             O -- ray origin
             D -- ray direction
@@ -156,6 +174,9 @@ namespace ray
         float t1 = t_ca - t_hc;
         float t2 = t_ca + t_hc;
 
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addSphereRaycastHit();
+#endif
         // select smallest positive
         // we know that at least one is positive
         // and that t2 is greater

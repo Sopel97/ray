@@ -1,6 +1,10 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
+#if defined(RAY_GATHER_PERF_STATS)
+#include "src/PerformanceStats.h"
+#endif
+
 #include "src/Angle.h"
 #include "src/BlobScene.h"
 #include "src/Camera.h"
@@ -115,7 +119,10 @@ int main()
     opt.gatherStatistics = true;
     Raytracer raytracer(scene, opt);
     Image img = raytracer.capture(Camera({0, 0.5f, 0}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45)));
-    std::cout << raytracer.stats().summary();
+
+#if defined(RAY_GATHER_PERF_STATS)
+    std::cout << perf::gPerfStats.summary();
+#endif
     sf::Image sfImg = img.toSfImage();
     sf::Texture texture;
     texture.loadFromImage(sfImg);
