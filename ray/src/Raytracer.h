@@ -51,14 +51,14 @@ namespace ray
             if (m_options.gatherStatistics)
             {
                 auto t0 = std::chrono::high_resolution_clock().now();
-                camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::seq);
+                camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
                 auto t1 = std::chrono::high_resolution_clock().now();
                 auto diff = t1 - t0;
                 m_stats->addTime(diff);
             }
             else
             {
-                camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::seq);
+                camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
             }
             return img;
         }

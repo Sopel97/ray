@@ -111,8 +111,8 @@ namespace ray
     template <typename... ShapeTs>
     struct StaticSceneObjectBvh : StaticSceneObjectStorage
     {
-        static constexpr int maxDepth = 5;
-        static constexpr int maxObjectsPerNode = 1;
+        static constexpr int maxDepth = 16;
+        static constexpr int maxObjectsPerNode = 8;
     private:
         // specialized whenever a pack is used
         template <typename ShapeT>
