@@ -160,9 +160,15 @@ namespace ray
             {
                 std::string out;
 
-                auto entry3 = [&](std::uint64_t a, std::uint64_t b, std::uint64_t r) {
+                auto entry3 = [&](std::uint64_t r, std::uint64_t h, std::uint64_t a) {
+                    auto pct1 = (static_cast<double>(r) / static_cast<double>(h)) * 100.0;
+                    auto pct2 = (static_cast<double>(h) / static_cast<double>(a)) * 100.0;
+                    return std::to_string(r) + " [" + std::to_string(pct1) + "%] " + std::to_string(h) + " [" + std::to_string(pct2) + "%] " + std::to_string(a);
+                };
+
+                auto entry2 = [&](std::uint64_t a, std::uint64_t b) {
                     auto pct = (static_cast<double>(a) / static_cast<double>(b)) * 100.0;
-                    return std::to_string(a) + "/" + std::to_string(b) + " (" + std::to_string(pct) + "%); [" + std::to_string(r) + "]";
+                    return std::to_string(a) + " [" + std::to_string(pct) + "%] " + std::to_string(b);
                 };
 
                 auto constructionTimeSeconds = static_cast<double>(m_constructionDuration.time.load().count()) / 1e9;
@@ -170,20 +176,19 @@ namespace ray
                 TraceStatsTotal totalTraces = total(m_tracesByDepth);
                 out += "Scene constrution time: " + std::to_string(constructionTimeSeconds) + "s\n";
                 out += "Trace time: " + std::to_string(traceTimeSeconds) + "s\n";
-                out += "Total hits/rays: " + entry3(totalTraces.hits, totalTraces.all, totalTraces.resolved) + "\n";
+                out += "Total resolved/hits/rays: " + entry3(totalTraces.resolved, totalTraces.hits, totalTraces.all) + "\n";
                 for (int i = 0; i < m_tracesByDepth.size(); ++i)
                 {
-                    out += "  hits/rays at depth " + std::to_string(i) + ": " + entry3(m_tracesByDepth[i].hits.load(), m_tracesByDepth[i].all.load(), m_tracesByDepth[i].resolved.load()) + "\n";
+                    if (m_tracesByDepth[i].all.load() == 0) continue;
+                    out += "  hits/rays at depth " + std::to_string(i) + ": " + entry3(m_tracesByDepth[i].resolved.load(), m_tracesByDepth[i].hits.load(), m_tracesByDepth[i].all.load()) + "\n";
                 }
                 out += "Rays/s: " + std::to_string(totalTraces.all / traceTimeSeconds) + "\n";
 
                 out += "Intersection test stats:\n";
                 out += "Sphere tests:\n";
-                out += "   All: " + std::to_string(m_sphereRaycasts.all.load()) + "\n";
-                out += "  Hits: " + std::to_string(m_sphereRaycasts.hits.load()) + "\n";
+                out += "   hits/all: " + entry2(m_sphereRaycasts.hits.load(), m_sphereRaycasts.all.load()) + "\n";
                 out += "Box BV tests:\n";
-                out += "   All: " + std::to_string(m_boxBvRaycasts.all.load()) + "\n";
-                out += "  Hits: " + std::to_string(m_boxBvRaycasts.hits.load()) + "\n";
+                out += "   hits/all: " + entry2(m_boxBvRaycasts.hits.load(), m_boxBvRaycasts.all.load()) + "\n";
 
                 return out;
             }
