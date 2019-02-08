@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Box3.h"
 #include "Ray.h"
 #include "RaycastHit.h"
 #include "Sphere.h"
@@ -7,12 +8,56 @@
 
 #include <cmath>
 #include <optional>
+#include <iostream>
 
 namespace ray
 {
-    float smallestPositive(float a, float b)
+    bool contains(const Box3& box, const Point3f& point)
     {
+        return
+               point.x >= box.min.x && point.x <= box.max.x
+            && point.y >= box.min.y && point.y <= box.max.y
+            && point.z >= box.min.z && point.z <= box.max.z;
+    }
 
+    std::optional<RaycastBvHit> raycast(const Ray& ray, const Box3& box)
+    {
+        if (contains(box, ray.origin())) return RaycastBvHit{ 0.0f };
+
+        const Vec3f invDir = ray.direction().inv();
+        const bool sign[3] = {
+            ray.direction().x < 0.0f,
+            ray.direction().y < 0.0f,
+            ray.direction().z < 0.0f
+        };
+        const Point3f origin = ray.origin();
+        const Point3f bounds[2] = { box.min, box.max };
+
+        float tmin = (bounds[sign[0]].x - origin.x) * invDir.x;
+        float tmax = (bounds[!sign[0]].x - origin.x) * invDir.x;
+        float tymin = (bounds[sign[1]].y - origin.y) * invDir.y;
+        float tymax = (bounds[!sign[1]].y - origin.y) * invDir.y;
+
+        if ((tmin > tymax) || (tymin > tmax))
+            return std::nullopt;
+        if (tymin > tmin)
+            tmin = tymin;
+        if (tymax < tmax)
+            tmax = tymax;
+
+        float tzmin = (bounds[sign[2]].z - origin.z) * invDir.z;
+        float tzmax = (bounds[!sign[2]].z - origin.z) * invDir.z;
+
+        if ((tmin > tzmax) || (tzmin > tmax))
+            return std::nullopt;
+        if (tzmin > tmin)
+            tmin = tzmin;
+        if (tzmax < tmax)
+            tmax = tzmax;
+
+        if (tmin < 0.0f) return std::nullopt;
+
+        return RaycastBvHit{ tmin };
     }
 
     std::optional<RaycastHit> raycast(const Ray& ray, const Sphere& sphere)

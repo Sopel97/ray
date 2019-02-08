@@ -94,6 +94,15 @@ namespace ray
         {
             return Vec3<T>(x, y, z);
         }
+
+        constexpr Vec3<T> inv() const
+        {
+            return Vec3<T>(
+                static_cast<T>(1) / x,
+                static_cast<T>(1) / y,
+                static_cast<T>(1) / z
+            );
+        }
     };
 
     using Normal3f = Normal3<float>;
@@ -183,6 +192,15 @@ namespace ray
         constexpr T invLength() const
         {
             return static_cast<T>(1) / length();
+        }
+
+        constexpr Vec3<T> inv() const
+        {
+            return Vec3<T>(
+                static_cast<T>(1) / x,
+                static_cast<T>(1) / y,
+                static_cast<T>(1) / z
+            );
         }
 
         constexpr void normalize()

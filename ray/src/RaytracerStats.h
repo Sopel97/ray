@@ -99,7 +99,7 @@ namespace ray
             auto timeSeconds = static_cast<double>(timeElapsed().count()) / 1e9;
             out += "Time elapsed: " + std::to_string(timeSeconds) + "s\n";
             out += "Total hits/rays: " + ratio(totalNumHits(), totalNumRays()) + "\n";
-            for (int i = 0; i <= m_numRaysByDepth.size(); ++i)
+            for (int i = 0; i < m_numRaysByDepth.size(); ++i)
             {
                 out += "  hits/rays at depth " + std::to_string(i) + ": " + ratio(numHits(i), numRays(i)) + "\n";
             }

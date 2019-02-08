@@ -71,8 +71,8 @@ int main()
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-    StaticDeferredStorageScene<StaticSceneObjectBvh<Sphere>> sceneTmp(spheres);
-    StaticDeferredStorageScene<SceneObjectBlob<Sphere>> scene(std::move(spheres));
+    StaticDeferredStorageScene<StaticSceneObjectBvh<Sphere>> scene(spheres);
+    //StaticDeferredStorageScene<SceneObjectBlob<Sphere>> scene(std::move(spheres));
     //*/
 
     /*

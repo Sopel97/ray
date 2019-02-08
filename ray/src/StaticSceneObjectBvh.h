@@ -13,6 +13,7 @@
 #include <memory>
 #include <type_traits>
 #include <vector>
+#include <queue>
 
 namespace ray
 {
@@ -61,14 +62,36 @@ namespace ray
 
         struct EntryHit
         {
+            EntryHit(float dist, const StaticSceneObjectBvhNode& node) :
+                dist(dist),
+                node(&node)
+            {
+            }
+
             float dist;
             const StaticSceneObjectBvhNode* node;
+
+            bool operator<(const EntryHit& rhs) const noexcept
+            {
+                return dist < rhs.dist;
+            }
+            bool operator>(const EntryHit& rhs) const noexcept
+            {
+                return dist > rhs.dist;
+            }
         };
 
         // provide memory from outside to prevent a lot of small allocations
-        void getHitsOrdered(const Ray& ray, std::vector<EntryHit>& hits)
+        void gatherHits(const Ray& ray, std::priority_queue<EntryHit, std::vector<EntryHit>, std::greater<EntryHit>>& hits) const
         {
-            
+            for (const auto& child : m_children)
+            {
+                std::optional<RaycastBvHit> hitOpt = raycast(ray, child.aabb);
+                if (hitOpt)
+                {
+                    hits.emplace(hitOpt->dist, *child.node);
+                }
+            }
         }
 
         bool isLeaf() const override
@@ -89,7 +112,7 @@ namespace ray
     struct StaticSceneObjectBvh : StaticSceneObjectStorage
     {
         static constexpr int maxDepth = 5;
-        static constexpr int maxObjectsPerNode = 8;
+        static constexpr int maxObjectsPerNode = 1;
     private:
         // specialized whenever a pack is used
         template <typename ShapeT>
@@ -107,7 +130,39 @@ namespace ray
 
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, RaycastQueryStats* stats = nullptr) const
         {
-            return {};
+            using EntryHit = typename StaticSceneObjectBvhPartitionNode<ShapeTs...>::EntryHit;
+            std::priority_queue<EntryHit, std::vector<EntryHit>, std::greater<EntryHit>> queue;
+            queue.push(EntryHit(0.0f, *m_root));
+            float nearestHitDist = std::numeric_limits<float>::max();
+            std::optional<ResolvableRaycastHit> nearestHitOpt = std::nullopt;
+            while (!queue.empty())
+            {
+                EntryHit entry = queue.top();
+                queue.pop();
+                if (entry.dist >= nearestHitDist) break;
+
+                if (entry.node->isLeaf())
+                {
+                    const auto& leaf = static_cast<const StaticSceneObjectBvhLeaf<ShapeTs...>&>(*entry.node);
+                    std::optional<ResolvableRaycastHit> hitOpt = leaf.queryNearest(ray, stats);
+                    if (hitOpt)
+                    {
+                        const float dist = distance(ray.origin(), hitOpt->point);
+                        if (dist < nearestHitDist)
+                        {
+                            nearestHitOpt = *hitOpt;
+                            nearestHitDist = dist;
+                        }
+                    }
+                }
+                else
+                {
+                    const auto& node = static_cast<const StaticSceneObjectBvhPartitionNode<ShapeTs...>&>(*entry.node);
+                    node.gatherHits(ray, queue);
+                }
+            }
+
+            return nearestHitOpt;
         }
 
     private:
@@ -178,10 +233,12 @@ namespace ray
 
         Box3 aabb(typename std::vector<std::unique_ptr<Object>>::iterator first, typename std::vector<std::unique_ptr<Object>>::iterator last) const
         {
-            Box3 bb{};
+            if (first == last) return {};
+            Box3 bb = (*first)->aabb();
+            ++first;
             while (first != last)
             {
-                bb.extend((*first)->center());
+                bb.extend((*first)->aabb());
                 ++first;
             }
             return bb;

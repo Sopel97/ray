@@ -16,6 +16,12 @@ namespace ray
     struct ResolvedRaycastHit;
     struct RaycastQueryStats;
 
+    // for bounding volumes we don't need that much information
+    struct RaycastBvHit
+    {
+        float dist;
+    };
+
     struct RaycastHit
     {
         Point3f point;
