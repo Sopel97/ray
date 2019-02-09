@@ -31,7 +31,9 @@ namespace ray
             for_each(std::tie(collections...), [&](auto&& collection) {
                 for (auto&& object : collection)
                 {
-                    objectsOfType<remove_cvref_t<decltype(object.shape())>>().emplace_back(std::forward<decltype(object)>(object));
+                    using SceneObjectType = remove_cvref_t<decltype(object)>;
+                    using ShapeType = typename SceneObjectType::ShapeType;
+                    objectsOfType<ShapeType>().emplace_back(std::forward<SceneObjectType>(object));
                 }
                 });
         }

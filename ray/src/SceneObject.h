@@ -26,8 +26,8 @@ namespace ray
     template <typename ShapeT>
     struct SceneObject
     {
-        using ShapePackType = ShapeT;
-        using ShapeTraits = ShapeTraits<ShapePackType>;
+        using ShapeType = ShapeT;
+        using ShapeTraits = ShapeTraits<ShapeType>;
         using BaseShapeType = typename ShapeTraits::BaseShapeType;
         static constexpr int numShapesInPack = ShapeTraits::numShapes;
         static constexpr bool isPack = numShapesInPack > 1;
@@ -36,7 +36,7 @@ namespace ray
 
         static_assert(!isPack, "A single scene object must not be a pack. Use SceneObjectArray.");
 
-        SceneObject(const ShapePackType& shape, const MaterialStorageType& materials) :
+        SceneObject(const ShapeType& shape, const MaterialStorageType& materials) :
             m_shape(shape),
             m_materials(materials),
             m_id(nextSceneObjectId.fetch_add(1))
@@ -54,7 +54,7 @@ namespace ray
             return m_shape.aabb();
         }
 
-        const ShapePackType& shape() const
+        const ShapeType& shape() const
         {
             return m_shape;
         }
@@ -84,7 +84,7 @@ namespace ray
         }
 
     private:
-        ShapePackType m_shape;
+        ShapeType m_shape;
         MaterialStorageType m_materials;
         SceneObjectId m_id;
     };
@@ -177,6 +177,8 @@ namespace ray
         };
 
     public:
+        using ShapeType = UniqueAnyShape;
+
         template <typename ShapeT>
         SceneObject(const ShapeT& shape, const std::array<const Material*, ShapeTraits<ShapeT>::numMaterialsPerShape>& materials) :
             m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(materials, shape))
@@ -198,6 +200,11 @@ namespace ray
         Point3f center() const
         {
             return m_obj->center();
+        }
+
+        Box3 aabb() const
+        {
+            return m_obj->aabb();
         }
 
         std::optional<RaycastHit> raycast(const Ray& ray) const
@@ -242,6 +249,7 @@ namespace ray
             virtual std::optional<RaycastHit> raycast(const Ray& ray) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
+            virtual Box3 aabb() const = 0;
             virtual const Material& material(int materialNo) const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
@@ -268,6 +276,10 @@ namespace ray
             Point3f center() const override
             {
                 return m_shape.center();
+            }
+            Box3 aabb() const override
+            {
+                return m_shape.aabb();
             }
             std::optional<RaycastHit> raycast(const Ray& ray) const override
             {
@@ -305,6 +317,8 @@ namespace ray
         };
 
     public:
+        using ShapeType = SharedAnyShape;
+
         template <typename ShapeT>
         SceneObject(const ShapeT& shape, const std::array<const Material*, ShapeTraits<ShapeT>::numMaterialsPerShape>& materials) :
             m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
@@ -320,6 +334,11 @@ namespace ray
         Point3f center() const
         {
             return m_obj->center();
+        }
+
+        Box3 aabb() const
+        {
+            return m_obj->aabb();
         }
 
         std::optional<RaycastHit> raycast(const Ray& ray) const

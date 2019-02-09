@@ -13,8 +13,6 @@
 
 namespace ray
 {
-    // TODO: make statistics gathering everywhere be a constexpr switch
-    //       maybe even use preprocessor switch and a global state
     struct Raytracer
     {
         struct Options

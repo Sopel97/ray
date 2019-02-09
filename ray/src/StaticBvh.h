@@ -46,10 +46,6 @@ namespace ray
         using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvhParamsT>;
         using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvhParamsT>;
 
-        // TODO: use SceneObjectBlob everywhere where a bunch of shapes of different types is passed
-        //       better move semantics for SceneObjectBlob
-        //       will allow passing partitioner instance up to here
-        // TODO: Shape<...> to bundle shape types for easier passing
         template <typename... PartitionerArgsTs>
         StaticBvh(const RawSceneObjectBlob<AllShapes>& blob, PartitionerArgsTs&&... args) :
             m_partitioner(std::forward<PartitionerArgsTs>(args)...)
@@ -101,7 +97,7 @@ namespace ray
         {
             SpecificObject(const SceneObject<ShapeT>& obj) :
                 m_object(&obj),
-                m_boundingVolume(ray::boundingVolume<BvShapeT>(obj.shape())),
+                m_boundingVolume(ray::boundingVolume<BvShapeT>(obj)),
                 m_aabb(obj.aabb()),
                 m_center(obj.center())
             {
@@ -146,7 +142,7 @@ namespace ray
             BoundedBvhObjectVector allObjects;
             blob.forEach([&](auto&& object) {
                     using ObjectType = remove_cvref_t<decltype(object)>;
-                    using ShapeType = remove_cvref_t<decltype(object.shape())>;
+                    using ShapeType = typename ObjectType::ShapeType;
                     allObjects.emplace_back(std::make_unique<SpecificObject<ShapeType>>(object));
             });
 
@@ -179,7 +175,6 @@ namespace ray
 
         std::unique_ptr<PartitionNodeType> makePartitionNode(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int depth) const
         {
-            // partition into two sets (TODO: config)
             // call recucively
             std::vector<BoundedBvhObjectVectorIterator> partitions = m_partitioner.partition(first, last);
             auto node = std::make_unique<PartitionNodeType>();

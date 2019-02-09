@@ -3,6 +3,7 @@
 #include "Raycast.h"
 #include "RaycastHit.h"
 #include "Scene.h"
+#include "RawSceneObjectBlob.h"
 #include "SceneObjectArray.h"
 #include "ShapeTraits.h"
 #include "Sphere.h"
@@ -20,11 +21,11 @@ namespace ray
     {
     private:
     public:
-        template <typename... SceneObjectCollectionsTs>
-        StaticDeferredStorageScene(SceneObjectCollectionsTs&&... collections) :
-            m_storage(std::forward<SceneObjectCollectionsTs>(collections)...)
+        template <typename... ShapeTs>
+        StaticDeferredStorageScene(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection) :
+            m_storage(collection)
         {
-            rememberLights(std::forward<SceneObjectCollectionsTs>(collections)...);
+            rememberLights(collection);
         }
 
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
@@ -54,16 +55,13 @@ namespace ray
 
         ColorRGBf m_backgroundColor;
 
-        template <typename... SceneObjectCollectionsTs>
-        void rememberLights(SceneObjectCollectionsTs&&... collections)
+        template <typename... ShapeTs>
+        void rememberLights(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection)
         {
-            for_each(std::tie(collections...), [&](const auto& collection) {
-                for (const auto& object : collection)
+            collection.forEach([&](const auto& object) {
+                if (object.isLight())
                 {
-                    if (object.isLight())
-                    {
-                        m_lights.emplace_back(object.shape().center(), object.id());
-                    }
+                    m_lights.emplace_back(object.center(), object.id());
                 }
             });
         }

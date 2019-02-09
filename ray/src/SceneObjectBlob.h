@@ -3,6 +3,7 @@
 #include "NamedTypePacks.h"
 #include "SceneObjectStorageProvider.h"
 #include "RaycastHit.h"
+#include "RawSceneObjectBlob.h"
 #include "SceneObjectCollection.h"
 #include "SceneObjectArray.h"
 #include "ShapeTraits.h"
@@ -29,14 +30,18 @@ namespace ray
         using ObjectStorageType = typename SceneObjectStorageProviderT::template ArrayType<ShapeT>;
 
     public:
-        template <typename... SceneObjectCollectionsTs>
-        SceneObjectBlob(SceneObjectCollectionsTs&&... collections)
+        SceneObjectBlob() :
+            m_objects{}
         {
-            for_each(std::tie(collections...), [&](auto&& collection) {
-                for (auto&& object : collection)
-                {
-                    objectsOfType<remove_cvref_t<decltype(object.shape())>>().add(std::forward<decltype(object)>(object));
-                }
+        }
+
+        template <typename... ShapeTs>
+        SceneObjectBlob(const RawSceneObjectBlob<Shapes<ShapeTs...>>& blob)
+        {
+            blob.forEach([&](auto&& object) {
+                using SceneObjectType = remove_cvref_t<decltype(object)>;
+                using ShapeType = typename SceneObjectType::ShapeType;
+                objectsOfType<ShapeType>().add(object);
             });
         }
 

@@ -58,20 +58,40 @@ int main()
     auto& m8 = matDb.emplace("mat8", ColorRGBf(0.9f, 0.9f, 0.9f), ColorRGBf(0, 0, 0), 0.0f, 1.13f, 1.0f, 0.0f, ColorRGBf(0, 0, 0));
 
     //*
-    std::vector<SceneObject<Sphere>> spheres;
-    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
-    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
-    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
-    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
-    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
-    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
-    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
-    spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    std::vector<SceneObject<SharedAnyShape>> spheres;
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    using ShapesT = Shapes<SharedAnyShape>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
-    using BvhParamsType = BvhParams<Shapes<Sphere>, Box3, PackedSceneObjectStorageProvider>;
-    StaticDeferredStorageScene<StaticBvh<BvhParamsType, PartitionerType>> scene(std::move(spheres));
-    //StaticDeferredStorageScene<SceneObjectBlob<Shapes<Sphere>>> scene(std::move(spheres));
-    //StaticBlobScene<Shapes<Sphere>> scene(std::move(spheres));
+    using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
+    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres));
+    StaticDeferredStorageScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    //StaticDeferredStorageScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    //*/
+
+    /*
+    std::vector<SceneObject<SharedAnyShape>> spheres;
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
+    spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    using ShapesT = Shapes<SharedAnyShape>;
+    using PartitionerType = StaticBvhObjectMedianPartitioner;
+    using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
+    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres));
+    StaticDeferredStorageScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    //StaticDeferredStorageScene<SceneObjectBlob<Shapes<Sphere>>> scene(shapes);
+    //StaticBlobScene<Shapes<Sphere>> scene(shapes);
     //*/
 
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
