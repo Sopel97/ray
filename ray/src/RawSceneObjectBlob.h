@@ -24,16 +24,14 @@ namespace ray
         template <typename ShapeT>
         using ObjectStorageType = std::vector<SceneObject<ShapeT>>;
 
-    public:
-        template <typename... SceneObjectCollectionsTs>
-        RawSceneObjectBlob(SceneObjectCollectionsTs&&... collections)
+        template <typename... SceneObjectCollectionTs>
+        RawSceneObjectBlob(SceneObjectCollectionTs&&... collections)
         {
-            for_each(std::tie(collections...), [&](auto&& collection) {
+            for_each(std::forward_as_tuple(std::forward<SceneObjectCollectionTs>(collections)...), [&](auto&& collection) {
                 for (auto&& object : collection)
                 {
                     using SceneObjectType = remove_cvref_t<decltype(object)>;
-                    using ShapeType = typename SceneObjectType::ShapeType;
-                    objectsOfType<ShapeType>().emplace_back(std::forward<SceneObjectType>(object));
+                    add(std::forward<SceneObjectType>(object));
                 }
                 });
         }
@@ -42,6 +40,12 @@ namespace ray
         void add(const SceneObject<ShapeT>& so)
         {
             objectsOfType<ShapeT>().emplace_back(so);
+        }
+
+        template <typename ShapeT>
+        void add(SceneObject<ShapeT>&& so)
+        {
+            objectsOfType<ShapeT>().emplace_back(std::move(so));
         }
 
         template <typename FuncT>
@@ -62,6 +66,12 @@ namespace ray
 
         template <typename ShapeT>
         ObjectStorageType<ShapeT>& objectsOfType()
+        {
+            return std::get<ObjectStorageType<ShapeT>>(m_objects);
+        }
+
+        template <typename ShapeT>
+        const ObjectStorageType<ShapeT>& objectsOfType() const 
         {
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }

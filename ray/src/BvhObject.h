@@ -24,7 +24,13 @@ namespace ray
     };
 
     template <typename BvhParamsT>
-    using BoundedStaticBvhObjectVector = std::vector<std::unique_ptr<BoundedStaticBvhObject<BvhParamsT>>>;
+    using BoundedStaticBvhObjectVector = 
+        std::vector<
+            std::unique_ptr<
+                BoundedStaticBvhObject<BvhParamsT>
+            >
+        >;
+
     template <typename BvhParamsT>
     using BoundedStaticBvhObjectVectorIterator = typename BoundedStaticBvhObjectVector<BvhParamsT>::iterator;
 }

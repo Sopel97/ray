@@ -24,17 +24,17 @@ namespace ray
             {
                 void add(std::uint64_t c)
                 {
-                    all.fetch_add(c);
+                    all += c;
                 }
 
                 void addHit(std::uint64_t c)
                 {
-                    hits.fetch_add(c);
+                    hits += c;
                 }
 
                 void addResolved(std::uint64_t c)
                 {
-                    resolved.fetch_add(c);
+                    resolved += c;
                 }
 
                 std::atomic<std::uint64_t> all;
@@ -46,12 +46,12 @@ namespace ray
             {
                 void add(std::uint64_t c)
                 {
-                    all.fetch_add(c);
+                    all += c;
                 }
 
                 void addHit(std::uint64_t c)
                 {
-                    hits.fetch_add(c);
+                    hits += c;
                 }
 
                 std::atomic<std::uint64_t> all;
@@ -62,12 +62,12 @@ namespace ray
             {
                 void add(std::uint64_t c)
                 {
-                    all.fetch_add(c);
+                    all += c;
                 }
 
                 void addHit(std::uint64_t c)
                 {
-                    hits.fetch_add(c);
+                    hits += c;
                 }
 
                 std::atomic<std::uint64_t> all;

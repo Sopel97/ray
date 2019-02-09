@@ -31,18 +31,20 @@ namespace ray
             // must include last
             std::vector<BoundedBvhObjectVectorIterator> partition(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
-                Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
+                const Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
 
                 const int size = static_cast<int>(std::distance(first, last));
                 auto mid = std::next(first, size / 2);
                 std::nth_element(first, mid, last, [cmpAxis](const auto& lhs, const auto& rhs) {
                     return lhs->center().*cmpAxis < rhs->center().*cmpAxis;
-                    });
+                });
 
                 const float partitionPoint = (*mid)->center().*cmpAxis;
-                return { std::partition(first, last, [partitionPoint, cmpAxis](const auto& em) {
-                    return em->center().*cmpAxis < partitionPoint;
-                    }) , last };
+                return { 
+                    std::partition(first, last, [partitionPoint, cmpAxis](const auto& em) {
+                        return em->center().*cmpAxis < partitionPoint;
+                    }) 
+                    , last };
             }
 
             Box3 aabb(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
@@ -60,8 +62,7 @@ namespace ray
 
             Point3fMemberPtr biggestExtentAxis(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
-                Box3 bb = aabb(first, last);
-                const Vec3f extent = bb.extent();
+                const Vec3f extent = aabb(first, last).extent();
                 if (extent.x > extent.y && extent.x > extent.z) return &Point3f::x;
                 if (extent.y > extent.x && extent.y > extent.z) return &Point3f::y;
                 return &Point3f::z;

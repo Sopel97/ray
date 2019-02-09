@@ -14,13 +14,19 @@
 
 namespace ray
 {
+    template <typename ShapeT>
+    using MaterialArrayType = std::array<const Material*, ShapeTraits<ShapeT>::numMaterialsPerShape>;
+
     struct Ray;
     struct ResolvableRaycastHit;
 
     struct UniqueAnyShape;
     struct SharedAnyShape;
 
-    static inline std::atomic<SceneObjectId> nextSceneObjectId = 0;
+    namespace detail
+    {
+        static inline std::atomic<SceneObjectId> gNextSceneObjectId = 0;
+    }
 
     // Stores a shape and its material[s].
     template <typename ShapeT>
@@ -32,14 +38,14 @@ namespace ray
         static constexpr int numShapesInPack = ShapeTraits::numShapes;
         static constexpr bool isPack = numShapesInPack > 1;
         static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
-        using MaterialStorageType = std::array<const Material*, numMaterialsPerShape>;
+        using MaterialStorageType = MaterialArrayType<ShapeType>;
 
         static_assert(!isPack, "A single scene object must not be a pack. Use SceneObjectArray.");
 
         SceneObject(const ShapeType& shape, const MaterialStorageType& materials) :
             m_shape(shape),
             m_materials(materials),
-            m_id(nextSceneObjectId.fetch_add(1))
+            m_id(detail::gNextSceneObjectId.fetch_add(1))
         {
 
         }
@@ -62,11 +68,6 @@ namespace ray
         const Material& material(int i) const
         {
             return *(m_materials[i]);
-        }
-
-        const MaterialStorageType& materials() const
-        {
-            return m_materials;
         }
 
         bool isLight() const
@@ -117,14 +118,14 @@ namespace ray
             static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
             static constexpr bool isPack = numShapesInPack > 1;
             static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
-            using MaterialStorageType = std::array<const Material*, numMaterialsPerShape>;
+            using MaterialStorageType = MaterialArrayType<ShapeT>;
             static_assert(!isPack, "Only a single object can be made polymorphic.");
 
             template <typename... ArgsTs>
             PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
                 m_shape(std::forward<ArgsTs>(args)...),
                 m_materials(materials),
-                m_id(nextSceneObjectId.fetch_add(1))
+                m_id(detail::gNextSceneObjectId.fetch_add(1))
             {
 
             }
@@ -139,7 +140,7 @@ namespace ray
             }
             std::optional<RaycastHit> raycast(const Ray& ray) const override
             {
-                return ::ray::raycast(ray, m_shape);
+                return ray::raycast(ray, m_shape);
             }
             std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
             {
@@ -147,7 +148,7 @@ namespace ray
             }
             TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
-                return ::ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
             bool hasVolume() const override
             {
@@ -180,7 +181,7 @@ namespace ray
         using ShapeType = UniqueAnyShape;
 
         template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const std::array<const Material*, ShapeTraits<ShapeT>::numMaterialsPerShape>& materials) :
+        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
             m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(materials, shape))
         {
 
@@ -261,14 +262,14 @@ namespace ray
             static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
             static constexpr bool isPack = numShapesInPack > 1;
             static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
-            using MaterialStorageType = std::array<const Material*, numMaterialsPerShape>;
+            using MaterialStorageType = MaterialArrayType<ShapeT>;
             static_assert(!isPack, "Only a single object can be made polymorphic.");
 
             template <typename... ArgsTs>
             PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
                 m_shape(std::forward<ArgsTs>(args)...),
                 m_materials(materials),
-                m_id(nextSceneObjectId.fetch_add(1))
+                m_id(detail::gNextSceneObjectId.fetch_add(1))
             {
 
             }
@@ -283,11 +284,11 @@ namespace ray
             }
             std::optional<RaycastHit> raycast(const Ray& ray) const override
             {
-                return ::ray::raycast(ray, m_shape);
+                return ray::raycast(ray, m_shape);
             }
             TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
-                return ::ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
             bool hasVolume() const override
             {
@@ -320,7 +321,7 @@ namespace ray
         using ShapeType = SharedAnyShape;
 
         template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const std::array<const Material*, ShapeTraits<ShapeT>::numMaterialsPerShape>& materials) :
+        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
             m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
         {
 

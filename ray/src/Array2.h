@@ -34,6 +34,16 @@ namespace ray
             return m_data[x * m_height + y];
         }
 
+        int width() const
+        {
+            return m_width;
+        }
+
+        int height() const
+        {
+            return m_height;
+        }
+
     private:
         std::unique_ptr<T[]> m_data;
         int m_width;

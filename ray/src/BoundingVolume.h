@@ -11,21 +11,10 @@ namespace ray
     template <>
     struct BoundingVolume<Box3>
     {
-        static Box3 get(const Sphere& sphere)
+        template <typename ShapeT>
+        static decltype(auto) get(const ShapeT& shape)
         {
-            return sphere.aabb();
-        }
-        static const Box3& get(const Box3& box)
-        {
-            return box.aabb();
-        }
-        static Box3 get(const SceneObject<UniqueAnyShape>& obj)
-        {
-            return obj.aabb();
-        }
-        static Box3 get(const SceneObject<SharedAnyShape>& obj)
-        {
-            return obj.aabb();
+            return shape.aabb();
         }
     };
 

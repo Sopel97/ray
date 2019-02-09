@@ -21,7 +21,7 @@ namespace ray
 
         }
 
-        Box3 aabb() const
+        constexpr Box3 aabb() const
         {
             const Vec3f halfExtent(m_radius, m_radius, m_radius);
             return Box3(m_center - halfExtent, m_center + halfExtent);

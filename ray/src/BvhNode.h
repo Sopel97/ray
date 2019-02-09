@@ -12,11 +12,17 @@ namespace ray
 {
     template <typename BvShapeT>
     struct BoundedStaticBvhNode;
+
     template <typename BvShapeT>
     struct StaticBvhNodeHit;
 
     template <typename BvShapeT>
-    using BvhNodeHitQueue = std::priority_queue<StaticBvhNodeHit<BvShapeT>, std::vector<StaticBvhNodeHit<BvShapeT>>, std::greater<StaticBvhNodeHit<BvShapeT>>>;
+    using BvhNodeHitQueue = 
+        std::priority_queue<
+            StaticBvhNodeHit<BvShapeT>, 
+            std::vector<StaticBvhNodeHit<BvShapeT>>, 
+            std::greater<StaticBvhNodeHit<BvShapeT>>
+        >;
 
     template <typename BvShapeT>
     struct StaticBvhNode
@@ -30,6 +36,12 @@ namespace ray
         BoundedStaticBvhNode(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, const BvShapeT& bv) :
             node(std::move(node)),
             boundingVolume(bv)
+        {
+        }
+
+        BoundedStaticBvhNode(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, BvShapeT&& bv) :
+            node(std::move(node)),
+            boundingVolume(std::move(bv))
         {
         }
 
@@ -75,6 +87,12 @@ namespace ray
             m_objects.add(so);
         }
 
+        template <typename ShapeT>
+        void add(SceneObject<ShapeT>&& so)
+        {
+            m_objects.add(std::move(so));
+        }
+
         std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue) const override
         {
             return m_objects.queryNearest(ray);
@@ -101,9 +119,14 @@ namespace ray
             return std::nullopt;
         }
 
-        void addChild(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, const Box3& bb)
+        void addChild(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, const BvShapeT& bv)
         {
-            m_children.emplace_back(std::move(node), bb);
+            m_children.emplace_back(std::move(node), bv);
+        }
+
+        void addChild(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, BvShapeT&& bv)
+        {
+            m_children.emplace_back(std::move(node), std::move(bv));
         }
 
     private:

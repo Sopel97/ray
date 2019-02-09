@@ -21,6 +21,9 @@ namespace ray
     {
     private:
     public:
+        // TODO: think how to do a move from RawSceneObjectBlob.
+        //       problematic since we first have to populate storage
+        //       and later get lights
         template <typename... ShapeTs>
         StaticScene(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection) :
             m_storage(collection)

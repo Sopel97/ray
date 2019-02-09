@@ -19,7 +19,6 @@ namespace ray
 
     // No space partitioning. Useful for testing.
     // Uses one array for each shape type.
-    // Is similar to BlobScene but behaves like SceneObjectStorage
     template <typename SceneObjectStorageProviderT, typename... ShapeTs>
     struct SceneObjectBlob<Shapes<ShapeTs...>, SceneObjectStorageProviderT> : DynamicHeterogeneousSceneObjectCollection
     {
@@ -39,16 +38,28 @@ namespace ray
         SceneObjectBlob(const RawSceneObjectBlob<Shapes<ShapeTs...>>& blob)
         {
             blob.forEach([&](auto&& object) {
-                using SceneObjectType = remove_cvref_t<decltype(object)>;
-                using ShapeType = typename SceneObjectType::ShapeType;
-                objectsOfType<ShapeType>().add(object);
+                add(object);
             });
+        }
+
+        template <typename... ShapeTs>
+        SceneObjectBlob(RawSceneObjectBlob<Shapes<ShapeTs...>>&& blob)
+        {
+            blob.forEach([&](auto&& object) {
+                add(std::move(object));
+                });
         }
 
         template <typename ShapeT>
         void add(const SceneObject<ShapeT>& so)
         {
             objectsOfType<ShapeT>().add(so);
+        }
+
+        template <typename ShapeT>
+        void add(SceneObject<ShapeT>&& so)
+        {
+            objectsOfType<ShapeT>().add(std::move(so));
         }
 
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
@@ -81,6 +92,12 @@ namespace ray
 
         template <typename ShapeT>
         ObjectStorageType<ShapeT>& objectsOfType()
+        {
+            return std::get<ObjectStorageType<ShapeT>>(m_objects);
+        }
+
+        template <typename ShapeT>
+        const ObjectStorageType<ShapeT>& objectsOfType() const
         {
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }

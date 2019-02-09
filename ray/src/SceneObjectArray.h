@@ -71,8 +71,7 @@ namespace ray
 
                 if (nearestHit)
                 {
-                    RaycastHit& hit = *nearestHit;
-                    return resolveHitPartially(hit, nearestHitShapeNo);
+                    return resolveHitPartially(*nearestHit, nearestHitShapeNo);
                 }
 
                 return std::nullopt;
@@ -83,8 +82,7 @@ namespace ray
                 std::optional<RaycastHit> hitOpt = m_objects[shapeNo].raycast(ray);
                 if (hitOpt)
                 {
-                    RaycastHit& hit = *hitOpt;
-                    return resolveHitPartially(hit, shapeNo);
+                    return resolveHitPartially(*hitOpt, shapeNo);
                 }
 
                 return std::nullopt;
@@ -122,7 +120,7 @@ namespace ray
         static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
         static constexpr bool hasVolume = ShapeTraits::hasVolume;
         using ShapeStorageType = std::vector<ShapePackType>;
-        using MaterialStorageType = std::vector<std::array<const Material*, numMaterialsPerShape>>;
+        using MaterialStorageType = std::vector<MaterialArrayType<BaseShapeType>>;
         using IdStorageType = std::vector<SceneObjectId>;
 
         SceneObjectArray() :
@@ -217,8 +215,7 @@ namespace ray
             std::optional<RaycastHit> hitOpt = raycast(ray, m_shapePacks[packNo]);
             if (hitOpt)
             {
-                RaycastHit& hit = *hitOpt;
-                return resolveHitPartially(hit, shapeNo);
+                return resolveHitPartially(*hitOpt, shapeNo);
             }
 
             return std::nullopt;

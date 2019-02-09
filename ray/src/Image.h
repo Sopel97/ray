@@ -15,8 +15,6 @@ namespace ray
         using ColorType = ColorRGBi;
 
         Image(int width, int height) :
-            m_width(width),
-            m_height(height),
             m_pixelColors(width, height, ColorRGBi(0, 0, 0))
         {
 
@@ -37,7 +35,7 @@ namespace ray
             auto pixels = rawRGBAi();
 
             sf::Image img;
-            img.create(m_width, m_height, pixels.data());
+            img.create(width(), height(), pixels.data());
 
             return img;
         }
@@ -45,11 +43,13 @@ namespace ray
         std::vector<std::uint8_t> rawRGBAi() const
         {
             std::vector<std::uint8_t> data;
-            data.reserve(m_width * m_height * 4);
+            const int w = width();
+            const int h = height();
+            data.reserve(w * h * 4);
 
-            for (int y = 0; y < m_height; ++y)
+            for (int y = 0; y < h; ++y)
             {
-                for (int x = 0; x < m_width; ++x)
+                for (int x = 0; x < w; ++x)
                 {
                     ColorType pixel = m_pixelColors(x, y);
                     data.emplace_back(pixel.r);
@@ -64,17 +64,15 @@ namespace ray
 
         int width() const
         {
-            return m_width;
+            return m_pixelColors.width();
         }
 
         int height() const
         {
-            return m_height;
+            return m_pixelColors.height();
         }
 
     private:
-        int m_width;
-        int m_height;
         Array2<ColorType> m_pixelColors;
     };
 }

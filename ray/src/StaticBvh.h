@@ -79,7 +79,7 @@ namespace ray
                     const float dist = distance(ray.origin(), hitOpt->point);
                     if (dist < nearestHitDist)
                     {
-                        nearestHitOpt = *hitOpt;
+                        nearestHitOpt = std::move(*hitOpt);
                         nearestHitDist = dist;
                     }
                 }
@@ -93,9 +93,9 @@ namespace ray
         PartitionerT m_partitioner;
 
         template <typename ShapeT>
-        struct SpecificObject : BoundedBvhObject
+        struct SpecificBvhObject : BoundedBvhObject
         {
-            SpecificObject(const SceneObject<ShapeT>& obj) :
+            SpecificBvhObject(const SceneObject<ShapeT>& obj) :
                 m_object(&obj),
                 m_boundingVolume(ray::boundingVolume<BvShapeT>(obj)),
                 m_aabb(obj.aabb()),
@@ -143,7 +143,7 @@ namespace ray
             blob.forEach([&](auto&& object) {
                     using ObjectType = remove_cvref_t<decltype(object)>;
                     using ShapeType = typename ObjectType::ShapeType;
-                    allObjects.emplace_back(std::make_unique<SpecificObject<ShapeType>>(object));
+                    allObjects.emplace_back(std::make_unique<SpecificBvhObject<ShapeType>>(object));
             });
 
             m_root = makeNode(allObjects.begin(), allObjects.end());
@@ -176,9 +176,9 @@ namespace ray
         std::unique_ptr<PartitionNodeType> makePartitionNode(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int depth) const
         {
             // call recucively
-            std::vector<BoundedBvhObjectVectorIterator> partitions = m_partitioner.partition(first, last);
+            std::vector<BoundedBvhObjectVectorIterator> ends = m_partitioner.partition(first, last);
             auto node = std::make_unique<PartitionNodeType>();
-            for (const auto& partEnd : partitions)
+            for (const auto& partEnd : ends)
             {
                 BvShapeT bv = boundingVolume(first, partEnd);
                 node->addChild(makeNode(first, partEnd, depth + 1), std::move(bv));

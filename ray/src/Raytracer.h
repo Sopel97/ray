@@ -43,15 +43,24 @@ namespace ray
         Image capture(const Camera& camera) const
         {
             Image img(camera.width(), camera.height());
+
 #if defined(RAY_GATHER_PERF_STATS)
             auto t0 = std::chrono::high_resolution_clock().now();
 #endif
-            camera.forEachPixelRay([&img, this](const Ray& ray, int x, int y) {img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); }, std::execution::par_unseq);
+
+            camera.forEachPixelRay(
+                [&img, this](const Ray& ray, int x, int y) {
+                    img(x, y) = ColorRGBi(trace(ray) ^ m_options.gamma); 
+                }, 
+                std::execution::par_unseq
+            );
+
 #if defined(RAY_GATHER_PERF_STATS)
             auto t1 = std::chrono::high_resolution_clock().now();
             auto diff = t1 - t0;
             perf::gPerfStats.addTraceTime(diff);
 #endif
+
             return img;
         }
 
@@ -61,12 +70,13 @@ namespace ray
 
         ColorRGBf trace(const Ray& ray, int depth = 0, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
         {
+
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addTrace(depth);
 #endif
 
             std::optional<ResolvableRaycastHit> hitOpt =
-                prevHit && prevHit->isLocallyContinuable && isInside // if we're not inside we can't locally continue, even if shape allows that
+                isInside && prevHit && prevHit->isLocallyContinuable // if we're not inside we can't locally continue, even if shape allows that
                 ? prevHit->next(ray)
                 : m_scene->queryNearest(ray);
             if (!hitOpt) return m_scene->backgroundColor();
@@ -75,6 +85,7 @@ namespace ray
             perf::gPerfStats.addTraceHit(depth);
             perf::gPerfStats.addTraceResolved(depth);
 #endif
+
             const ResolvedRaycastHit hit = hitOpt->resolve();
 
             const ColorRGBf refractionColor = computeRefractionColor(ray, prevHit, hit, depth);
@@ -93,11 +104,18 @@ namespace ray
             return color;
         }
 
-        ColorRGBf combineFresnel(const Ray& ray, const ResolvedRaycastHit& hit, const ColorRGBf& refractionColor, const ColorRGBf& reflectionColor, const ColorRGBf& diffusionColor) const
+        ColorRGBf combineFresnel(
+            const Ray& ray, 
+            const ResolvedRaycastHit& hit, 
+            const ColorRGBf& refractionColor, 
+            const ColorRGBf& reflectionColor, 
+            const ColorRGBf& diffusionColor
+        ) const
         {
             float n1 = m_options.airRefractiveIndex;
             float n2 = hit.material->refractiveIndex;
             if (hit.isInside) std::swap(n1, n2);
+
             const float fresnelEffect = fresnelReflectAmount(ray, hit.normal, hit.material->reflectivity, n1, n2);
             const ColorRGBf textureColor = hit.material->sampleTexture(hit.texCoords);
 
@@ -117,7 +135,7 @@ namespace ray
             if (n1 > n2)
             {
                 const float n = n1 / n2;
-                const float sinT2 = n * n*(1.0f - cosX * cosX);
+                const float sinT2 = n*n*(1.0f - cosX * cosX);
                 // Total internal reflection
                 if (sinT2 > 1.0f)
                     return 1.0f;
@@ -177,7 +195,8 @@ namespace ray
                 return {};
 
             const Normal3f reflectionDirection = reflection(ray.direction(), hit.normal);
-            return trace(Ray(hit.point + reflectionDirection * m_options.paddingDistance, reflectionDirection), depth + 1, &hit, hit.isInside);
+            const Ray nextRay(hit.point + reflectionDirection * m_options.paddingDistance, reflectionDirection);
+            return trace(nextRay, depth + 1, &hit, hit.isInside);
         }
 
         ColorRGBf computeRefractionColor(const Ray& ray, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
@@ -191,9 +210,8 @@ namespace ray
 
             // do outside->inside refraction
             const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
-            const ColorRGBf color = trace(Ray(hit.point + refractionDirection * m_options.paddingDistance, refractionDirection), depth + 1, &hit, !hit.isInside);
-            
-            return color;
+            const Ray nextRay(hit.point + refractionDirection * m_options.paddingDistance, refractionDirection);
+            return trace(nextRay, depth + 1, &hit, !hit.isInside);
         }
 
         ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const

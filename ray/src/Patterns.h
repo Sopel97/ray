@@ -9,8 +9,7 @@ namespace ray
     struct SquarePattern : Texture
     {
         SquarePattern(const ColorRGBf& primaryColor, const ColorRGBf& secondaryColor, float scale) :
-            m_primaryColor(primaryColor),
-            m_secondaryColor(secondaryColor),
+            m_colors{primaryColor, secondaryColor},
             m_scale(scale)
         {
 
@@ -18,12 +17,12 @@ namespace ray
 
         ColorRGBf sample(const TexCoords& coords) const override
         {
-            return (std::fmod(coords.u * m_scale, 1.0f) > 0.5f) ^ (std::fmod(coords.v * m_scale, 1.0f) > 0.5f) ? m_primaryColor : m_secondaryColor;
+            const int idx = (std::fmod(coords.u * m_scale, 1.0f) > 0.5f) != (std::fmod(coords.v * m_scale, 1.0f) > 0.5f);
+            return m_colors[idx];
         }
 
     private:
-        ColorRGBf m_primaryColor;
-        ColorRGBf m_secondaryColor;
+        ColorRGBf m_colors[2];
         float m_scale;
     };
 }
