@@ -2,6 +2,9 @@
 
 namespace ray
 {
-    template <typename... ShapeTs>
+    template <typename...>
     struct Shapes;
+
+    template <typename...>
+    struct BvhParams;
 }

@@ -10,10 +10,11 @@
 #include "BvhNode.h"
 #include "BvhObject.h"
 #include "RaycastHit.h"
+#include "SceneObjectCollection.h"
 #include "SceneObjectArray.h"
+#include "RawSceneObjectBlob.h"
 #include "SceneObjectBlob.h"
 #include "ShapeTraits.h"
-#include "SceneObjectStorage.h"
 #include "Util.h"
 
 #include <algorithm>
@@ -28,28 +29,35 @@ namespace ray
     template <typename... Ts>
     struct StaticBvh;
 
-    template <typename PartitionerT, typename BvShapeT, typename... ShapeTs>
-    struct StaticBvh<Shapes<ShapeTs...>, BvShapeT, PartitionerT> : StaticSceneObjectStorage
+    template <typename PartitionerMakerT, typename BvShapeT, typename StorageProviderT, typename... ShapeTs>
+    struct StaticBvh<BvhParams<Shapes<ShapeTs...>, BvShapeT, StorageProviderT>, PartitionerMakerT> : StaticHeterogeneousSceneObjectCollection
     {
         static constexpr int maxDepth = 16;
         static constexpr int maxObjectsPerNode = 1;
 
+        using BvhParamsT = BvhParams<Shapes<ShapeTs...>, BvShapeT, StorageProviderT>;
+        using PartitionerT = typename PartitionerMakerT::template For<BvhParamsT>;
         using AllShapes = Shapes<ShapeTs...>;
-        using LeafNodeType = StaticBvhLeafNode<BvShapeT, AllShapes>;
+        using LeafNodeType = StaticBvhLeafNode<BvhParamsT>;
         using PartitionNodeType = StaticBvhPartitionNode<BvShapeT>;
+
+        using BoundedBvhObject = BoundedStaticBvhObject<BvhParamsT>;
+
+        using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvhParamsT>;
+        using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvhParamsT>;
 
         // TODO: use SceneObjectBlob everywhere where a bunch of shapes of different types is passed
         //       better move semantics for SceneObjectBlob
         //       will allow passing partitioner instance up to here
         // TODO: Shape<...> to bundle shape types for easier passing
-        template <typename... SceneObjectCollectionTs>
-        StaticBvh(SceneObjectCollectionTs&&... collections) :
-            m_partitioner{}
+        template <typename... PartitionerArgsTs>
+        StaticBvh(const RawSceneObjectBlob<AllShapes>& blob, PartitionerArgsTs&&... args) :
+            m_partitioner(std::forward<PartitionerArgsTs>(args)...)
         {
 #if defined(RAY_GATHER_PERF_STATS)
             auto t0 = std::chrono::high_resolution_clock().now();
 #endif
-            construct(std::forward<SceneObjectCollectionTs>(collections)...);
+            construct(blob);
 #if defined(RAY_GATHER_PERF_STATS)
             auto t1 = std::chrono::high_resolution_clock().now();
             auto diff = t1 - t0;
@@ -87,11 +95,6 @@ namespace ray
     private:
         std::unique_ptr<StaticBvhNode<BvShapeT>> m_root;
         PartitionerT m_partitioner;
-
-        using BoundedBvhObject = BoundedStaticBvhObject<BvShapeT, AllShapes>;
-
-        using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvShapeT, AllShapes>;
-        using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvShapeT, AllShapes>;
 
         template <typename ShapeT>
         struct SpecificObject : BoundedBvhObject
@@ -138,16 +141,13 @@ namespace ray
         };
 
         template <typename... SceneObjectCollectionTs>
-        void construct(SceneObjectCollectionTs&&... collections)
+        void construct(const RawSceneObjectBlob<AllShapes>& blob)
         {
-            std::vector<std::unique_ptr<BoundedBvhObject>> allObjects;
-            for_each(std::tie(std::forward<SceneObjectCollectionTs>(collections)...), [&](auto&& collection) {
-                for (auto&& object : collection)
-                {
+            BoundedBvhObjectVector allObjects;
+            blob.forEach([&](auto&& object) {
                     using ObjectType = remove_cvref_t<decltype(object)>;
                     using ShapeType = remove_cvref_t<decltype(object.shape())>;
-                    allObjects.emplace_back(std::make_unique<SpecificObject<ShapeType>>(std::forward<ObjectType>(object)));
-                }
+                    allObjects.emplace_back(std::make_unique<SpecificObject<ShapeType>>(object));
             });
 
             m_root = makeNode(allObjects.begin(), allObjects.end());

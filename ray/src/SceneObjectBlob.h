@@ -1,9 +1,11 @@
 #pragma once
 
+#include "NamedTypePacks.h"
+#include "SceneObjectStorageProvider.h"
 #include "RaycastHit.h"
+#include "SceneObjectCollection.h"
 #include "SceneObjectArray.h"
 #include "ShapeTraits.h"
-#include "SceneObjectStorage.h"
 #include "Util.h"
 
 #include <optional>
@@ -17,18 +19,14 @@ namespace ray
     // No space partitioning. Useful for testing.
     // Uses one array for each shape type.
     // Is similar to BlobScene but behaves like SceneObjectStorage
-    template <typename... ShapeTs>
-    struct SceneObjectBlob<Shapes<ShapeTs...>> : DynamicSceneObjectStorage
+    template <typename SceneObjectStorageProviderT, typename... ShapeTs>
+    struct SceneObjectBlob<Shapes<ShapeTs...>, SceneObjectStorageProviderT> : DynamicHeterogeneousSceneObjectCollection
     {
         using AllShapes = Shapes<ShapeTs...>;
 
     private:
-        // specialized whenever a pack is used
         template <typename ShapeT>
-        struct ObjectStorage { using StorageType = SceneObjectArray<ShapeT>; };
-
-        template <typename T>
-        using ObjectStorageType = typename ObjectStorage<T>::StorageType;
+        using ObjectStorageType = typename SceneObjectStorageProviderT::template ArrayType<ShapeT>;
 
     public:
         template <typename... SceneObjectCollectionsTs>
@@ -82,4 +80,10 @@ namespace ray
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }
     };
+
+    template <typename ShapesT>
+    using UnpackedSceneObjectBlob = SceneObjectBlob<ShapesT, RawSceneObjectStorageProvider>;
+
+    template <typename ShapesT>
+    using PackedSceneObjectBlob = SceneObjectBlob<ShapesT, PackedSceneObjectStorageProvider>;
 }

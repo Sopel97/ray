@@ -18,7 +18,7 @@ namespace ray
         // We can't do better than just store an array of SceneObject<PolyShapeType>
         // Only supports single shapes as base shape
         template <typename AnyShapeT>
-        struct PolymorphicSceneObjectArray : SceneObjectCollection
+        struct PolymorphicSceneObjectArray : HomogeneousSceneObjectCollection
         {
             using ShapeStorageType = std::vector<SceneObject<AnyShapeT>>;
 
@@ -112,7 +112,7 @@ namespace ray
     // So there are two separate arrays for shapePacks and materials
     // Handles packs by abstracting insertion and access to be done on with granularity of a single shape.
     template <typename ShapeT>
-    struct SceneObjectArray : SceneObjectCollection
+    struct SceneObjectArray : HomogeneousSceneObjectCollection
     {
         using ShapePackType = ShapeT;
         using ShapeTraits = ShapeTraits<ShapePackType>;

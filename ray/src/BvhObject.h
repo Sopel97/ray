@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NamedTypePacks.h"
 #include "BvhNode.h"
 
 #include <vector>
@@ -7,10 +8,14 @@
 
 namespace ray
 {
-    template <typename BvShapeT, typename... ShapeTs>
-    struct BoundedStaticBvhObject
+    template <typename...>
+    struct BoundedStaticBvhObject;
+
+    template <typename BvShapeT, typename StorageProviderT, typename... ShapeTs>
+    struct BoundedStaticBvhObject<BvhParams<Shapes<ShapeTs...>, BvShapeT, StorageProviderT>> 
     {
-        using LeafNodeType = StaticBvhLeafNode<BvShapeT, ShapeTs...>;
+        using BvhParamsT = BvhParams<Shapes<ShapeTs...>, BvShapeT, StorageProviderT>;
+        using LeafNodeType = StaticBvhLeafNode<BvhParamsT>;
 
         virtual void addTo(LeafNodeType& leaf) const = 0;
         virtual const BvShapeT& boundingVolume() const = 0;
@@ -18,8 +23,8 @@ namespace ray
         virtual const Point3f& center() const = 0;
     };
 
-    template <typename BvShapeT, typename... ShapeTs>
-    using BoundedStaticBvhObjectVector = std::vector<std::unique_ptr<BoundedStaticBvhObject<BvShapeT, ShapeTs...>>>;
-    template <typename BvShapeT, typename... ShapeTs>
-    using BoundedStaticBvhObjectVectorIterator = typename BoundedStaticBvhObjectVector<BvShapeT, ShapeTs...>::iterator;
+    template <typename BvhParamsT>
+    using BoundedStaticBvhObjectVector = std::vector<std::unique_ptr<BoundedStaticBvhObject<BvhParamsT>>>;
+    template <typename BvhParamsT>
+    using BoundedStaticBvhObjectVectorIterator = typename BoundedStaticBvhObjectVector<BvhParamsT>::iterator;
 }

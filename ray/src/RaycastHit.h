@@ -12,7 +12,7 @@
 
 namespace ray
 {
-    struct SceneObjectCollection;
+    struct HomogeneousSceneObjectCollection;
     struct ResolvedRaycastHit;
     struct RaycastQueryStats;
 
@@ -33,7 +33,7 @@ namespace ray
 
     struct ResolvableRaycastHit
     {
-        ResolvableRaycastHit(const Point3f& point, const Normal3f& normal, int shapeNo, int materialNo, const SceneObjectCollection& owner, bool isInside) :
+        ResolvableRaycastHit(const Point3f& point, const Normal3f& normal, int shapeNo, int materialNo, const HomogeneousSceneObjectCollection& owner, bool isInside) :
             point(point),
             normal(normal),
             shapeNo(shapeNo),
@@ -48,7 +48,7 @@ namespace ray
         Normal3f normal;
         int shapeNo;
         int materialNo;
-        const SceneObjectCollection* owner;
+        const HomogeneousSceneObjectCollection* owner;
         bool isInside;
 
         ResolvedRaycastHit resolve() const;
@@ -58,7 +58,7 @@ namespace ray
 
     struct ResolvedRaycastHit
     {
-        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const TexCoords& texCoords, int shapeNo, const Material& material, const SceneObjectCollection& owner, bool isInside, bool local) :
+        ResolvedRaycastHit(const Point3f& point, const Normal3f& normal, const TexCoords& texCoords, int shapeNo, const Material& material, const HomogeneousSceneObjectCollection& owner, bool isInside, bool local) :
             point(point),
             normal(normal),
             texCoords(texCoords),
@@ -76,7 +76,7 @@ namespace ray
         TexCoords texCoords;
         int shapeNo;
         const Material* material;
-        const SceneObjectCollection* owner;
+        const HomogeneousSceneObjectCollection* owner;
         bool isInside;
         bool isLocallyContinuable;
 

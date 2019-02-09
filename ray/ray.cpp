@@ -67,10 +67,11 @@ int main()
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-    using Partitioner = StaticBvhObjectMedianPartitioner<Shapes<Sphere>, Box3>;
-    //StaticDeferredStorageScene<StaticBvh<Shapes<Sphere>, Box3, Partitioner>> scene(std::move(spheres));
+    using PartitionerType = StaticBvhObjectMedianPartitioner;
+    using BvhParamsType = BvhParams<Shapes<Sphere>, Box3, PackedSceneObjectStorageProvider>;
+    StaticDeferredStorageScene<StaticBvh<BvhParamsType, PartitionerType>> scene(std::move(spheres));
     //StaticDeferredStorageScene<SceneObjectBlob<Shapes<Sphere>>> scene(std::move(spheres));
-    StaticBlobScene<Shapes<Sphere>> scene(std::move(spheres));
+    //StaticBlobScene<Shapes<Sphere>> scene(std::move(spheres));
     //*/
 
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
