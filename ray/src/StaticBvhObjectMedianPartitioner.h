@@ -12,7 +12,7 @@ namespace ray
     struct StaticBvhObjectMedianPartitioner;
 
     template <typename BvShapeT, typename... ShapeTs>
-    struct StaticBvhObjectMedianPartitioner<BvShapeT, Shapes<ShapeTs...>> : StaticBvhObjectPartitioner
+    struct StaticBvhObjectMedianPartitioner<Shapes<ShapeTs...>, BvShapeT> : StaticBvhObjectPartitioner
     {
         using AllShapes = Shapes<ShapeTs...>;
 

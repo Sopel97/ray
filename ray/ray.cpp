@@ -7,7 +7,6 @@
 
 #include "src/NamedTypePacks.h"
 #include "src/Angle.h"
-#include "src/BlobScene.h"
 #include "src/Camera.h"
 #include "src/Image.h"
 #include "src/MaterialDatabase.h"
@@ -58,18 +57,6 @@ int main()
     auto& m7 = matDb.emplace("mat7", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 1.13f, 0.05f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
     auto& m8 = matDb.emplace("mat8", ColorRGBf(0.9f, 0.9f, 0.9f), ColorRGBf(0, 0, 0), 0.0f, 1.13f, 1.0f, 0.0f, ColorRGBf(0, 0, 0));
 
-    /*
-    BlobScene<Sphere> scene;
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
-    scene.add(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-    //*/
-
     //*
     std::vector<SceneObject<Sphere>> spheres;
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
@@ -80,21 +67,10 @@ int main()
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-    using Partitioner = StaticBvhObjectMedianPartitioner<Box3, Shapes<Sphere>>;
-    StaticDeferredStorageScene<StaticBvh<Partitioner, Box3, Shapes<Sphere>>> scene(spheres);
+    using Partitioner = StaticBvhObjectMedianPartitioner<Shapes<Sphere>, Box3>;
+    //StaticDeferredStorageScene<StaticBvh<Shapes<Sphere>, Box3, Partitioner>> scene(std::move(spheres));
     //StaticDeferredStorageScene<SceneObjectBlob<Shapes<Sphere>>> scene(std::move(spheres));
-    //*/
-
-    /*
-    BlobScene<Shapes<SharedAnyShape>> scene;
-    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
-    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
-    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
-    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
-    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
-    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
-    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
-    scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    StaticBlobScene<Shapes<Sphere>> scene(std::move(spheres));
     //*/
 
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));

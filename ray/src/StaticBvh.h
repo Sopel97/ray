@@ -29,7 +29,7 @@ namespace ray
     struct StaticBvh;
 
     template <typename PartitionerT, typename BvShapeT, typename... ShapeTs>
-    struct StaticBvh<PartitionerT, BvShapeT, Shapes<ShapeTs...>> : StaticSceneObjectStorage
+    struct StaticBvh<Shapes<ShapeTs...>, BvShapeT, PartitionerT> : StaticSceneObjectStorage
     {
         static constexpr int maxDepth = 16;
         static constexpr int maxObjectsPerNode = 1;

@@ -68,4 +68,7 @@ namespace ray
             });
         }
     };
+
+    template <typename ShapesT>
+    using StaticBlobScene = StaticDeferredStorageScene<SceneObjectBlob<ShapesT>>;
 }

@@ -110,9 +110,6 @@
     <ClInclude Include="src\MaterialDatabase.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\BlobScene.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Scene.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
