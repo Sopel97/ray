@@ -17,12 +17,12 @@ namespace ray
 {
     // Uses given space partitioning.
     template <typename StaticSpacePartitionedStorageT>
-    struct StaticDeferredStorageScene : Scene
+    struct StaticScene : Scene
     {
     private:
     public:
         template <typename... ShapeTs>
-        StaticDeferredStorageScene(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection) :
+        StaticScene(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection) :
             m_storage(collection)
         {
             rememberLights(collection);
@@ -68,5 +68,5 @@ namespace ray
     };
 
     template <typename ShapesT>
-    using StaticBlobScene = StaticDeferredStorageScene<SceneObjectBlob<ShapesT>>;
+    using StaticBlobScene = StaticScene<SceneObjectBlob<ShapesT>>;
 }

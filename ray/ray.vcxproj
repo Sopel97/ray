@@ -261,7 +261,7 @@
     <ClInclude Include="src\SceneObjectStorageProvider.h" />
     <ClInclude Include="src\ShapeTraits.h" />
     <ClInclude Include="src\StaticBvhObjectMedianPartitioner.h" />
-    <ClInclude Include="src\StaticDeferredStorageScene.h" />
+    <ClInclude Include="src\StaticScene.h" />
     <ClInclude Include="src\Sphere.h" />
     <ClInclude Include="src\StaticBvh.h" />
     <ClInclude Include="src\StaticBvhObjectPartitioner.h" />

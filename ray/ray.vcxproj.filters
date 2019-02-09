@@ -116,9 +116,6 @@
     <ClInclude Include="src\SceneObjectBlob.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\StaticDeferredStorageScene.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\LightHandle.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
@@ -156,6 +153,9 @@
       <Filter>Header Files\src</Filter>
     </ClInclude>
     <ClInclude Include="src\RawSceneObjectBlob.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticScene.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
   </ItemGroup>

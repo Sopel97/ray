@@ -16,7 +16,7 @@
 #include "src/SceneObject.h"
 #include "src/SceneObjectBlob.h"
 #include "src/Sphere.h"
-#include "src/StaticDeferredStorageScene.h"
+#include "src/StaticScene.h"
 #include "src/StaticBvhObjectMedianPartitioner.h"
 #include "src/StaticBvh.h"
 #include "src/TextureDatabase.h"
@@ -71,8 +71,8 @@ int main()
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(spheres));
-    StaticDeferredStorageScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    //StaticDeferredStorageScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/
 
     /*
@@ -89,8 +89,8 @@ int main()
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(spheres));
-    StaticDeferredStorageScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    //StaticDeferredStorageScene<SceneObjectBlob<Shapes<Sphere>>> scene(shapes);
+    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    //StaticScene<SceneObjectBlob<Shapes<Sphere>>> scene(shapes);
     //StaticBlobScene<Shapes<Sphere>> scene(shapes);
     //*/
 
