@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NamedTypePacks.h"
 #include "Raycast.h"
 #include "RaycastHit.h"
 #include "Scene.h"
@@ -14,11 +15,15 @@
 
 namespace ray
 {
+    template <typename...>
+    struct BlobScene;
     // Holds all objects in one array [per object type].
     // No space partitioning.
     template <typename... ShapeTs>
-    struct BlobScene : Scene
+    struct BlobScene<Shapes<ShapeTs...>> : Scene
     {
+        using AllShapes = Shapes<ShapeTs...>;
+
         // specialized whenever a pack is used
         template <typename ShapeT>
         struct ObjectStorage { using StorageType = SceneObjectArray<ShapeT>; };
@@ -42,14 +47,14 @@ namespace ray
             }
         }
 
-        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, RaycastQueryStats* stats = nullptr) const override
+        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const override
         {
             std::optional<ResolvableRaycastHit> hitOpt = std::nullopt;
             float minDist = std::numeric_limits<float>::max();
             for_each(m_objects, [&](const auto& objects) {
                 if (objects.size() > 0)
                 {
-                    std::optional<ResolvableRaycastHit> hitOptNow = objects.queryNearest(ray, stats);
+                    std::optional<ResolvableRaycastHit> hitOptNow = objects.queryNearest(ray);
                     if (hitOptNow)
                     {
                         const float dist = distance(hitOptNow->point, ray.origin());
@@ -61,12 +66,8 @@ namespace ray
                     }
                 }
             });
-            if (hitOpt)
-            {
-                return hitOpt;
-            }
 
-            return std::nullopt;
+            return hitOpt;
         }
 
         const std::vector<LightHandle>& lights() const override

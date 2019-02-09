@@ -155,5 +155,8 @@
     <ClInclude Include="src\StaticBvhObjectMedianPartitioner.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NamedTypePacks.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

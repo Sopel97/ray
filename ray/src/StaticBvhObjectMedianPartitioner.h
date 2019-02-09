@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NamedTypePacks.h"
 #include "Box3.h"
 #include "BvhNode.h"
 #include "BvhObject.h"
@@ -7,13 +8,18 @@
 
 namespace ray
 {
-    template <typename BvShapeT, typename... ShapeTs>
-    struct StaticBvhObjectMedianPartitioner : StaticBvhObjectPartitioner
-    {
-        using BoundedBvhObject = BoundedStaticBvhObject<BvShapeT, ShapeTs...>;
+    template <typename...>
+    struct StaticBvhObjectMedianPartitioner;
 
-        using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvShapeT, ShapeTs...>;
-        using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvShapeT, ShapeTs...>;
+    template <typename BvShapeT, typename... ShapeTs>
+    struct StaticBvhObjectMedianPartitioner<BvShapeT, Shapes<ShapeTs...>> : StaticBvhObjectPartitioner
+    {
+        using AllShapes = Shapes<ShapeTs...>;
+
+        using BoundedBvhObject = BoundedStaticBvhObject<BvShapeT, AllShapes>;
+
+        using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvShapeT, AllShapes>;
+        using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvShapeT, AllShapes>;
 
         using Point3fMemberPtr = float(Point3f::*);
 

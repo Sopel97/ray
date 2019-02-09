@@ -4,6 +4,7 @@
 #include "PerformanceStats.h"
 #endif
 
+#include "NamedTypePacks.h"
 #include "Box3.h"
 #include "BoundingVolume.h"
 #include "BvhNode.h"
@@ -24,14 +25,18 @@
 
 namespace ray
 {
+    template <typename... Ts>
+    struct StaticBvh;
+
     template <typename PartitionerT, typename BvShapeT, typename... ShapeTs>
-    struct StaticBvh : StaticSceneObjectStorage
+    struct StaticBvh<PartitionerT, BvShapeT, Shapes<ShapeTs...>> : StaticSceneObjectStorage
     {
         static constexpr int maxDepth = 16;
         static constexpr int maxObjectsPerNode = 1;
 
-        using LeafNodeType = StaticBvhLeafNode<BvShapeT, ShapeTs...>;
-        using PartitionNodeType = StaticBvhPartitionNode<BvShapeT, ShapeTs...>;
+        using AllShapes = Shapes<ShapeTs...>;
+        using LeafNodeType = StaticBvhLeafNode<BvShapeT, AllShapes>;
+        using PartitionNodeType = StaticBvhPartitionNode<BvShapeT>;
 
         // TODO: use SceneObjectBlob everywhere where a bunch of shapes of different types is passed
         //       better move semantics for SceneObjectBlob
@@ -83,10 +88,10 @@ namespace ray
         std::unique_ptr<StaticBvhNode<BvShapeT>> m_root;
         PartitionerT m_partitioner;
 
-        using BoundedBvhObject = BoundedStaticBvhObject<BvShapeT, ShapeTs...>;
+        using BoundedBvhObject = BoundedStaticBvhObject<BvShapeT, AllShapes>;
 
-        using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvShapeT, ShapeTs...>;
-        using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvShapeT, ShapeTs...>;
+        using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvShapeT, AllShapes>;
+        using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvShapeT, AllShapes>;
 
         template <typename ShapeT>
         struct SpecificObject : BoundedBvhObject

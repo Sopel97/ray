@@ -5,6 +5,7 @@
 #include "src/PerformanceStats.h"
 #endif
 
+#include "src/NamedTypePacks.h"
 #include "src/Angle.h"
 #include "src/BlobScene.h"
 #include "src/Camera.h"
@@ -79,13 +80,13 @@ int main()
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     spheres.emplace_back(SceneObject<Sphere>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-    using Partitioner = StaticBvhObjectMedianPartitioner<Box3, Sphere>;
-    StaticDeferredStorageScene<StaticBvh<Partitioner, Box3, Sphere>> scene(spheres);
-    //StaticDeferredStorageScene<SceneObjectBlob<Sphere>> scene(std::move(spheres));
+    using Partitioner = StaticBvhObjectMedianPartitioner<Box3, Shapes<Sphere>>;
+    StaticDeferredStorageScene<StaticBvh<Partitioner, Box3, Shapes<Sphere>>> scene(spheres);
+    //StaticDeferredStorageScene<SceneObjectBlob<Shapes<Sphere>>> scene(std::move(spheres));
     //*/
 
     /*
-    BlobScene<SharedAnyShape> scene;
+    BlobScene<Shapes<SharedAnyShape>> scene;
     scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
     scene.add(SceneObject<SharedAnyShape>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));

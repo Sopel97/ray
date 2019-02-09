@@ -11,12 +11,17 @@
 
 namespace ray
 {
+    template <typename...>
+    struct SceneObjectBlob;
+
     // No space partitioning. Useful for testing.
     // Uses one array for each shape type.
     // Is similar to BlobScene but behaves like SceneObjectStorage
     template <typename... ShapeTs>
-    struct SceneObjectBlob : DynamicSceneObjectStorage
+    struct SceneObjectBlob<Shapes<ShapeTs...>> : DynamicSceneObjectStorage
     {
+        using AllShapes = Shapes<ShapeTs...>;
+
     private:
         // specialized whenever a pack is used
         template <typename ShapeT>

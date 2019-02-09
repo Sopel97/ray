@@ -59,9 +59,14 @@ namespace ray
         }
     };
 
+    template <typename...>
+    struct StaticBvhLeafNode;
+
     template <typename BvShapeT, typename... ShapeTs>
-    struct StaticBvhLeafNode : StaticBvhNode<BvShapeT>
+    struct StaticBvhLeafNode<BvShapeT, Shapes<ShapeTs...>> : StaticBvhNode<BvShapeT>
     {
+        using AllShapes = Shapes<ShapeTs...>;
+
         template <typename ShapeT>
         void add(const SceneObject<ShapeT>& so)
         {
@@ -74,10 +79,10 @@ namespace ray
         }
 
     private:
-        SceneObjectBlob<ShapeTs...> m_objects;
+        SceneObjectBlob<AllShapes> m_objects;
     };
 
-    template <typename BvShapeT, typename... ShapeTs>
+    template <typename BvShapeT>
     struct StaticBvhPartitionNode : StaticBvhNode<BvShapeT>
     {
         // provide memory from outside to prevent a lot of small allocations
