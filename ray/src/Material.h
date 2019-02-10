@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Color.h"
+#include "TexCoords.h"
 #include "Texture.h"
-#include "TextureDatabase.h"
 
 namespace ray
 {

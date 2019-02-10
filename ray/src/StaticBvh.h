@@ -4,25 +4,24 @@
 #include "PerformanceStats.h"
 #endif
 
-#include "NamedTypePacks.h"
 #include "Box3.h"
 #include "BoundingVolume.h"
 #include "BvhNode.h"
 #include "BvhObject.h"
-#include "RaycastHit.h"
-#include "SceneObjectCollection.h"
-#include "SceneObjectArray.h"
+#include "NamedTypePacks.h"
 #include "RawSceneObjectBlob.h"
+#include "RaycastHit.h"
+#include "SceneObjectArray.h"
 #include "SceneObjectBlob.h"
+#include "SceneObjectCollection.h"
 #include "ShapeTraits.h"
 #include "Util.h"
 
-#include <algorithm>
-#include <optional>
 #include <memory>
+#include <optional>
+#include <queue>
 #include <type_traits>
 #include <vector>
-#include <queue>
 
 namespace ray
 {

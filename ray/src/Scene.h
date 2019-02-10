@@ -3,8 +3,6 @@
 #include <optional>
 #include <vector>
 
-#include "Vec3.h"
-
 namespace ray
 {
     struct Ray;

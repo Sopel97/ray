@@ -1,13 +1,16 @@
 #pragma once
 
-#include "NamedTypePacks.h"
 #include "BvhNode.h"
+#include "NamedTypePacks.h"
+#include "Vec3.h"
 
 #include <vector>
 #include <memory>
 
 namespace ray
 {
+    struct Box3;
+
     template <typename...>
     struct BoundedStaticBvhObject;
 

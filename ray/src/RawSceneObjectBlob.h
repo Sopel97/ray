@@ -1,15 +1,12 @@
 #pragma once
 
 #include "NamedTypePacks.h"
-#include "SceneObjectStorageProvider.h"
-#include "RaycastHit.h"
 #include "SceneObjectCollection.h"
-#include "SceneObjectArray.h"
-#include "ShapeTraits.h"
 #include "Util.h"
 
 #include <optional>
-#include <type_traits>
+#include <tuple>
+#include <vector>
 
 namespace ray
 {
@@ -76,5 +73,4 @@ namespace ray
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }
     };
-
 }

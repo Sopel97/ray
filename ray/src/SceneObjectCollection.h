@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SceneObject.h"
+#include "SceneObjectId.h"
 
 #include <optional>
 

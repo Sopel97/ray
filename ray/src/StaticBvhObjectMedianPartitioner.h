@@ -1,11 +1,13 @@
 #pragma once
 
-#include "NamedTypePacks.h"
 #include "Box3.h"
 #include "BvhNode.h"
 #include "BvhObject.h"
+#include "NamedTypePacks.h"
 #include "StaticBvhObjectPartitioner.h"
+#include "Vec3.h"
 
+#include <algorithm>
 #include <vector>
 
 namespace ray
@@ -44,7 +46,8 @@ namespace ray
                     std::partition(first, last, [partitionPoint, cmpAxis](const auto& em) {
                         return em->center().*cmpAxis < partitionPoint;
                     }) 
-                    , last };
+                    , last 
+                };
             }
 
             Box3 aabb(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Color.h"
-#include "TexCoords.h"
-
 namespace ray
 {
+    struct TexCoords;
+    struct ColorRGBf;
+
     struct Texture
     {
         virtual ColorRGBf sample(const TexCoords& coords) const = 0;

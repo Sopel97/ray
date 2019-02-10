@@ -23,6 +23,7 @@
 #include "src/Vec3.h"
 
 #include <chrono>
+#include <iostream>
 #include <string>
 
 using namespace ray;

@@ -3,10 +3,10 @@
 #include "Array2.h"
 #include "Color.h"
 
+#include <SFML/Graphics/Image.hpp>
+
 #include <cstdint>
 #include <vector>
-
-#include <SFML/Graphics/Image.hpp>
 
 namespace ray
 {

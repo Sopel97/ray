@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SceneObjectId.h"
-#include "Material.h"
 #include "Ray.h"
 #include "TexCoords.h"
 #include "Vec3.h"
@@ -14,7 +13,7 @@ namespace ray
 {
     struct HomogeneousSceneObjectCollection;
     struct ResolvedRaycastHit;
-    struct RaycastQueryStats;
+    struct Material;
 
     // for bounding volumes we don't need that much information
     struct RaycastBvHit

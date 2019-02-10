@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Material.h"
+#include "Ray.h"
+#include "RaycastHit.h"
 #include "SceneObject.h"
 #include "SceneObjectCollection.h"
 #include "ShapeTraits.h"

@@ -1,16 +1,10 @@
 #pragma once
 
-#include "Raycast.h"
+#include "RawSceneObjectBlob.h"
 #include "RaycastHit.h"
 #include "Scene.h"
-#include "RawSceneObjectBlob.h"
-#include "SceneObjectArray.h"
-#include "ShapeTraits.h"
-#include "Sphere.h"
-#include "Util.h"
 
 #include <tuple>
-#include <type_traits>
 #include <vector>
 
 namespace ray

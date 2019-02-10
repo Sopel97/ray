@@ -225,9 +225,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ray.cpp" />
-    <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\RaycastHit.cpp" />
-    <ClCompile Include="src\SceneObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Angle.h" />

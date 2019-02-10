@@ -5,11 +5,13 @@
 #endif
 
 #include "Camera.h"
-#include "LightHandle.h"
 #include "Image.h"
+#include "LightHandle.h"
 #include "Scene.h"
+#include "Ray.h"
 #include "RaycastHit.h"
 #include "Util.h"
+#include "Vec3.h"
 
 namespace ray
 {

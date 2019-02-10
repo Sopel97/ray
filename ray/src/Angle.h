@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cmath>
-
 #include "MathConstants.h"
+
+#include <cmath>
 
 namespace ray
 {

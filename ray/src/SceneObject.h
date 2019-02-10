@@ -1,15 +1,16 @@
 #pragma once
 
 #include "Box3.h"
+#include "Material.h"
 #include "RaycastHit.h"
 #include "SceneObjectId.h"
-#include "Material.h"
 #include "ShapeTraits.h"
 #include "TexCoords.h"
 #include "Vec3.h"
 
 #include <array>
 #include <atomic>
+#include <memory>
 #include <optional>
 
 namespace ray

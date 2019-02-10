@@ -1,6 +1,6 @@
 #include "RaycastHit.h"
 
-#include "SceneObject.h"
+#include "SceneObjectId.h"
 #include "SceneObjectCollection.h"
 
 namespace ray

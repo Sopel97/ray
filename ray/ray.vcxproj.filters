@@ -24,12 +24,6 @@
     <ClCompile Include="ray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Image.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SceneObject.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\RaycastHit.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>

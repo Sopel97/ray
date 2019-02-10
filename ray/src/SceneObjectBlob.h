@@ -1,15 +1,15 @@
 #pragma once
 
 #include "NamedTypePacks.h"
-#include "SceneObjectStorageProvider.h"
-#include "RaycastHit.h"
 #include "RawSceneObjectBlob.h"
+#include "RaycastHit.h"
 #include "SceneObjectCollection.h"
-#include "SceneObjectArray.h"
+#include "SceneObjectStorageProvider.h"
 #include "ShapeTraits.h"
 #include "Util.h"
 
 #include <optional>
+#include <tuple>
 #include <type_traits>
 
 namespace ray
