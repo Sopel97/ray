@@ -72,8 +72,8 @@ int main()
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(spheres));
-    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/
 
     /*

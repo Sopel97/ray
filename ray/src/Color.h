@@ -41,6 +41,11 @@ namespace ray
             return r + g + b;
         }
 
+        constexpr float max() const
+        {
+            return std::max(std::max(r, g), b);
+        }
+
         float r, g, b;
     };
 
