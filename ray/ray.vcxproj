@@ -237,6 +237,7 @@
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Color.h" />
     <ClInclude Include="src\Image.h" />
+    <ClInclude Include="src\UniformGridMultisampler.h" />
     <ClInclude Include="src\LightHandle.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MaterialDatabase.h" />
@@ -250,6 +251,7 @@
     <ClInclude Include="src\Raycast.h" />
     <ClInclude Include="src\Raytracer.h" />
     <ClInclude Include="src\RaycastHit.h" />
+    <ClInclude Include="src\Sampler.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneObject.h" />
     <ClInclude Include="src\SceneObjectArray.h" />
@@ -269,6 +271,7 @@
     <ClInclude Include="src\TextureDatabase.h" />
     <ClInclude Include="src\Util.h" />
     <ClInclude Include="src\Vec3.h" />
+    <ClInclude Include="src\Viewport.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

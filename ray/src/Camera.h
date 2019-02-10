@@ -4,6 +4,7 @@
 #include "IterableNumber.h"
 #include "Ray.h"
 #include "Vec3.h"
+#include "Viewport.h"
 
 #include <algorithm>
 #include <cmath>
@@ -26,39 +27,51 @@ namespace ray
 
         }
 
-        template <typename FuncT, typename ExecT = std::execution::sequenced_policy>
-        void forEachPixelRay(FuncT&& func, ExecT exec = std::execution::seq) const
+        Viewport viewport() const
         {
-            const float a = aspectRatio();
-            const float viewportHeight = 2.0f * viewportDistance * m_fov.tan();
-            const float viewportWidth = viewportHeight * a;
-            const int viewportWidthPixels = m_width;
-            const int viewportHeightPixels = m_height;
-            const float pixelWidth = viewportWidth / static_cast<float>(viewportWidthPixels);
-            const float pixelHeight = viewportHeight / static_cast<float>(viewportHeightPixels);
-            const Normal3f viewportRight = cross(m_direction, m_up).normalized();
-            const Normal3f viewportDown = -cross(viewportRight, m_direction).assumeNormalized(); // 2 orthogonal normals
-            const Point3f viewportCenter = m_position + viewportDistance * m_direction;
+            Viewport vp;
+
+            vp.height = 2.0f * viewportDistance * m_fov.tan();
+            vp.width = vp.height * aspectRatio();
+            vp.widthPixels = m_width;
+            vp.heightPixels = m_height;
+            vp.pixelWidth = vp.width / static_cast<float>(vp.widthPixels);
+            vp.pixelHeight = vp.height / static_cast<float>(vp.heightPixels);
+            vp.right = cross(m_direction, m_up).normalized();
+            vp.down = -cross(vp.right, m_direction).assumeNormalized(); // 2 orthogonal normals
+            vp.center = m_position + viewportDistance * m_direction;
+            vp.origin = m_position;
 
             // viewportWidth - pixelWidth to end up in the middle of a top left pixel
-            const Point3f viewportTopLeft =
-                viewportCenter 
-                - ((viewportWidth - pixelWidth) / 2.0f * viewportRight) 
-                - ((viewportHeight - pixelHeight) / 2.0f * viewportDown);
+            vp.topLeft =
+                vp.center
+                - ((vp.width - vp.pixelWidth) / 2.0f * vp.right)
+                - ((vp.height - vp.pixelHeight) / 2.0f * vp.down);
 
-            std::for_each_n(exec, IterableNumber(0), viewportHeightPixels, [&](int y) {
-                for (int x = 0; x < viewportWidthPixels; ++x)
+            return vp;
+        }
+
+        template <typename FuncT, typename ExecT = std::execution::sequenced_policy>
+        void forEachPixelRay(FuncT&& func, ExecT exec = ExecT{}) const
+        {
+            const Viewport vp = viewport();
+
+            std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int y) {
+                for (int x = 0; x < vp.widthPixels; ++x)
                 {
-                    const Point3f viewportPoint =
-                        (viewportTopLeft
-                            + static_cast<float>(x) * pixelWidth * viewportRight
-                            + static_cast<float>(y) * pixelHeight * viewportDown);
-
-                    const Normal3f direction = (viewportPoint - m_position).normalized();
-
-                    func(Ray(m_position, direction), x, y);
+                    func(vp.rayAt(static_cast<float>(x), static_cast<float>(y)), x, y);
                 }
             });
+        }
+
+        float viewportHeight() const
+        {
+            return 2.0f * viewportDistance * m_fov.tan();
+        }
+
+        float viewportWidth() const
+        {
+            return viewportHeight() * aspectRatio();
         }
 
         float aspectRatio() const
@@ -74,6 +87,21 @@ namespace ray
         int height() const
         {
             return m_height;
+        }
+
+        const Point3f& position() const
+        {
+            return m_position;
+        }
+
+        const Normal3f& direction() const
+        {
+            return m_direction;
+        }
+
+        const Normal3f& up() const
+        {
+            return m_up;
         }
 
     private:

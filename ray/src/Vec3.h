@@ -59,7 +59,13 @@ namespace ray
     {
         detail::OwnedReadOnlyProperty<T, Normal3<T>> x, y, z;
 
-        constexpr Normal3() = default;
+        constexpr Normal3() :
+            x(1),
+            y(0),
+            z(0)
+        {
+        }
+
         constexpr Normal3(const T& x, const T& y, const T& z) :
             Normal3(Vec3<T>(x, y, z).normalized())
         {

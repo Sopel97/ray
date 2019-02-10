@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "Image.h"
 #include "LightHandle.h"
+#include "Sampler.h"
 #include "Scene.h"
 #include "Ray.h"
 #include "RaycastHit.h"
@@ -49,7 +50,8 @@ namespace ray
         {
         }
 
-        Image capture(const Camera& camera) const
+        template <typename SamplerT = Sampler>
+        Image capture(const Camera& camera, const SamplerT& sampler = SamplerT{}) const
         {
             Image img(camera.width(), camera.height());
 
@@ -57,10 +59,19 @@ namespace ray
             auto t0 = std::chrono::high_resolution_clock().now();
 #endif
 
-            camera.forEachPixelRay(
-                [&img, this](const Ray& ray, int x, int y) {
-                    img(x, y) = ColorRGBi(trace(ray, ColorRGBf(1.0f, 1.0f, 1.0f)) ^ m_options.gamma); 
-                }, 
+            /*
+            camera.forEachPixelRay([&](const Ray& ray, int x, int y) {
+                img(x, y) = ColorRGBi(trace(ray, ColorRGBf(1.0f, 1.0f, 1.0f)) ^ m_options.gamma);
+                }, std::execution::par_unseq);
+                */
+            sampler.forEachSample(
+                camera,
+                [&](const Ray& ray) {
+                    return trace(ray, ColorRGBf(1.0f, 1.0f, 1.0f));
+                },
+                [&](int x, int y, const ColorRGBf& color) {
+                    img(x, y) = ColorRGBi(color ^ m_options.gamma);
+                },
                 std::execution::par_unseq
             );
 
