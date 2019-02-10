@@ -21,11 +21,13 @@
 #include "src/StaticBvh.h"
 #include "src/TextureDatabase.h"
 #include "src/UniformGridMultisampler.h"
+#include "src/JitteredMultisampler.h"
 #include "src/Vec3.h"
 
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <random>
 
 using namespace ray;
 
@@ -126,6 +128,7 @@ int main()
     Raytracer raytracer(scene);
     auto camera = Camera({ 0, 0.5f, 0 }, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45));
     //auto sampler = UniformGridMultisampler(1);
+    //auto sampler = JitteredMultisampler(1, 256);
     //Image img = raytracer.capture(camera, sampler);
     Image img = raytracer.capture(camera);
 

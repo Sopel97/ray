@@ -4,7 +4,6 @@
 #include "Color.h"
 #include "IterableNumber.h"
 #include "Ray.h"
-#include "Sampler.h"
 #include "Vec3.h"
 
 #include <algorithm>
@@ -13,7 +12,7 @@
 
 namespace ray
 {
-    struct UniformGridMultisampler : Sampler
+    struct UniformGridMultisampler
     {
         UniformGridMultisampler(int order) :
             m_order(order)
@@ -21,7 +20,7 @@ namespace ray
         }
 
         template <typename FuncT>
-        void forEachSampleOffset(FuncT func) const
+        void forEachSampleOffset(int x, int y, FuncT func) const
         {
             const float subpixelSize = 1.0f / m_order;
             const float add = subpixelSize * 0.5f - 0.5f; // to center it on (0.0, 0.0)
@@ -51,7 +50,7 @@ namespace ray
                 for (int xi = 0; xi < vp.widthPixels; ++xi)
                 {
                     ColorRGBf totalColor{};
-                    forEachSampleOffset([&](float dx, float dy) {
+                    forEachSampleOffset(xi, yi, [&](float dx, float dy) {
                         totalColor += sample(
                             static_cast<float>(xi) + dx,
                             static_cast<float>(yi) + dy

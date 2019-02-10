@@ -237,6 +237,7 @@
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Color.h" />
     <ClInclude Include="src\Image.h" />
+    <ClInclude Include="src\JitteredMultisampler.h" />
     <ClInclude Include="src\UniformGridMultisampler.h" />
     <ClInclude Include="src\LightHandle.h" />
     <ClInclude Include="src\Material.h" />

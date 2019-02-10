@@ -16,7 +16,7 @@ namespace ray
     struct Sampler
     {
         template <typename FuncT>
-        void forEachSampleOffset(FuncT func) const
+        void forEachSampleOffset(int x, int y, FuncT func) const
         {
             func(0.0f, 0.0f);
         }
