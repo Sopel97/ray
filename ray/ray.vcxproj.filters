@@ -164,5 +164,8 @@
     <ClInclude Include="src\JitteredMultisampler.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\QuincunxMultisampler.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

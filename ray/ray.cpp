@@ -22,6 +22,7 @@
 #include "src/TextureDatabase.h"
 #include "src/UniformGridMultisampler.h"
 #include "src/JitteredMultisampler.h"
+#include "src/QuincunxMultisampler.h"
 #include "src/Vec3.h"
 
 #include <chrono>
@@ -132,8 +133,9 @@ int main()
     auto camera = Camera({ 0, 0.5f, 0 }, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45));
     //auto sampler = UniformGridMultisampler(1);
     //auto sampler = JitteredMultisampler(1, 256, 0.66f);
-    //Image img = raytracer.capture(camera, sampler);
-    Image img = raytracer.capture(camera);
+    auto sampler = QuincunxMultisampler();
+    Image img = raytracer.capture(camera, sampler);
+    //Image img = raytracer.capture(camera);
 
 #if defined(RAY_GATHER_PERF_STATS)
     std::cout << perf::gPerfStats.summary();
