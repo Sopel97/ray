@@ -116,7 +116,7 @@ namespace ray
             const float refractionContribution = ((1.0f - reflectionContribution) * hit.material->transparency);
 
             const ColorRGBf unabsorbed = 
-                (hit.isInside && prevHit) 
+                (isInside && prevHit) 
                 ? exp(-hit.material->absorbtion * distance(hit.point, prevHit->point)) 
                 : ColorRGBf(1.0f, 1.0f, 1.0f);
 
