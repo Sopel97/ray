@@ -10,6 +10,7 @@
 #include "Sphere.h"
 #include "Vec3.h"
 
+#include <algorithm>
 #include <cmath>
 #include <optional>
 
@@ -37,44 +38,50 @@ namespace ray
             return RaycastBvHit{ 0.0f };
         }
 
-        const Vec3f invDir = ray.direction().inv();
-        const bool sign[3] = {
-            ray.direction().x < 0.0f,
-            ray.direction().y < 0.0f,
-            ray.direction().z < 0.0f
-        };
         const Point3f origin = ray.origin();
-        const Point3f bounds[2] = { box.min, box.max };
+        const Vec3f invDir = ray.invDirection();
+        const auto sign = ray.signs();
+        Point3f min = box.min;
+        Point3f max = box.max;
+        if (sign[0]) std::swap(min.x, max.x);
+        if (sign[1]) std::swap(min.y, max.y);
+        if (sign[2]) std::swap(min.z, max.z);
 
-        float tmin = (bounds[sign[0]].x - origin.x) * invDir.x;
-        float tmax = (bounds[!sign[0]].x - origin.x) * invDir.x;
-        float tymin = (bounds[sign[1]].y - origin.y) * invDir.y;
-        float tymax = (bounds[!sign[1]].y - origin.y) * invDir.y;
+        const Vec3f t0 = (min - origin) * invDir;
+        const Vec3f t1 = (max - origin) * invDir;
 
-        if ((tmin > tymax) || (tymin > tmax))
-            return std::nullopt;
-        if (tymin > tmin)
-            tmin = tymin;
-        if (tymax < tmax)
-            tmax = tymax;
+        float tmin = std::max(t0.x, t0.y);
+        float tmax = std::min(t1.x, t1.y);
 
-        float tzmin = (bounds[sign[2]].z - origin.z) * invDir.z;
-        float tzmax = (bounds[!sign[2]].z - origin.z) * invDir.z;
+        if (tmin > tmax) return std::nullopt;
 
-        if ((tmin > tzmax) || (tzmin > tmax))
-            return std::nullopt;
-        if (tzmin > tmin)
-            tmin = tzmin;
-        if (tzmax < tmax)
-            tmax = tzmax;
+        if (t0.z > tmin)
+            tmin = t0.z;
+        if (t1.z < tmax)
+            tmax = t1.z;
 
-        if (tmin < 0.0f) return std::nullopt;
+        if (tmin < 0.0f || tmin > tmax) return std::nullopt;
 
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addBoxBvRaycastHit();
 #endif
 
         return RaycastBvHit{ tmin };
+
+        /*
+        const Vec3f invDir = ray.direction().reciprocal();
+        const Vec3f t0 = (box.min - ray.origin()) * invDir;
+        const Vec3f t1 = (box.max - ray.origin()) * invDir;
+        const float tmin = min(t0, t1).max();
+        const float tmax = max(t0, t1).min();
+
+        if (tmin <= tmax)
+        {
+            return RaycastBvHit{ tmin };
+        }
+
+        return std::nullopt;
+        */
     }
 
     std::optional<RaycastHit> raycast(const Ray& ray, const Sphere& sphere)
@@ -170,8 +177,7 @@ namespace ray
         if (r < 0.0f) return std::nullopt;
         const float t_hc = std::sqrt(r);
 
-        float t1 = t_ca - t_hc;
-        float t2 = t_ca + t_hc;
+        float t = t_ca - t_hc;
 
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addSphereRaycastHit();
@@ -179,24 +185,11 @@ namespace ray
         // select smallest positive
         // we know that at least one is positive
         // and that t2 is greater
-        if (t1 > 0.0f)
-        {
-            // hit from outside
-            const Point3f hitPoint = O + t1 * D;
-            const Normal3f normal = (hitPoint - C).normalized();
-            const int shapeInPackNo = 0;
-            const int materialNo = 0;
-            return RaycastHit{ hitPoint, normal, shapeInPackNo, materialNo, false };
-        }
-        else
-        {
-            // hit from inside
-            const Point3f hitPoint = O + t2 * D;
-            const Normal3f normal = (hitPoint - C).normalized();
-            const int shapeInPackNo = 0;
-            const int materialNo = 0;
-            return RaycastHit{ hitPoint, -normal, shapeInPackNo, materialNo, true };
-        }
-
+        bool isInside = t < 0.0f;
+        if (isInside) t = t_ca + t_hc;
+        const Point3f hitPoint = O + t * D;
+        Normal3f normal = ((hitPoint - C) / R).assumeNormalized();
+        if (isInside) normal = -normal;
+        return RaycastHit{ hitPoint, normal, 0, 0, isInside };
     }
 }

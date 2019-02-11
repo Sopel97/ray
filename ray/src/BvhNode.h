@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NamedTypePacks.h"
+#include "Ray.h"
 #include "Raycast.h"
 #include "RaycastHit.h"
 #include "SceneObjectBlob.h"

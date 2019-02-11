@@ -135,9 +135,9 @@ int main()
     //auto sampler = UniformGridMultisampler(1);
     //auto sampler = JitteredMultisampler(1, 256, 0.66f);
     //auto sampler = QuincunxMultisampler();
-    auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(4, 256));
-    Image img = raytracer.capture(camera, sampler);
-    //Image img = raytracer.capture(camera);
+    //auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(4, 256));
+    //Image img = raytracer.capture(camera, sampler);
+    Image img = raytracer.capture(camera);
 
 #if defined(RAY_GATHER_PERF_STATS)
     std::cout << perf::gPerfStats.summary();

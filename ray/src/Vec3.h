@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 
 namespace ray
@@ -101,7 +102,7 @@ namespace ray
             return Vec3<T>(x, y, z);
         }
 
-        constexpr Vec3<T> inv() const
+        constexpr Vec3<T> reciprocal() const
         {
             return Vec3<T>(
                 static_cast<T>(1) / x,
@@ -200,7 +201,7 @@ namespace ray
             return static_cast<T>(1) / length();
         }
 
-        constexpr Vec3<T> inv() const
+        constexpr Vec3<T> reciprocal() const
         {
             return Vec3<T>(
                 static_cast<T>(1) / x,
@@ -222,6 +223,18 @@ namespace ray
         constexpr Normal3<T> normalized() const
         {
             return Normal3<T>(AssumeNormalized{}, *this * invLength());
+        }
+
+        constexpr T max() const
+        {
+            using std::max;
+            return max(max(x, y), z);
+        }
+
+        constexpr T min() const
+        {
+            using std::min;
+            return min(min(x, y), z);
         }
     };
 
@@ -475,6 +488,28 @@ namespace ray
             lhs.y*rhs.z - lhs.z*rhs.y,
             lhs.z*rhs.x - lhs.x*rhs.z,
             lhs.x*rhs.y - lhs.y*rhs.x
+            );
+    }
+
+    template <typename T>
+    constexpr Vec3<T> min(const Vec3<T>& lhs, const Vec3<T>& rhs)
+    {
+        using std::min;
+        return Vec3<T>(
+            min(lhs.x, rhs.x),
+            min(lhs.y, rhs.y),
+            min(lhs.z, rhs.z)
+            );
+    }
+
+    template <typename T>
+    constexpr Vec3<T> max(const Vec3<T>& lhs, const Vec3<T>& rhs)
+    {
+        using std::max;
+        return Vec3<T>(
+            max(lhs.x, rhs.x),
+            max(lhs.y, rhs.y),
+            max(lhs.z, rhs.z)
             );
     }
 
