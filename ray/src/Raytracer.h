@@ -42,6 +42,10 @@ namespace ray
 
             // not sure if it should be used
             float gamma = 0.43f;
+
+            // if true allows local continuation of tracing
+            // when inside a volumetric shape
+            bool assumeNoVolumeIntersections = true;
         };
 
         Raytracer(const Scene& scene, const Options& options = {}) :
@@ -96,7 +100,7 @@ namespace ray
 #endif
 
             std::optional<ResolvableRaycastHit> hitOpt =
-                isInside && prevHit && prevHit->isLocallyContinuable // if we're not inside we can't locally continue, even if shape allows that
+                isInside && m_options.assumeNoVolumeIntersections && prevHit && prevHit->isLocallyContinuable // if we're not inside we can't locally continue, even if shape allows that
                 ? prevHit->next(ray)
                 : m_scene->queryNearest(ray);
             if (!hitOpt) return m_scene->backgroundColor();

@@ -70,6 +70,9 @@ int main()
     spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 }));
     spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
     spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
+    //spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(0.0, 0, -7), 1.5), { &m1 }));
+    //spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(-3.0, 0, -7), 1.5), { &m1 }));
+    //spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(3.0, 0, -7), 1.5), { &m1 }));
     spheres.emplace_back(SceneObject<SharedAnyShape>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
     using ShapesT = Shapes<SharedAnyShape>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
