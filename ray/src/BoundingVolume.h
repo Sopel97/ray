@@ -31,13 +31,13 @@ namespace ray
     }
 
     template <typename BvShapeT>
-    decltype(auto) boundingVolume(const SceneObject<UniqueAnyShape>& obj)
+    decltype(auto) boundingVolume(const SceneObject<BoundedUniqueAnyShape>& obj)
     {
         return BoundingVolume<BvShapeT>::get(obj);
     }
 
     template <typename BvShapeT>
-    decltype(auto) boundingVolume(const SceneObject<SharedAnyShape>& obj)
+    decltype(auto) boundingVolume(const SceneObject<BoundedSharedAnyShape>& obj)
     {
         return BoundingVolume<BvShapeT>::get(obj);
     }

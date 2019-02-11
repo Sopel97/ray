@@ -2,10 +2,38 @@
 
 namespace ray
 {
+    struct Box3;
+    struct Plane;
     struct Sphere;
+    struct BoundedUniqueAnyShape;
+    struct BoundedSharedAnyShape;
+    struct UnboundedUniqueAnyShape;
+    struct UnboundedSharedAnyShape;
 
     template <typename ShapeT>
     struct ShapeTraits;
+
+    template <>
+    struct ShapeTraits<Box3>
+    {
+        using ShapePackType = Box3;
+        using BaseShapeType = Box3; // for a pack it should be an underlying shape
+        static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
+        static constexpr int numMaterialsPerShape = 1;
+        static constexpr bool hasVolume = true;
+        static constexpr bool isBounded = true;
+    };
+
+    template <>
+    struct ShapeTraits<Plane>
+    {
+        using ShapePackType = Plane;
+        using BaseShapeType = Plane; // for a pack it should be an underlying shape
+        static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
+        static constexpr int numMaterialsPerShape = 1;
+        static constexpr bool hasVolume = false;
+        static constexpr bool isBounded = false;
+    };
 
     template <>
     struct ShapeTraits<Sphere>
@@ -15,5 +43,45 @@ namespace ray
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
         static constexpr int numMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
+        static constexpr bool isBounded = true;
+    };
+
+    template <>
+    struct ShapeTraits<BoundedUniqueAnyShape>
+    {
+        static constexpr bool isBounded = true;
+    };
+
+    template <>
+    struct ShapeTraits<BoundedSharedAnyShape>
+    {
+        static constexpr bool isBounded = true;
+    };
+
+    template <>
+    struct ShapeTraits<UnboundedUniqueAnyShape>
+    {
+        static constexpr bool isBounded = false;
+    };
+
+    template <>
+    struct ShapeTraits<UnboundedSharedAnyShape>
+    {
+        static constexpr bool isBounded = false;
+    };
+
+    struct ShapePredicates
+    {
+        struct IsBounded
+        {
+            template <typename ShapeT>
+            static constexpr bool value = ShapeTraits<ShapeT>::isBounded;
+        };
+
+        struct IsUnbounded
+        {
+            template <typename ShapeT>
+            static constexpr bool value = !ShapeTraits<ShapeT>::isBounded;
+        };
     };
 }

@@ -56,9 +56,14 @@ namespace ray
         void rememberLights(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection)
         {
             collection.forEach([&](const auto& object) {
-                if (object.isLight())
+                using ObjectType = remove_cvref_t<decltype(object)>;
+                using ShapeType = typename ObjectType::ShapeType;
+                if constexpr (ShapeTraits<ShapeType>::isBounded)
                 {
-                    m_lights.emplace_back(object.center(), object.id());
+                    if (object.isLight())
+                    {
+                        m_lights.emplace_back(object.center(), object.id());
+                    }
                 }
             });
         }

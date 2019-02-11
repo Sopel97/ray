@@ -170,5 +170,8 @@
     <ClInclude Include="src\AdaptiveMultisampler.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Plane.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

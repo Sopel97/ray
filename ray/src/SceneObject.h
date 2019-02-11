@@ -21,8 +21,10 @@ namespace ray
     struct Ray;
     struct ResolvableRaycastHit;
 
-    struct UniqueAnyShape;
-    struct SharedAnyShape;
+    struct BoundedUniqueAnyShape;
+    struct BoundedSharedAnyShape;
+    struct UnboundedUniqueAnyShape;
+    struct UnboundedSharedAnyShape;
 
     namespace detail
     {
@@ -61,6 +63,11 @@ namespace ray
             return m_shape.aabb();
         }
 
+        const MaterialStorageType& materials() const
+        {
+            return m_materials;
+        }
+
         const ShapeType& shape() const
         {
             return m_shape;
@@ -97,7 +104,7 @@ namespace ray
     // Only supports single shapes
     // Copy performs deep copy of the shape, material array, and id
     template <>
-    struct SceneObject<UniqueAnyShape>
+    struct SceneObject<BoundedUniqueAnyShape>
     {
     private:
         struct PolymorphicSceneObjectBase
@@ -119,8 +126,10 @@ namespace ray
             static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
             static constexpr bool isPack = numShapesInPack > 1;
             static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
+            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
             using MaterialStorageType = MaterialArrayType<ShapeT>;
             static_assert(!isPack, "Only a single object can be made polymorphic.");
+            static_assert(isBounded, "Must be bounded.");
 
             template <typename... ArgsTs>
             PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
@@ -179,7 +188,7 @@ namespace ray
         };
 
     public:
-        using ShapeType = UniqueAnyShape;
+        using ShapeType = BoundedUniqueAnyShape;
 
         template <typename ShapeT>
         SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
@@ -242,7 +251,7 @@ namespace ray
     // Only supports single shapes
     // A copy is shallow, ie. all data is shared.
     template <>
-    struct SceneObject<SharedAnyShape>
+    struct SceneObject<BoundedSharedAnyShape>
     {
     private:
         struct PolymorphicSceneObjectBase
@@ -263,8 +272,10 @@ namespace ray
             static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
             static constexpr bool isPack = numShapesInPack > 1;
             static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
+            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
             using MaterialStorageType = MaterialArrayType<ShapeT>;
             static_assert(!isPack, "Only a single object can be made polymorphic.");
+            static_assert(isBounded, "Must be bounded.");
 
             template <typename... ArgsTs>
             PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
@@ -319,7 +330,7 @@ namespace ray
         };
 
     public:
-        using ShapeType = SharedAnyShape;
+        using ShapeType = BoundedSharedAnyShape;
 
         template <typename ShapeT>
         SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
@@ -341,6 +352,248 @@ namespace ray
         Box3 aabb() const
         {
             return m_obj->aabb();
+        }
+
+        std::optional<RaycastHit> raycast(const Ray& ray) const
+        {
+            return m_obj->raycast(ray);
+        }
+
+        TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        {
+            return m_obj->resolveTexCoords(hit, shapeInPackNo);
+        }
+
+        bool hasVolume() const
+        {
+            return m_obj->hasVolume();
+        }
+
+        const Material& material(int materialNo) const
+        {
+            return m_obj->material(materialNo);
+        }
+
+        bool isLight() const
+        {
+            return m_obj->isLight();
+        }
+
+    private:
+        std::shared_ptr<PolymorphicSceneObjectBase> m_obj;
+    };
+
+
+    // Stores any shape in a polymorphic wrapper.
+    // Only supports single shapes
+    // Copy performs deep copy of the shape, material array, and id
+    template <>
+    struct SceneObject<UnboundedUniqueAnyShape>
+    {
+    private:
+        struct PolymorphicSceneObjectBase
+        {
+            virtual std::optional<RaycastHit> raycast(const Ray& ray) const = 0;
+            virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
+            virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            virtual bool hasVolume() const = 0;
+            virtual const Material& material(int materialNo) const = 0;
+            virtual bool isLight() const = 0;
+            virtual SceneObjectId id() const = 0;
+        };
+
+        template <typename ShapeT>
+        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
+        {
+            static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
+            static constexpr bool isPack = numShapesInPack > 1;
+            static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
+            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
+            using MaterialStorageType = MaterialArrayType<ShapeT>;
+            static_assert(!isPack, "Only a single object can be made polymorphic.");
+            static_assert(!isBounded, "Must not be bounded.");
+
+            template <typename... ArgsTs>
+            PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
+                m_shape(std::forward<ArgsTs>(args)...),
+                m_materials(materials),
+                m_id(detail::gNextSceneObjectId.fetch_add(1))
+            {
+
+            }
+            std::optional<RaycastHit> raycast(const Ray& ray) const override
+            {
+                return ray::raycast(ray, m_shape);
+            }
+            std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
+            {
+                return std::make_unique<PolymorphicSceneObject<ShapeT>>(*this);
+            }
+            TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            {
+                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+            }
+            bool hasVolume() const override
+            {
+                return ShapeTraits<ShapeT>::hasVolume;
+            }
+            const Material& material(int materialNo) const override
+            {
+                return *(m_materials[materialNo]);
+            }
+            bool isLight() const override
+            {
+                for (const auto& mat : m_materials)
+                {
+                    if (mat->emissionColor.total() > 0.0001f) return true;
+                }
+                return false;
+            }
+            SceneObjectId id() const override
+            {
+                return m_id;
+            }
+
+        private:
+            ShapeT m_shape;
+            MaterialStorageType m_materials;
+            SceneObjectId m_id;
+        };
+
+    public:
+        using ShapeType = UnboundedUniqueAnyShape;
+
+        template <typename ShapeT>
+        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(materials, shape))
+        {
+
+        }
+
+        SceneObject(const SceneObject& other) :
+            m_obj(other.m_obj->clone())
+        {
+
+        }
+
+        SceneObjectId id() const
+        {
+            return m_obj->id();
+        }
+
+        std::optional<RaycastHit> raycast(const Ray& ray) const
+        {
+            return m_obj->raycast(ray);
+        }
+
+        TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        {
+            return m_obj->resolveTexCoords(hit, shapeInPackNo);
+        }
+
+        bool hasVolume() const
+        {
+            return m_obj->hasVolume();
+        }
+
+        const Material& material(int materialNo) const
+        {
+            return m_obj->material(materialNo);
+        }
+
+        bool isLight() const
+        {
+            return m_obj->isLight();
+        }
+
+    private:
+        std::unique_ptr<PolymorphicSceneObjectBase> m_obj;
+    };
+
+    // Stores any shape in a polymorphic wrapper.
+    // Only supports single shapes
+    // A copy is shallow, ie. all data is shared.
+    template <>
+    struct SceneObject<UnboundedSharedAnyShape>
+    {
+    private:
+        struct PolymorphicSceneObjectBase
+        {
+            virtual std::optional<RaycastHit> raycast(const Ray& ray) const = 0;
+            virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            virtual bool hasVolume() const = 0;
+            virtual const Material& material(int materialNo) const = 0;
+            virtual bool isLight() const = 0;
+            virtual SceneObjectId id() const = 0;
+        };
+
+        template <typename ShapeT>
+        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
+        {
+            static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
+            static constexpr bool isPack = numShapesInPack > 1;
+            static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
+            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
+            using MaterialStorageType = MaterialArrayType<ShapeT>;
+            static_assert(!isPack, "Only a single object can be made polymorphic.");
+            static_assert(!isBounded, "Must not be bounded.");
+
+            template <typename... ArgsTs>
+            PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
+                m_shape(std::forward<ArgsTs>(args)...),
+                m_materials(materials),
+                m_id(detail::gNextSceneObjectId.fetch_add(1))
+            {
+
+            }
+            std::optional<RaycastHit> raycast(const Ray& ray) const override
+            {
+                return ray::raycast(ray, m_shape);
+            }
+            TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            {
+                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+            }
+            bool hasVolume() const override
+            {
+                return ShapeTraits<ShapeT>::hasVolume;
+            }
+            const Material& material(int materialNo) const override
+            {
+                return *(m_materials[materialNo]);
+            }
+            bool isLight() const override
+            {
+                for (const auto& mat : m_materials)
+                {
+                    if (mat->emissionColor.total() > 0.0001f) return true;
+                }
+                return false;
+            }
+            SceneObjectId id() const override
+            {
+                return m_id;
+            }
+
+        private:
+            ShapeT m_shape;
+            MaterialStorageType m_materials;
+            SceneObjectId m_id;
+        };
+
+    public:
+        using ShapeType = UnboundedSharedAnyShape;
+
+        template <typename ShapeT>
+        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
+            m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
+        {
+
+        }
+
+        SceneObjectId id() const
+        {
+            return m_obj->id();
         }
 
         std::optional<RaycastHit> raycast(const Ray& ray) const

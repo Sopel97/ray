@@ -14,15 +14,27 @@ namespace ray
         };
 
         template <>
-        struct Storage<SharedAnyShape>
+        struct Storage<BoundedSharedAnyShape>
         {
-            using Type = SceneObjectArray<SharedAnyShape>;
+            using Type = SceneObjectArray<BoundedSharedAnyShape>;
         };
 
         template <>
-        struct Storage<UniqueAnyShape>
+        struct Storage<BoundedUniqueAnyShape>
         {
-            using Type = SceneObjectArray<UniqueAnyShape>;
+            using Type = SceneObjectArray<BoundedUniqueAnyShape>;
+        };
+
+        template <>
+        struct Storage<UnboundedSharedAnyShape>
+        {
+            using Type = SceneObjectArray<UnboundedSharedAnyShape>;
+        };
+
+        template <>
+        struct Storage<UnboundedUniqueAnyShape>
+        {
+            using Type = SceneObjectArray<UnboundedUniqueAnyShape>;
         };
 
         template <typename ShapeT>

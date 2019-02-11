@@ -34,9 +34,11 @@ namespace ray
         static constexpr int maxDepth = 16;
         static constexpr int maxObjectsPerNode = 1;
 
-        using BvhParamsT = BvhParams<Shapes<ShapeTs...>, BvShapeT, StorageProviderT>;
-        using PartitionerT = typename PartitionerMakerT::template For<BvhParamsT>;
         using AllShapes = Shapes<ShapeTs...>;
+        using BoundedShapes = FilterShapes<AllShapes, ShapePredicates::IsBounded>;
+        using UnboundedShapes = FilterShapes<AllShapes, ShapePredicates::IsUnbounded>;
+        using BvhParamsT = BvhParams<BoundedShapes, BvShapeT, StorageProviderT>;
+        using PartitionerT = typename PartitionerMakerT::template For<BvhParamsT>;
         using LeafNodeType = StaticBvhLeafNode<BvhParamsT>;
         using PartitionNodeType = StaticBvhPartitionNode<BvShapeT>;
 
@@ -65,7 +67,12 @@ namespace ray
             BvhNodeHitQueue<BvShapeT> queue;
             queue.push(StaticBvhNodeHit(0.0f, *m_root));
             float nearestHitDist = std::numeric_limits<float>::max();
-            std::optional<ResolvableRaycastHit> nearestHitOpt = std::nullopt;
+            std::optional<ResolvableRaycastHit> nearestHitOpt = m_unboundedObjects.queryNearest(ray);
+            if (nearestHitOpt)
+            {
+                nearestHitDist = distance(ray.origin(), nearestHitOpt->point);
+            }
+
             while (!queue.empty())
             {
                 StaticBvhNodeHit entry = queue.top();
@@ -89,6 +96,7 @@ namespace ray
 
     private:
         std::unique_ptr<StaticBvhNode<BvShapeT>> m_root;
+        SceneObjectBlob<UnboundedShapes, StorageProviderT> m_unboundedObjects;
         PartitionerT m_partitioner;
 
         template <typename ShapeT>
@@ -140,9 +148,16 @@ namespace ray
         {
             BoundedBvhObjectVector allObjects;
             blob.forEach([&](auto&& object) {
-                    using ObjectType = remove_cvref_t<decltype(object)>;
-                    using ShapeType = typename ObjectType::ShapeType;
+                using ObjectType = remove_cvref_t<decltype(object)>;
+                using ShapeType = typename ObjectType::ShapeType;
+                if constexpr (ShapeTraits<ShapeType>::isBounded)
+                {
                     allObjects.emplace_back(std::make_unique<SpecificBvhObject<ShapeType>>(object));
+                }
+                else
+                {
+                    m_unboundedObjects.add(object);
+                }
             });
 
             m_root = makeNode(allObjects.begin(), allObjects.end());

@@ -246,7 +246,11 @@ namespace ray
 
     // only the underlying scene object's structure changes
     template <>
-    struct SceneObjectArray<UniqueAnyShape> : detail::PolymorphicSceneObjectArray<UniqueAnyShape> {};
+    struct SceneObjectArray<BoundedUniqueAnyShape> : detail::PolymorphicSceneObjectArray<BoundedUniqueAnyShape> {};
     template <>
-    struct SceneObjectArray<SharedAnyShape> : detail::PolymorphicSceneObjectArray<SharedAnyShape> {};
+    struct SceneObjectArray<BoundedSharedAnyShape> : detail::PolymorphicSceneObjectArray<BoundedSharedAnyShape> {};
+    template <>
+    struct SceneObjectArray<UnboundedUniqueAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedUniqueAnyShape> {};
+    template <>
+    struct SceneObjectArray<UnboundedSharedAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedSharedAnyShape> {};
 }
