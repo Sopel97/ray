@@ -15,14 +15,14 @@
 
 namespace ray
 {
-    template <typename RngT = std::minstd_rand>
     struct JitteredMultisampler
     {
-        JitteredMultisampler(int order, int numOffsets, RngT&& rng = RngT{}) :
+        template <typename RngT = std::minstd_rand>
+        JitteredMultisampler(int order, int numOffsets, float scale = 1.0f, RngT&& rng = RngT{}) :
             m_order(order),
             m_offsets(numOffsets)
         {
-            const std::uniform_real_distribution<float> dOffset(-0.5f, 0.5f);
+            const std::uniform_real_distribution<float> dOffset(-0.5f * scale, 0.5f * scale);
             std::generate(m_offsets.begin(), m_offsets.end(), [&]() {
                 return dOffset(rng);
             });
