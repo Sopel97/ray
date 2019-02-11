@@ -167,5 +167,8 @@
     <ClInclude Include="src\QuincunxMultisampler.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\AdaptiveMultisampler.h">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -228,6 +228,7 @@
     <ClCompile Include="src\RaycastHit.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AdaptiveMultisampler.h" />
     <ClInclude Include="src\Angle.h" />
     <ClInclude Include="src\Array2.h" />
     <ClInclude Include="src\BoundingVolume.h" />

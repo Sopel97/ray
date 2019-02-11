@@ -54,6 +54,11 @@ namespace ray
         return ColorRGBf(lhs.r * rhs, lhs.g * rhs, lhs.b * rhs);
     }
 
+    constexpr ColorRGBf operator/(const ColorRGBf& lhs, float rhs)
+    {
+        return ColorRGBf(lhs.r / rhs, lhs.g / rhs, lhs.b / rhs);
+    }
+
     constexpr ColorRGBf operator*(float lhs, const ColorRGBf& rhs)
     {
         return ColorRGBf(lhs * rhs.r, lhs * rhs.g, lhs * rhs.b);
@@ -62,6 +67,11 @@ namespace ray
     constexpr ColorRGBf operator+(const ColorRGBf& lhs, const ColorRGBf& rhs)
     {
         return ColorRGBf(lhs.r + rhs.r, lhs.g + rhs.g, lhs.b + rhs.b);
+    }
+
+    constexpr ColorRGBf operator-(const ColorRGBf& lhs, const ColorRGBf& rhs)
+    {
+        return ColorRGBf(lhs.r - rhs.r, lhs.g - rhs.g, lhs.b - rhs.b);
     }
 
     constexpr ColorRGBf operator*(const ColorRGBf& lhs, const ColorRGBf& rhs)

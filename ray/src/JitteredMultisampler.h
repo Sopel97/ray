@@ -28,18 +28,24 @@ namespace ray
             });
         }
 
+        int numSampleOffsets() const
+        {
+            return m_order * m_order;
+        }
+
         template <typename FuncT>
         void forEachSampleOffset(int x, int y, FuncT func) const
         {
             const float subpixelSize = 1.0f / m_order;
             const float add = subpixelSize * 0.5f - 0.5f; // to center it on (0.0, 0.0)
+            const float contribution = 1.0f / numSampleOffsets();
             for (int xxi = 0; xxi < m_order; ++xxi)
             {
                 for (int yyi = 0; yyi < m_order; ++yyi)
                 {
                     const float dx = (static_cast<float>(xxi) + chooseOffsetX(x, y, xxi, yyi)) * subpixelSize + add;
                     const float dy = (static_cast<float>(yyi) + chooseOffsetY(x, y, xxi, yyi)) * subpixelSize + add;
-                    func(dx, dy);
+                    func(dx, dy, contribution);
                 }
             }
         }
@@ -53,7 +59,7 @@ namespace ray
                 return traceFunc(vp.rayAt(x, y));
             };
 
-            const float singleSampleContribution = 1.0f / (m_order * m_order);
+            const float singleSampleContribution = 1.0f / numSampleOffsets();
 
             std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
                 for (int xi = 0; xi < vp.widthPixels; ++xi)

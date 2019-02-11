@@ -15,14 +15,19 @@ namespace ray
 {
     struct QuincunxMultisampler
     {
+        int numSampleOffsets() const
+        {
+            return 5;
+        }
+
         template <typename FuncT>
         void forEachSampleOffset(int x, int y, FuncT func) const
         {
-            func(0.0f, 0.0f);
-            func(0.5f, 0.5f);
-            func(0.5f, -0.5f);
-            func(-0.5f, 0.5f);
-            func(-0.5f, -0.5f);
+            func(0.0f, 0.0f, 0.2f);
+            func(0.5f, 0.5f, 0.2f);
+            func(0.5f, -0.5f, 0.2f);
+            func(-0.5f, 0.5f, 0.2f);
+            func(-0.5f, -0.5f, 0.2f);
         }
 
         template <typename TraceFuncT, typename StoreFuncT, typename ExecT = std::execution::sequenced_policy>
