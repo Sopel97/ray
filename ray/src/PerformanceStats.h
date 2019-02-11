@@ -123,6 +123,26 @@ namespace ray
                 m_sphereRaycasts.addHit(count);
             }
 
+            void addBoxRaycast(std::uint64_t count = 1)
+            {
+                m_boxRaycasts.add(count);
+            }
+
+            void addBoxRaycastHit(std::uint64_t count = 1)
+            {
+                m_boxRaycasts.addHit(count);
+            }
+
+            void addPlaneRaycast(std::uint64_t count = 1)
+            {
+                m_planeRaycasts.add(count);
+            }
+
+            void addPlaneRaycastHit(std::uint64_t count = 1)
+            {
+                m_planeRaycasts.addHit(count);
+            }
+
             void addBoxBvRaycast(std::uint64_t count = 1)
             {
                 m_boxBvRaycasts.add(count);
@@ -188,6 +208,10 @@ namespace ray
                 out += "Intersection test stats:\n";
                 out += "Sphere tests:\n";
                 out += "   hits/all: " + entry2(m_sphereRaycasts.hits.load(), m_sphereRaycasts.all.load()) + "\n";
+                out += "Plane tests:\n";
+                out += "   hits/all: " + entry2(m_planeRaycasts.hits.load(), m_planeRaycasts.all.load()) + "\n";
+                out += "Box tests:\n";
+                out += "   hits/all: " + entry2(m_boxRaycasts.hits.load(), m_boxRaycasts.all.load()) + "\n";
                 out += "Box BV tests:\n";
                 out += "   hits/all: " + entry2(m_boxBvRaycasts.hits.load(), m_boxBvRaycasts.all.load()) + "\n";
 
@@ -197,6 +221,8 @@ namespace ray
         private:
             std::vector<TraceStats> m_tracesByDepth;
             ObjectRaycastStats m_sphereRaycasts;
+            ObjectRaycastStats m_planeRaycasts;
+            ObjectRaycastStats m_boxRaycasts;
             BvRaycastStats m_boxBvRaycasts;
             TimeStats m_traceDuration;
             TimeStats m_constructionDuration;

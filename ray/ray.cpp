@@ -11,6 +11,7 @@
 #include "src/Image.h"
 #include "src/MaterialDatabase.h"
 #include "src/Patterns.h"
+#include "src/Plane.h"
 #include "src/Raycast.h"
 #include "src/Raytracer.h"
 #include "src/SceneObject.h"
@@ -50,11 +51,14 @@ int main()
     */
 
     TextureDatabase texDb;
-    texDb.emplace<SquarePattern>("square-pattern", ColorRGBf(0.8f, 0.8f, 0.8f), ColorRGBf(0.6f, 0.6f, 0.6f), 30.0f);
+    texDb.emplace<SquarePattern>("square-pattern", ColorRGBf(0.8f, 0.8f, 0.8f), ColorRGBf(0.6f, 0.6f, 0.6f), 0.25f);
     auto& pat = texDb.get("square-pattern");
+    texDb.emplace<SquarePattern>("square-pattern2", ColorRGBf(0.8f, 0.8f, 0.8f), ColorRGBf(0.6f, 0.6f, 0.6f), 2.0f);
+    auto& pat2 = texDb.get("square-pattern2");
 
     MaterialDatabase matDb;
     auto& m1 = matDb.emplace("mat1", ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.3f, 0.4f, ColorRGBf(0, 0, 0), &pat);
+    auto& m11 = matDb.emplace("mat11", ColorRGBf(0.6, 0.6, 0.6), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.1f, 0.7f, ColorRGBf(0, 0, 0), &pat2);
     auto& m2 = matDb.emplace("mat2", ColorRGBf(1.00, 0.32, 0.36), ColorRGBf(0, 0, 0), 0.5f, 1.1f, 0.4f, 0.0f, ColorRGBf(0, 0, 0));
     auto& m3 = matDb.emplace("mat3", ColorRGBf(0.90, 0.76, 0.46), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f, ColorRGBf(0, 0, 0));
     auto& m4 = matDb.emplace("mat4", ColorRGBf(0.65, 0.77, 0.97), ColorRGBf(0, 0, 0), 0.1f, 1.1f, 0.8f, 0.0f, ColorRGBf(0, 0, 0));
@@ -66,7 +70,10 @@ int main()
     //*
     using ShapeT = Sphere;
     std::vector<SceneObject<ShapeT>> spheres;
-    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
+    std::vector<SceneObject<Plane>> planes;
+    std::vector<SceneObject<Box3>> boxes;
+    //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
+    planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, 1.0, 0.0), -4), { &m1 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
@@ -77,12 +84,13 @@ int main()
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-3.0, 0, -7), 1.5), { &m1 }));
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(3.0, 0, -7), 1.5), { &m1 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-    using ShapesT = Shapes<ShapeT>;
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -2, -20), Point3f(20, 8, -10)), { &m11 }));
+    using ShapesT = Shapes<ShapeT, Plane, Box3>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
-    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres));
-    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes));
+    //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/
 
     /*
@@ -136,7 +144,7 @@ int main()
     //auto sampler = UniformGridMultisampler(1);
     //auto sampler = JitteredMultisampler(1, 256, 0.66f);
     //auto sampler = QuincunxMultisampler();
-    //auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(4, 256));
+    auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(4, 256));
     //Image img = raytracer.capture(camera, sampler);
     Image img = raytracer.capture(camera);
 

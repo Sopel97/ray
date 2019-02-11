@@ -17,12 +17,17 @@ namespace ray
 
         ColorRGBf sample(const TexCoords& coords) const override
         {
-            const int idx = (std::fmod(coords.u * m_scale, 1.0f) > 0.5f) != (std::fmod(coords.v * m_scale, 1.0f) > 0.5f);
+            const int idx = (frac(coords.u * m_scale) > 0.5f) != (frac(coords.v * m_scale) > 0.5f);
             return m_colors[idx];
         }
 
     private:
         ColorRGBf m_colors[2];
         float m_scale;
+
+        float frac(float a) const
+        {
+            return a - std::floor(a);
+        }
     };
 }

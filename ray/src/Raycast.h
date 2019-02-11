@@ -5,6 +5,7 @@
 #endif
 
 #include "Box3.h"
+#include "Plane.h"
 #include "Ray.h"
 #include "RaycastHit.h"
 #include "Sphere.h"
@@ -191,5 +192,91 @@ namespace ray
         Normal3f normal = ((hitPoint - C) / R).assumeNormalized();
         if (isInside) normal = -normal;
         return RaycastHit{ hitPoint, normal, 0, 0, isInside };
+    }
+
+    std::optional<RaycastHit> raycast(const Ray& ray, const Plane& plane)
+    {
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addPlaneRaycast();
+#endif
+        const float nd = dot(ray.direction(), plane.normal);
+
+        // nd must be negative, and not 0
+        // if nd is positive, the ray and plane normals
+        // point in the same direction. No intersection.
+        if (nd >= 0.0f) return std::nullopt;
+
+        const float pn = dot(ray.origin().asVector(), plane.normal);
+        float t = (plane.distance - pn) / nd;
+
+        // t must be positive
+        if (t >= 0.0f) 
+        {
+#if defined(RAY_GATHER_PERF_STATS)
+            perf::gPerfStats.addPlaneRaycastHit();
+#endif
+            const Point3f point = ray.origin() + ray.direction() * t;
+            return RaycastHit{ point, plane.normal, 0, 0, false };
+        }
+
+        return std::nullopt;
+    }
+
+    std::optional<RaycastHit> raycast(const Ray& ray, const Box3& box)
+    {
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addBoxRaycast();
+#endif
+        const Point3f origin = ray.origin();
+        const Vec3f invDir = ray.invDirection();
+        const auto sign = ray.signs();
+        Point3f min = box.min;
+        Point3f max = box.max;
+        Vec3f normal{};
+        if (sign[0]) std::swap(min.x, max.x);
+        if (sign[1]) std::swap(min.y, max.y);
+        if (sign[2]) std::swap(min.z, max.z);
+
+        const Vec3f t0 = (min - origin) * invDir;
+        const Vec3f t1 = (max - origin) * invDir;
+
+        float tmin = std::max(t0.x, t0.y);
+        float tmax = std::min(t1.x, t1.y);
+
+        if (t0.x > t0.y)
+        {
+            // normal on x axis
+            normal.x = sign[0] ? 1.0f : -1.0f;
+        }
+        else
+        {
+            // normal on y axis
+            normal.y = sign[1] ? 1.0f : -1.0f;
+        }
+
+        if (tmin > tmax) return std::nullopt;
+
+        if (t0.z > tmin)
+        {
+            tmin = t0.z;
+            normal.x = normal.y = 0.0f;
+            normal.z = sign[2] ? 1.0f : -1.0f;
+        }
+        if (t1.z < tmax)
+            tmax = t1.z;
+
+        if (tmin > tmax) return std::nullopt;
+        if (tmax < 0.0f) return std::nullopt;
+
+        const bool isInside = tmin < 0.0f;
+        const float t = isInside ? tmax : tmin;
+        if (isInside) normal = -normal;
+        const Point3f point = ray.origin() + ray.direction() * t;
+
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addBoxRaycastHit();
+#endif
+        return RaycastHit{ point, normal.assumeNormalized(), 0, 0, isInside };
+
     }
 }

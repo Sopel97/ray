@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 namespace ray
@@ -20,6 +21,11 @@ namespace ray
             constexpr operator const T&() const
             { 
                 return m_value;
+            }
+
+            void negate()
+            {
+                m_value = -m_value;
             }
 
         private:
@@ -59,6 +65,21 @@ namespace ray
     struct Normal3
     {
         detail::OwnedReadOnlyProperty<T, Normal3<T>> x, y, z;
+
+        constexpr static Normal3<T> xAxis()
+        {
+            return Normal3<T>(AssumeNormalized{}, 1, 0, 0);
+        }
+
+        constexpr static Normal3<T> yAxis()
+        {
+            return Normal3<T>(AssumeNormalized{}, 0, 1, 0);
+        }
+
+        constexpr static Normal3<T> zAxis()
+        {
+            return Normal3<T>(AssumeNormalized{}, 0, 0, 1);
+        }
 
         constexpr Normal3() :
             x(1),
@@ -278,6 +299,11 @@ namespace ray
             y -= rhs.y;
             z -= rhs.z;
             return *this;
+        }
+
+        constexpr Vec3<T> asVector() const
+        {
+            return Vec3<T>(x, y, z);
         }
     };
 

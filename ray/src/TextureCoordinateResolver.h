@@ -1,11 +1,14 @@
 #pragma once
 
+#include "Box3.h"
 #include "MathConstants.h"
+#include "Plane.h"
 #include "RaycastHit.h"
 #include "Sphere.h"
 #include "TexCoords.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace ray
 {
@@ -22,5 +25,43 @@ namespace ray
         const float v = std::acosf(hit.normal.y) / pi;
 
         return { u, v };
+    }
+
+    inline TexCoords resolveTexCoords(const Plane& plane, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    {
+        return { hit.point.x, hit.point.z };
+    }
+
+    inline TexCoords resolveTexCoords(const Box3& box, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    {
+        const Vec3f extent = box.extent();
+        const Normal3f normal = hit.normal;
+        Point3f base = box.min;
+        if (normal.x > 0.5f)
+        {
+            base.x += extent.x;
+        }
+        else if (normal.y > 0.5f)
+        {
+            base.y += extent.y;
+        }
+        else if (normal.z > 0.5f)
+        {
+            base.z += extent.z;
+        }
+        
+        const Vec3f diff = (hit.point - base) / extent;
+        if (diff.x < diff.y && diff.x < diff.z)
+        {
+            // x = 0
+            return { diff.y, diff.z };
+        }
+        if (diff.y < diff.x && diff.y < diff.z)
+        {
+            // y = 0
+            return { diff.x, diff.z };
+        }
+        // z = 0
+        return { diff.x, diff.y };
     }
 }
