@@ -207,7 +207,7 @@ namespace ray
         // point in the same direction. No intersection.
         if (nd >= 0.0f) return std::nullopt;
 
-        const float pn = dot(ray.origin().asVector(), plane.normal);
+        const float pn = dot(Vec3f(ray.origin()), plane.normal);
         float t = (plane.distance - pn) / nd;
 
         // t must be positive

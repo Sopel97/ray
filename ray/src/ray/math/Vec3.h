@@ -1,5 +1,7 @@
 #pragma once
 
+#include "detail/VecDetail.h"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -8,58 +10,6 @@ namespace ray
 {
     template <typename T>
     struct Vec3;
-
-    struct AssumeNormalized {};
-
-    namespace detail
-    {
-        template <typename T, typename OwnerT>
-        struct OwnedReadOnlyProperty
-        {
-            friend OwnerT;
-
-            constexpr operator const T&() const
-            { 
-                return m_value;
-            }
-
-            void negate()
-            {
-                m_value = -m_value;
-            }
-
-        private:
-            T m_value;
-
-            constexpr OwnedReadOnlyProperty(const T& value) :
-                m_value(value)
-            {
-
-            }
-
-            constexpr OwnedReadOnlyProperty(T&& value) :
-                m_value(std::move(value))
-            {
-
-            }
-
-            constexpr OwnedReadOnlyProperty(const OwnedReadOnlyProperty&) = default;
-            constexpr OwnedReadOnlyProperty(OwnedReadOnlyProperty&&) = default;
-
-            constexpr OwnedReadOnlyProperty& operator=(const OwnedReadOnlyProperty&) = default;
-            constexpr OwnedReadOnlyProperty& operator=(OwnedReadOnlyProperty&&) = default;
-
-            constexpr T& operator=(const T& value)
-            {
-                return m_value = value;
-            }
-
-            constexpr T& operator=(T&& value)
-            {
-                return m_value = std::move(value);
-            }
-        };
-    }
 
     template <typename T>
     struct Normal3
@@ -118,7 +68,7 @@ namespace ray
         constexpr Normal3<T>& operator=(const Normal3<T>&) = default;
         constexpr Normal3<T>& operator=(Normal3<T>&&) noexcept = default;
 
-        constexpr operator Vec3<T>() const
+        constexpr explicit operator Vec3<T>() const
         {
             return Vec3<T>(x, y, z);
         }
@@ -301,7 +251,7 @@ namespace ray
             return *this;
         }
 
-        constexpr Vec3<T> asVector() const
+        constexpr explicit operator Vec3<T>() const
         {
             return Vec3<T>(x, y, z);
         }
