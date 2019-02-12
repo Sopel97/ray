@@ -4,10 +4,15 @@
 #include <chrono>
 #include <cstdint>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace ray 
 {
+    struct Sphere;
+    struct Plane;
+    struct Box3;
+
     namespace perf
     {
         struct PerformanceStats
@@ -23,54 +28,21 @@ namespace ray
 
             struct TraceStats
             {
-                void add(std::uint64_t c)
-                {
-                    all += c;
-                }
-
-                void addHit(std::uint64_t c)
-                {
-                    hits += c;
-                }
-
-                void addResolved(std::uint64_t c)
-                {
-                    resolved += c;
-                }
-
                 std::atomic<std::uint64_t> all;
                 std::atomic<std::uint64_t> hits;
                 std::atomic<std::uint64_t> resolved;
             };
 
+            template <typename ShapeT>
             struct ObjectRaycastStats
             {
-                void add(std::uint64_t c)
-                {
-                    all += c;
-                }
-
-                void addHit(std::uint64_t c)
-                {
-                    hits += c;
-                }
-
                 std::atomic<std::uint64_t> all;
                 std::atomic<std::uint64_t> hits;
             };
 
+            template <typename BvShapeT>
             struct BvRaycastStats
             {
-                void add(std::uint64_t c)
-                {
-                    all += c;
-                }
-
-                void addHit(std::uint64_t c)
-                {
-                    hits += c;
-                }
-
                 std::atomic<std::uint64_t> all;
                 std::atomic<std::uint64_t> hits;
             };
@@ -91,8 +63,7 @@ namespace ray
 
             PerformanceStats() :
                 m_tracesByDepth(maxDepth + 1),
-                m_sphereRaycasts{},
-                m_boxBvRaycasts{},
+                m_raycasts{},
                 m_traceDuration{},
                 m_constructionDuration{}
             {
@@ -100,57 +71,41 @@ namespace ray
 
             void addTrace(int depth, std::uint64_t count = 1)
             {
-                m_tracesByDepth[depth].add(count);
+                m_tracesByDepth[depth].all += count;
             }
 
             void addTraceHit(int depth, std::uint64_t count = 1)
             {
-                m_tracesByDepth[depth].addHit(count);
+                m_tracesByDepth[depth].hits += count;
             }
 
             void addTraceResolved(int depth, std::uint64_t count = 1)
             {
-                m_tracesByDepth[depth].addResolved(count);
+                m_tracesByDepth[depth].resolved += count;
             }
 
-            void addSphereRaycast(std::uint64_t count = 1)
+            template <typename ShapeT>
+            void addObjectRaycast(std::uint64_t count = 1)
             {
-                m_sphereRaycasts.add(count);
+                objectRaycasts<ShapeT>().all += count;
             }
 
-            void addSphereRaycastHit(std::uint64_t count = 1)
+            template <typename ShapeT>
+            void addObjectRaycastHit(std::uint64_t count = 1)
             {
-                m_sphereRaycasts.addHit(count);
+                objectRaycasts<ShapeT>().hits += count;
             }
 
-            void addBoxRaycast(std::uint64_t count = 1)
+            template <typename BvShapeT>
+            void addBvRaycast(std::uint64_t count = 1)
             {
-                m_boxRaycasts.add(count);
+                bvRaycasts<BvShapeT>().all += count;
             }
 
-            void addBoxRaycastHit(std::uint64_t count = 1)
+            template <typename BvShapeT>
+            void addBvRaycastHit(std::uint64_t count = 1)
             {
-                m_boxRaycasts.addHit(count);
-            }
-
-            void addPlaneRaycast(std::uint64_t count = 1)
-            {
-                m_planeRaycasts.add(count);
-            }
-
-            void addPlaneRaycastHit(std::uint64_t count = 1)
-            {
-                m_planeRaycasts.addHit(count);
-            }
-
-            void addBoxBvRaycast(std::uint64_t count = 1)
-            {
-                m_boxBvRaycasts.add(count);
-            }
-
-            void addBoxBvRaycastHit(std::uint64_t count = 1)
-            {
-                m_boxBvRaycasts.addHit(count);
+                bvRaycasts<BvShapeT>().hits += count;
             }
 
             void addTraceTime(std::chrono::nanoseconds dur)
@@ -207,26 +162,53 @@ namespace ray
 
                 out += "Intersection test stats:\n";
                 out += "Sphere tests:\n";
-                out += "   hits/all: " + entry2(m_sphereRaycasts.hits.load(), m_sphereRaycasts.all.load()) + "\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Sphere>().hits.load(), objectRaycasts<Sphere>().all.load()) + "\n";
                 out += "Plane tests:\n";
-                out += "   hits/all: " + entry2(m_planeRaycasts.hits.load(), m_planeRaycasts.all.load()) + "\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Plane>().hits.load(), objectRaycasts<Plane>().all.load()) + "\n";
                 out += "Box tests:\n";
-                out += "   hits/all: " + entry2(m_boxRaycasts.hits.load(), m_boxRaycasts.all.load()) + "\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Box3>().hits.load(), objectRaycasts<Box3>().all.load()) + "\n";
                 out += "Box BV tests:\n";
-                out += "   hits/all: " + entry2(m_boxBvRaycasts.hits.load(), m_boxBvRaycasts.all.load()) + "\n";
+                out += "   hits/all: " + entry2(bvRaycasts<Box3>().hits.load(), bvRaycasts<Box3>().all.load()) + "\n";
 
                 return out;
             }
 
+            template <typename ShapeT>
+            decltype(auto) objectRaycasts() const
+            {
+                return std::get<ObjectRaycastStats<ShapeT>>(m_raycasts);
+            }
+
+            template <typename BvShapeT>
+            decltype(auto) bvRaycasts() const
+            {
+                return std::get<BvRaycastStats<BvShapeT>>(m_raycasts);
+            }
+
         private:
             std::vector<TraceStats> m_tracesByDepth;
-            ObjectRaycastStats m_sphereRaycasts;
-            ObjectRaycastStats m_planeRaycasts;
-            ObjectRaycastStats m_boxRaycasts;
-            BvRaycastStats m_boxBvRaycasts;
+            std::tuple<
+                ObjectRaycastStats<Sphere>,
+                ObjectRaycastStats<Plane>,
+                ObjectRaycastStats<Box3>,
+                BvRaycastStats<Box3>
+            > m_raycasts;
             TimeStats m_traceDuration;
             TimeStats m_constructionDuration;
+
+            template <typename ShapeT>
+            decltype(auto) objectRaycasts()
+            {
+                return std::get<ObjectRaycastStats<ShapeT>>(m_raycasts);
+            }
+
+            template <typename BvShapeT>
+            decltype(auto) bvRaycasts()
+            {
+                return std::get<BvRaycastStats<BvShapeT>>(m_raycasts);
+            }
         };
+
 
         inline PerformanceStats gPerfStats;
     }

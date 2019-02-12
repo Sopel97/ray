@@ -29,13 +29,13 @@ namespace ray
     std::optional<RaycastBvHit> raycastBv(const Ray& ray, const Box3& box)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addBoxBvRaycast();
+        perf::gPerfStats.addBvRaycast<Box3>();
 #endif
 
         if (contains(box, ray.origin()))
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addBoxBvRaycastHit();
+            perf::gPerfStats.addBvRaycastHit<Box3>();
 #endif
             return RaycastBvHit{ 0.0f };
         }
@@ -65,7 +65,7 @@ namespace ray
         if (tmin < 0.0f || tmin > tmax) return std::nullopt;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addBoxBvRaycastHit();
+        perf::gPerfStats.addBvRaycastHit<Box3>();
 #endif
 
         return RaycastBvHit{ tmin };
@@ -89,7 +89,7 @@ namespace ray
     std::optional<RaycastHit> raycast(const Ray& ray, const Sphere& sphere)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addSphereRaycast();
+        perf::gPerfStats.addObjectRaycast<Sphere>();
 #endif
         /*  
             O -- ray origin
@@ -182,7 +182,7 @@ namespace ray
         float t = t_ca - t_hc;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addSphereRaycastHit();
+        perf::gPerfStats.addObjectRaycastHit<Sphere>();
 #endif
         // select smallest positive
         // we know that at least one is positive
@@ -198,7 +198,7 @@ namespace ray
     std::optional<RaycastHit> raycast(const Ray& ray, const Plane& plane)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addPlaneRaycast();
+        perf::gPerfStats.addObjectRaycast<Plane>();
 #endif
         const float nd = dot(ray.direction(), plane.normal);
         const float pn = dot(Vec3f(ray.origin()), plane.normal);
@@ -208,7 +208,7 @@ namespace ray
         if (t >= 0.0f) 
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addPlaneRaycastHit();
+            perf::gPerfStats.addObjectRaycastHit<Plane>();
 #endif
             const Point3f point = ray.origin() + ray.direction() * t;
             return RaycastHit{ point, (nd < 0.0f) ? plane.normal : -plane.normal, 0, 0, false };
@@ -220,7 +220,7 @@ namespace ray
     std::optional<RaycastHit> raycast(const Ray& ray, const Box3& box)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addBoxRaycast();
+        perf::gPerfStats.addObjectRaycast<Box3>();
 #endif
         const Point3f origin = ray.origin();
         const Vec3f invDir = ray.invDirection();
@@ -269,7 +269,7 @@ namespace ray
         const Point3f point = ray.origin() + ray.direction() * t;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addBoxRaycastHit();
+        perf::gPerfStats.addObjectRaycastHit<Box3>();
 #endif
         return RaycastHit{ point, normal.assumeNormalized(), 0, 0, isInside };
 
