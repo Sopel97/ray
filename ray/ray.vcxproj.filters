@@ -19,158 +19,218 @@
     <Filter Include="Header Files\src">
       <UniqueIdentifier>{bfa1fcc8-859e-4f17-b04c-838ab37d3c1d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\src\material">
+      <UniqueIdentifier>{7113bbf0-fd18-4680-808b-7b7e936dd9d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\math">
+      <UniqueIdentifier>{4c5689b0-d797-4676-a37e-b0075916689c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\perf">
+      <UniqueIdentifier>{fb04ef53-352f-4714-862e-29cab4531006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\sampler">
+      <UniqueIdentifier>{9c3d12f5-d0b0-4318-9ace-1c5766687271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\scene">
+      <UniqueIdentifier>{340e7539-7327-4661-9ad9-81155f40b047}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\scene\bvh">
+      <UniqueIdentifier>{f5dd270b-5ea9-4edd-8eb1-02e742f6e6f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\scene\object">
+      <UniqueIdentifier>{b4baff01-cf4d-4027-9155-3cd16ea448e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\shape">
+      <UniqueIdentifier>{fdccfbf9-8c0d-4c36-8623-2cffea00a289}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\utility">
+      <UniqueIdentifier>{1eafcebb-9a75-4733-89c7-4d4af04af1d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\scene">
+      <UniqueIdentifier>{95182c1f-19ad-4c2c-8a01-ed6a5d2b85ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\material">
+      <UniqueIdentifier>{a41296ae-8cd7-4cc0-9339-3313318d48b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\math">
+      <UniqueIdentifier>{196d453b-cf20-4f19-a17f-d593fcc37cac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\utility">
+      <UniqueIdentifier>{f7ee2034-d825-4c09-8b37-eab766446557}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\shape">
+      <UniqueIdentifier>{56f958f1-3c87-41aa-97c3-7508bf1b803e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\sampler">
+      <UniqueIdentifier>{d6bd7a7e-9303-4411-8a89-55b83e990a90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\perf">
+      <UniqueIdentifier>{e6413508-5919-4a9d-b531-8d0223f01ac7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\scene\bvh">
+      <UniqueIdentifier>{e4a4f3b5-cd61-4237-a4f8-f62a8b663b94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\scene\object">
+      <UniqueIdentifier>{a8711db2-a68b-4805-a035-510be4dd60cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ray.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RaycastHit.cpp">
+    <ClCompile Include="src\ray.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\ray\scene\SceneRaycastHit.cpp">
+      <Filter>Source Files\src\scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Image.h">
+    <ClInclude Include="src\ray\material\Color.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\Material.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\MaterialDatabase.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\Patterns.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\TexCoords.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\Texture.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\TextureDatabase.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\BoundingVolume.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\MathConstants.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Raycast.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\RaycastHit.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\TextureCoordinateResolver.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\perf\PerformanceStats.h">
+      <Filter>Header Files\src\perf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\sampler\AdaptiveMultisampler.h">
+      <Filter>Header Files\src\sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\sampler\JitteredMultisampler.h">
+      <Filter>Header Files\src\sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\sampler\QuincunxMultisampler.h">
+      <Filter>Header Files\src\sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\sampler\Sampler.h">
+      <Filter>Header Files\src\sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\sampler\UniformGridMultisampler.h">
+      <Filter>Header Files\src\sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\Box3.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\Plane.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\Shapes.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\ShapeTraits.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\Sphere.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\utility\Array2.h">
+      <Filter>Header Files\src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\utility\IterableNumber.h">
+      <Filter>Header Files\src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\utility\Util.h">
+      <Filter>Header Files\src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\LightHandle.h">
+      <Filter>Header Files\src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\Scene.h">
+      <Filter>Header Files\src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\SceneRaycastHit.h">
+      <Filter>Header Files\src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\StaticScene.h">
+      <Filter>Header Files\src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\bvh\BvhNode.h">
+      <Filter>Header Files\src\scene\bvh</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\bvh\BvhObject.h">
+      <Filter>Header Files\src\scene\bvh</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\bvh\BvhParams.h">
+      <Filter>Header Files\src\scene\bvh</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\bvh\StaticBvh.h">
+      <Filter>Header Files\src\scene\bvh</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\bvh\StaticBvhObjectMedianPartitioner.h">
+      <Filter>Header Files\src\scene\bvh</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\bvh\StaticBvhObjectPartitioner.h">
+      <Filter>Header Files\src\scene\bvh</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\object\RawSceneObjectBlob.h">
+      <Filter>Header Files\src\scene\object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\object\SceneObject.h">
+      <Filter>Header Files\src\scene\object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\object\SceneObjectArray.h">
+      <Filter>Header Files\src\scene\object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\object\SceneObjectBlob.h">
+      <Filter>Header Files\src\scene\object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\object\SceneObjectCollection.h">
+      <Filter>Header Files\src\scene\object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\object\SceneObjectId.h">
+      <Filter>Header Files\src\scene\object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\scene\object\SceneObjectStorageProvider.h">
+      <Filter>Header Files\src\scene\object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Angle.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Vec3.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Ray.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\Camera.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Color.h">
+    <ClInclude Include="src\ray\Image.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Array2.h">
+    <ClInclude Include="src\ray\Raytracer.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Vec3.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Sphere.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ray.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Camera.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Angle.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MathConstants.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Material.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneObject.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneObjectArray.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ShapeTraits.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Raycast.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RaycastHit.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Raytracer.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IterableNumber.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Util.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneObjectCollection.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Texture.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Patterns.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureCoordinateResolver.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TexCoords.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureDatabase.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MaterialDatabase.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneObjectBlob.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\LightHandle.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneObjectId.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Box3.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PerformanceStats.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\BoundingVolume.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StaticBvh.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\BvhObject.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\BvhNode.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StaticBvhObjectPartitioner.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StaticBvhObjectMedianPartitioner.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NamedTypePacks.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneObjectStorageProvider.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RawSceneObjectBlob.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StaticScene.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Sampler.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\UniformGridMultisampler.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Viewport.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JitteredMultisampler.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\QuincunxMultisampler.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AdaptiveMultisampler.h">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Plane.h">
+    <ClInclude Include="src\ray\Viewport.h">
       <Filter>Header Files\src</Filter>
     </ClInclude>
   </ItemGroup>
