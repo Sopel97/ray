@@ -79,7 +79,7 @@ int main()
     std::vector<SceneObject<Plane>> planes;
     std::vector<SceneObject<Box3>> boxes;
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
-    planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, 1.0, 0.0), -4), { &m1 }));
+    planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));

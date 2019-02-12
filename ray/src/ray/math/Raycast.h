@@ -201,12 +201,6 @@ namespace ray
         perf::gPerfStats.addPlaneRaycast();
 #endif
         const float nd = dot(ray.direction(), plane.normal);
-
-        // nd must be negative, and not 0
-        // if nd is positive, the ray and plane normals
-        // point in the same direction. No intersection.
-        if (nd >= 0.0f) return std::nullopt;
-
         const float pn = dot(Vec3f(ray.origin()), plane.normal);
         float t = (plane.distance - pn) / nd;
 
@@ -217,7 +211,7 @@ namespace ray
             perf::gPerfStats.addPlaneRaycastHit();
 #endif
             const Point3f point = ray.origin() + ray.direction() * t;
-            return RaycastHit{ point, plane.normal, 0, 0, false };
+            return RaycastHit{ point, (nd < 0.0f) ? plane.normal : -plane.normal, 0, 0, false };
         }
 
         return std::nullopt;
