@@ -3,6 +3,7 @@
 #include <ray/material/Color.h>
 
 #include <ray/math/Ray.h>
+#include <ray/math/Vec2.h>
 #include <ray/math/Vec3.h>
 
 #include <ray/utility/Array2.h>
@@ -30,15 +31,15 @@ namespace ray
         {
             const Viewport vp = camera.viewport();
 
-            auto sample = [&](float x, float y) {
-                return traceFunc(vp.rayAt(x, y));
+            auto sample = [&](const Point2f& coords) {
+                return traceFunc(vp.rayAt(coords));
             };
 
             Array2<ColorRGBf> samples(vp.widthPixels, vp.heightPixels);
             std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
                 for (int xi = 0; xi < vp.widthPixels; ++xi)
                 {
-                    samples(xi, yi) = sample(static_cast<float>(xi), static_cast<float>(yi));
+                    samples(xi, yi) = sample(Point2f(static_cast<float>(xi), static_cast<float>(yi)));
                 }
             });
 
@@ -49,11 +50,11 @@ namespace ray
                     + std::abs(lhs.b - rhs.b);
             };
 
-            auto isAliased = [&](int x, int y) {
-                if (distance(samples(x, y), samples(x, y + 1)) > m_threshold) return true;
-                if (distance(samples(x, y), samples(x, y - 1)) > m_threshold) return true;
-                if (distance(samples(x, y), samples(x + 1, y)) > m_threshold) return true;
-                if (distance(samples(x, y), samples(x - 1, y)) > m_threshold) return true;
+            auto isAliased = [&](const Point2i& pos) {
+                if (distance(samples(pos.x, pos.y), samples(pos.x, pos.y + 1)) > m_threshold) return true;
+                if (distance(samples(pos.x, pos.y), samples(pos.x, pos.y - 1)) > m_threshold) return true;
+                if (distance(samples(pos.x, pos.y), samples(pos.x + 1, pos.y)) > m_threshold) return true;
+                if (distance(samples(pos.x, pos.y), samples(pos.x - 1, pos.y)) > m_threshold) return true;
 
                 return false;
             };
@@ -61,26 +62,28 @@ namespace ray
             std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
                 for (int xi = 0; xi < vp.widthPixels; ++xi)
                 {
+                    const Point2i xyi(xi, yi);
                     if (xi == 0 || yi == 0 || xi == vp.widthPixels - 1 || yi == vp.heightPixels - 1)
                     {
-                        storeFunc(xi, yi, samples(xi, yi));
+                        storeFunc(xyi, samples(xi, yi));
                     }
-                    else if (isAliased(xi, yi))
+                    else if (isAliased(xyi))
                     {
+                        const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
                         ColorRGBf color{};
                         int numSamples = 0;
-                        m_multisampler.forEachSampleOffset(xi, yi, [&](float dx, float dy, float contribution) {
-                            color += sample(static_cast<float>(xi) + dx, static_cast<float>(yi) + dy) * contribution;
+                        m_multisampler.forEachSampleOffset(xyi, [&](const Vec2f& offset, float contribution) {
+                            color += sample(xyf + offset) * contribution;
                             ++numSamples;
                         });
                         color = 
                             (color * static_cast<float>(numSamples) + samples(xi, yi)) 
                             / static_cast<float>(numSamples + 1);
-                        storeFunc(xi, yi, color);
+                        storeFunc(xyi, color);
                     }
                     else
                     {
-                        storeFunc(xi, yi, samples(xi, yi));
+                        storeFunc(xyi, samples(xi, yi));
                     }
                 }
             });

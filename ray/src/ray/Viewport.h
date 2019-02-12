@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ray/math/Ray.h>
+#include <ray/math/Vec2.h>
 
 namespace ray
 {
@@ -18,21 +19,21 @@ namespace ray
         Point3f topLeft;
         Point3f origin;
 
-        Point3f at(float x, float y) const
+        Point3f at(const Point2f& coords) const
         {
             return (topLeft
-                   + x * pixelWidth * right
-                   + y * pixelHeight * down);
+                   + coords.x * pixelWidth * right
+                   + coords.y * pixelHeight * down);
         }
 
-        Normal3f directionAt(float x, float y) const
+        Normal3f directionAt(const Point2f& coords) const
         {
-            return (at(x, y) - origin).normalized();
+            return (at(coords) - origin).normalized();
         }
 
-        Ray rayAt(float x, float y) const
+        Ray rayAt(const Point2f& coords) const
         {
-            return Ray(origin, directionAt(x, y));
+            return Ray(origin, directionAt(coords));
         }
     };
 }

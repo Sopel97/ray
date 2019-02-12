@@ -22,26 +22,26 @@ namespace ray
         UniformGridMultisampler(int order)
         {
             m_offsets.reserve(order * order);
-            const float subpixelSize = 1.0f / static_cast<float>(order);
-            const float add = subpixelSize * 0.5f - 0.5f; // to center it on (0.0, 0.0)
+            const float s = 1.0f / static_cast<float>(order);
+            const Vec2f subpixelSize = Vec2f::broadcast(s);
+            const Vec2f add = Vec2f::broadcast(s * 0.5f - 0.5f); // to center it on (0.0, 0.0)
             for (int xxi = 0; xxi < order; ++xxi)
             {
                 for (int yyi = 0; yyi < order; ++yyi)
                 {
-                    const float dx = static_cast<float>(xxi) * subpixelSize + add;
-                    const float dy = static_cast<float>(yyi) * subpixelSize + add;
-                    m_offsets.emplace_back(dx, dy);
+                    const Vec2f xyf(static_cast<float>(xxi), static_cast<float>(yyi));
+                    m_offsets.emplace_back(xyf * subpixelSize + add);
                 }
             }
         }
 
         template <typename FuncT>
-        void forEachSampleOffset(int x, int y, FuncT func) const
+        void forEachSampleOffset(const Point2i pixel, FuncT func) const
         {
             const float contribution = 1.0f / static_cast<float>(m_offsets.size());
             for (Vec2f offset : m_offsets)
             {
-                func(offset.x, offset.y, contribution);
+                func(offset, contribution);
             }
         }
 
@@ -50,8 +50,8 @@ namespace ray
         {
             const Viewport vp = camera.viewport();
 
-            auto sample = [&](float x, float y) {
-                return traceFunc(vp.rayAt(x, y));
+            auto sample = [&](const Point2f& coords) {
+                return traceFunc(vp.rayAt(coords));
             };
 
             const float singleSampleContribution = 1.0f / static_cast<float>(m_offsets.size());
@@ -59,14 +59,13 @@ namespace ray
             std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
                 for (int xi = 0; xi < vp.widthPixels; ++xi)
                 {
+                    const Point2i xyi(xi, yi);
+                    const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
                     ColorRGBf totalColor{};
-                    forEachSampleOffset(xi, yi, [&](float dx, float dy, float c) {
-                        totalColor += sample(
-                            static_cast<float>(xi) + dx,
-                            static_cast<float>(yi) + dy
-                        );
+                    forEachSampleOffset(xyi, [&](const Vec2f& offset, float c) {
+                        totalColor += sample(xyf + offset);
                     });
-                    storeFunc(xi, yi, totalColor * singleSampleContribution);
+                    storeFunc(Point2i(xi, yi), totalColor * singleSampleContribution);
                 }
             });
         }

@@ -4,6 +4,7 @@
 #include <ray/perf/PerformanceStats.h>
 #endif
 
+#include <ray/math/Vec2.h>
 #include <ray/math/Vec3.h>
 
 #include <ray/sampler/Sampler.h>
@@ -76,8 +77,8 @@ namespace ray
                 [&](const Ray& ray) {
                     return trace(ray, ColorRGBf(1.0f, 1.0f, 1.0f));
                 },
-                [&](int x, int y, const ColorRGBf& color) {
-                    img(x, y) = ColorRGBi(color ^ m_options.gamma);
+                [&](const Point2i& imgCoords, const ColorRGBf& color) {
+                    img(imgCoords.x, imgCoords.y) = ColorRGBi(color ^ m_options.gamma);
                 },
                 std::execution::par_unseq
             );

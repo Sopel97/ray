@@ -81,6 +81,11 @@ namespace ray
     {
         T x, y;
 
+        constexpr static Vec2<T> broadcast(const T& v)
+        {
+            return Vec2<T>(v, v);
+        }
+
         constexpr Vec2() = default;
         constexpr Vec2(const T& x, const T& y) :
             x(x),
@@ -197,6 +202,11 @@ namespace ray
     struct Point2
     {
         T x, y;
+
+        constexpr static Point2<T> broadcast(const T& v)
+        {
+            return Point2<T>(v, v);
+        }
 
         constexpr static Point2<T> origin()
         {

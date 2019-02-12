@@ -91,6 +91,10 @@ namespace ray
     {
         T x, y, z;
 
+        constexpr static Vec3<T> broadcast(const T& v)
+        {
+            return Vec3<T>(v, v, v);
+        }
         constexpr Vec3() = default;
         constexpr Vec3(const T& x, const T& y, const T& z) :
             x(x),
@@ -216,6 +220,10 @@ namespace ray
     {
         T x, y, z;
 
+        constexpr static Point3<T> broadcast(const T& v)
+        {
+            return Point3<T>(v, v, v);
+        }
         constexpr static Point3<T> origin()
         {
             return Point3<T>(0, 0, 0);

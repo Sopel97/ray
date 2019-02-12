@@ -3,6 +3,7 @@
 #include <ray/material/Color.h>
 
 #include <ray/math/Ray.h>
+#include <ray/math/Vec2.h>
 #include <ray/math/Vec3.h>
 
 #include <ray/utility/IterableNumber.h>
@@ -31,24 +32,21 @@ namespace ray
             });
         }
 
-        int numSampleOffsets() const
-        {
-            return m_order * m_order;
-        }
-
         template <typename FuncT>
-        void forEachSampleOffset(int x, int y, FuncT func) const
+        void forEachSampleOffset(const Point2i& pixel, FuncT func) const
         {
-            const float subpixelSize = 1.0f / m_order;
-            const float add = subpixelSize * 0.5f - 0.5f; // to center it on (0.0, 0.0)
-            const float contribution = 1.0f / numSampleOffsets();
+            const float s = 1.0f / m_order;
+            const Vec2f subpixelSize = Vec2f::broadcast(s);
+            const Vec2f add = Vec2f::broadcast(s * 0.5f - 0.5f); // to center it on (0.0, 0.0)
+            const float contribution = 1.0f / (m_order * m_order);
             for (int xxi = 0; xxi < m_order; ++xxi)
             {
                 for (int yyi = 0; yyi < m_order; ++yyi)
                 {
-                    const float dx = (static_cast<float>(xxi) + chooseOffsetX(x, y, xxi, yyi)) * subpixelSize + add;
-                    const float dy = (static_cast<float>(yyi) + chooseOffsetY(x, y, xxi, yyi)) * subpixelSize + add;
-                    func(dx, dy, contribution);
+                    const Point2i xyi(xxi, yyi);
+                    const Point2f xyf(static_cast<float>(xxi), static_cast<float>(yyi));
+                    const Vec2f offset = Vec2f(xyf + chooseOffset(pixel, xyi)) * subpixelSize + add;
+                    func(offset, contribution);
                 }
             }
         }
@@ -58,23 +56,22 @@ namespace ray
         {
             const Viewport vp = camera.viewport();
 
-            auto sample = [&](float x, float y) {
-                return traceFunc(vp.rayAt(x, y));
+            auto sample = [&](const Point2f& coords) {
+                return traceFunc(vp.rayAt(coords));
             };
 
-            const float singleSampleContribution = 1.0f / numSampleOffsets();
+            const float singleSampleContribution = 1.0f / (m_order * m_order);
 
             std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
                 for (int xi = 0; xi < vp.widthPixels; ++xi)
                 {
+                    const Point2i xyi(xi, yi);
+                    const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
                     ColorRGBf totalColor{};
-                    forEachSampleOffset(xi, yi, [&](float dx, float dy) {
-                        totalColor += sample(
-                            static_cast<float>(xi) + dx,
-                            static_cast<float>(yi) + dy
-                        );
+                    forEachSampleOffset(xyi, [&](const Vec2f& offset) {
+                        totalColor += sample(xyf + offset);
                         });
-                    storeFunc(xi, yi, totalColor * singleSampleContribution);
+                    storeFunc(xyi, totalColor * singleSampleContribution);
                 }
                 });
         }
@@ -103,6 +100,14 @@ namespace ray
             const std::uint64_t xx = x * static_cast<std::uint64_t>(m_order) + dx;
             const std::uint64_t yy = y * static_cast<std::uint64_t>(m_order) + dy;
             return chooseOffset(~(((yy & 0xFFFFFFFFu) << 32u) | (xx & 0xFFFFFFFFu)));
+        }
+
+        Vec2f chooseOffset(const Point2i& pixel, const Point2i& subpoint) const
+        {
+            return Vec2f(
+                chooseOffsetX(pixel.x, pixel.y, subpoint.x, subpoint.y),
+                chooseOffsetY(pixel.x, pixel.y, subpoint.x, subpoint.y)
+            );
         }
     };
 }
