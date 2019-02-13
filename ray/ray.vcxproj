@@ -49,6 +49,7 @@
     <ClInclude Include="src\ray\math\RaycastHit.h" />
     <ClInclude Include="src\ray\math\TextureCoordinateResolver.h" />
     <ClInclude Include="src\ray\math\Vec2.h" />
+    <ClInclude Include="src\ray\math\Vec3SSE.h" />
     <ClInclude Include="src\ray\math\Vec3.h" />
     <ClInclude Include="src\ray\perf\PerformanceStats.h" />
     <ClInclude Include="src\ray\Raytracer.h" />

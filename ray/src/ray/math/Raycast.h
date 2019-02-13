@@ -16,14 +16,19 @@
 #include <cmath>
 #include <optional>
 
+#include <xmmintrin.h>
+#include <smmintrin.h>
+
 namespace ray
 {
     bool contains(const Box3& box, const Point3f& point)
     {
-        return
-               point.x >= box.min.x && point.x <= box.max.x
-            && point.y >= box.min.y && point.y <= box.max.y
-            && point.z >= box.min.z && point.z <= box.max.z;
+        __m128 mask = _mm_and_ps(
+            _mm_cmple_ps(point.v, box.max.v),
+            _mm_cmple_ps(box.min.v, point.v)
+        );
+        // has to be true for first 3 components. We don't care about the forth one
+        return (_mm_movemask_ps(mask) & 0b0111) == 0b0111;
     }
 
     std::optional<RaycastBvHit> raycastBv(const Ray& ray, const Box3& box)
@@ -39,7 +44,7 @@ namespace ray
 #endif
             return RaycastBvHit{ 0.0f };
         }
-
+        /*
         const Point3f origin = ray.origin();
         const Vec3f invDir = ray.invDirection();
         const auto sign = ray.signs();
@@ -69,9 +74,9 @@ namespace ray
 #endif
 
         return RaycastBvHit{ tmin };
-
-        /*
-        const Vec3f invDir = ray.direction().reciprocal();
+        //*/
+        ///*
+        const Vec3f invDir = ray.invDirection();
         const Vec3f t0 = (box.min - ray.origin()) * invDir;
         const Vec3f t1 = (box.max - ray.origin()) * invDir;
         const float tmin = min(t0, t1).max();
@@ -83,7 +88,7 @@ namespace ray
         }
 
         return std::nullopt;
-        */
+        //*/
     }
 
     std::optional<RaycastHit> raycast(const Ray& ray, const Sphere& sphere)

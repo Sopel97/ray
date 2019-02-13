@@ -633,3 +633,5 @@ namespace ray
         return Point3<T>(-v.x, -v.y, -v.z);
     }
 }
+
+#include "Vec3SSE.h"
