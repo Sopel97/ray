@@ -227,56 +227,49 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycast<Box3>();
 #endif
-        const Point3f origin = ray.origin();
         const Vec3f invDir = ray.invDirection();
-        const auto sign = ray.signs();
-        Point3f min = box.min;
-        Point3f max = box.max;
-        Vec3f normal{};
-        if (sign[0]) std::swap(min.x, max.x);
-        if (sign[1]) std::swap(min.y, max.y);
-        if (sign[2]) std::swap(min.z, max.z);
+        const Vec3f t0 = (box.min - ray.origin()) * invDir;
+        const Vec3f t1 = (box.max - ray.origin()) * invDir;
+        float tmin = min(t0, t1).max();
 
-        const Vec3f t0 = (min - origin) * invDir;
-        const Vec3f t1 = (max - origin) * invDir;
-
-        float tmin = std::max(t0.x, t0.y);
-        float tmax = std::min(t1.x, t1.y);
-
-        if (t0.x > t0.y)
+        const bool isInside = tmin < 0.0f;
+        if (isInside)
         {
-            // normal on x axis
-            normal.x = sign[0] ? 1.0f : -1.0f;
+            tmin = max(t0, t1).min();
+            if (tmin < 0.0f) return std::nullopt;
+        }
+
+        Normal3f normal{};
+        if (t0.x == tmin || t1.x == tmin)
+        {
+            normal = Normal3f::xAxis();
+        }
+        else if (t0.y == tmin || t1.y == tmin)
+        {
+            normal = Normal3f::yAxis();
         }
         else
         {
-            // normal on y axis
-            normal.y = sign[1] ? 1.0f : -1.0f;
+            normal = Normal3f::zAxis();
         }
 
-        if (tmin > tmax) return std::nullopt;
+        /*
+        __m128 t0c = _mm_cmpeq_ps(t0.v, _mm_set1_ps(tmin));
+        __m128 t1c = _mm_cmpeq_ps(t1.v, _mm_set1_ps(tmin));
+        __m128 mask = _mm_or_ps(t0c, t1c);
+        const Vec3f mul = _mm_blendv_ps(_mm_set1_ps(-1.0f), _mm_set1_ps(1.0f), ray.signs().v);
+        Normal3f normal(_mm_mul_ps(_mm_blendv_ps(_mm_set1_ps(0.0f), _mm_set1_ps(1.0f), mask), mul.v));
+        */
 
-        if (t0.z > tmin)
-        {
-            tmin = t0.z;
-            normal.x = normal.y = 0.0f;
-            normal.z = sign[2] ? 1.0f : -1.0f;
-        }
-        if (t1.z < tmax)
-            tmax = t1.z;
+        const Vec3f mul = _mm_blendv_ps(_mm_set1_ps(-1.0f), _mm_set1_ps(1.0f), ray.signs().v);
+        normal = (Vec3f(normal) * mul).assumeNormalized();
 
-        if (tmin > tmax) return std::nullopt;
-        if (tmax < 0.0f) return std::nullopt;
-
-        const bool isInside = tmin < 0.0f;
-        const float t = isInside ? tmax : tmin;
         if (isInside) normal = -normal;
-        const Point3f point = ray.origin() + ray.direction() * t;
+        const Point3f point = ray.origin() + ray.direction() * tmin;
 
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycastHit<Box3>();
 #endif
-        return RaycastHit{ point, normal.assumeNormalized(), 0, 0, isInside };
-
+        return RaycastHit{ point, normal, 0, 0, isInside };
     }
 }

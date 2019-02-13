@@ -9,6 +9,17 @@
 namespace ray
 {
     template <typename T>
+    struct Vec3Mask
+    {
+        bool x, y, z;
+
+        constexpr std::uint8_t packed() const
+        {
+            return x | (y << 1) | (z << 2);
+        }
+    };
+
+    template <typename T>
     struct Vec3;
 
     template <typename T>
@@ -397,6 +408,46 @@ namespace ray
             lhs.y / rhs,
             lhs.z / rhs
             );
+    }
+
+    template <typename T>
+    constexpr Vec3Mask<T> operator<(const Vec3<T>& lhs, const Vec3<T>& rhs)
+    {
+        return Vec3Mask<T>{
+            lhs.x < rhs.x,
+            lhs.y < rhs.y,
+            lhs.z < rhs.z
+        };
+    }
+
+    template <typename T>
+    constexpr Vec3Mask<T> operator<(const Normal3<T>& lhs, const Vec3<T>& rhs)
+    {
+        return Vec3Mask<T>{
+            lhs.x < rhs.x,
+            lhs.y < rhs.y,
+            lhs.z < rhs.z
+        };
+    }
+
+    template <typename T>
+    constexpr Vec3Mask<T> operator<(const Vec3<T>& lhs, const T& rhs)
+    {
+        return Vec3Mask<T>{
+            lhs.x < rhs,
+            lhs.y < rhs,
+            lhs.z < rhs
+        };
+    }
+
+    template <typename T>
+    constexpr Vec3Mask<T> operator<(const Normal3<T>& lhs, const T& rhs)
+    {
+        return Vec3Mask<T>{
+            lhs.x < rhs,
+            lhs.y < rhs,
+            lhs.z < rhs
+        };
     }
 
     template <typename T>

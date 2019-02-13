@@ -8,20 +8,16 @@ namespace ray
 {
     struct Ray
     {
-        static constexpr Ray between(const Point3f& from, const Point3f& to)
+        static Ray between(const Point3f& from, const Point3f& to)
         {
             return Ray(from, (to - from).normalized());
         }
 
-        constexpr Ray(const Point3f& origin, const Normal3f& direction) :
+        Ray(const Point3f& origin, const Normal3f& direction) :
             m_origin(origin),
             m_direction(direction),
             m_invDirection(m_direction.reciprocal()),
-            m_signs{
-                m_direction.x < 0.0f,
-                m_direction.y < 0.0f,
-                m_direction.z < 0.0f
-            }
+            m_signs(m_direction < 0.0f)
         {
 
         }
@@ -41,12 +37,7 @@ namespace ray
             return m_invDirection;
         }
 
-        constexpr bool sign(int i) const
-        {
-            return m_signs[i];
-        }
-
-        constexpr std::array<bool, 3> signs() const
+        constexpr Vec3Mask<float> signs() const
         {
             return m_signs;
         }
@@ -60,11 +51,7 @@ namespace ray
         {
             m_direction = newDirection;
             m_invDirection = m_direction.reciprocal();
-            m_signs = {
-                m_direction.x < 0.0f,
-                m_direction.y < 0.0f,
-                m_direction.z < 0.0f
-            };
+            m_signs = m_direction < 0.0f;
         }
 
         void translate(const Vec3f& v)
@@ -72,7 +59,7 @@ namespace ray
             m_origin += v;
         }
 
-        constexpr Ray translated(const Vec3f& v) const
+        Ray translated(const Vec3f& v) const
         {
             return Ray(m_origin + v, m_direction);
         }
@@ -81,6 +68,6 @@ namespace ray
         Point3f m_origin;
         Normal3f m_direction;
         Vec3f m_invDirection;
-        std::array<bool, 3> m_signs;
+        Vec3Mask<float> m_signs;
     };
 }

@@ -20,12 +20,12 @@ namespace ray
         {
         }
 
-        constexpr Point3f center() const
+        inline Point3f center() const
         {
             return (min + (max - min) * 0.5f);
         }
 
-        constexpr Vec3f extent() const
+        inline Vec3f extent() const
         {
             return max - min;
         }
