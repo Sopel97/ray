@@ -68,32 +68,38 @@ namespace ray
 
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
         {
-            BvhNodeHitQueue<BvShapeT> queue;
+            thread_local BvhNodeHitQueue<BvShapeT> queue = []() {
+                std::vector<StaticBvhNodeHit<BvShapeT>> vec;
+                vec.reserve(maxDepth * 4);
+                return BvhNodeHitQueue<BvShapeT>(std::greater<StaticBvhNodeHit<BvShapeT>>{}, std::move(vec));
+            }();
+
             queue.push(StaticBvhNodeHit(0.0f, *m_root));
-            float nearestHitDist = std::numeric_limits<float>::max();
+            float nearestHitDist2 = std::numeric_limits<float>::max();
             std::optional<ResolvableRaycastHit> nearestHitOpt = m_unboundedObjects.queryNearest(ray);
             if (nearestHitOpt)
             {
-                nearestHitDist = distance(ray.origin(), nearestHitOpt->point);
+                nearestHitDist2 = distanceSqr(ray.origin(), nearestHitOpt->point);
             }
 
             while (!queue.empty())
             {
                 StaticBvhNodeHit entry = queue.top();
+                if (entry.distSqr >= nearestHitDist2) break;
                 queue.pop();
-                if (entry.dist >= nearestHitDist) break;
 
-                std::optional<ResolvableRaycastHit> hitOpt = entry.node->nextHit(ray, queue);
+                std::optional<ResolvableRaycastHit> hitOpt = entry.node->nextHit(ray, queue, nearestHitDist2);
                 if (hitOpt)
                 {
-                    const float dist = distance(ray.origin(), hitOpt->point);
-                    if (dist < nearestHitDist)
+                    const float dist2 = distanceSqr(ray.origin(), hitOpt->point);
+                    if (dist2 < nearestHitDist2)
                     {
                         nearestHitOpt = std::move(*hitOpt);
-                        nearestHitDist = dist;
+                        nearestHitDist2 = dist2;
                     }
                 }
             }
+            while (!queue.empty()) queue.pop();
 
             return nearestHitOpt;
         }

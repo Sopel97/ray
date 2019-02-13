@@ -84,7 +84,7 @@ namespace ray
 
         if (tmin <= tmax)
         {
-            return RaycastBvHit{ tmin };
+            return RaycastBvHit{ tmin * tmin };
         }
 
         return std::nullopt;
@@ -96,7 +96,7 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycast<Sphere>();
 #endif
-        /*  
+        /*
             O -- ray origin
             D -- ray direction
             C -- sphere origin
@@ -105,7 +105,7 @@ namespace ray
             r: O + tD - C
             o: R^2 = 0
 
-            P = (O - C) -- ray origin with sphere origin in (0, 0, 0) 
+            P = (O - C) -- ray origin with sphere origin in (0, 0, 0)
 
             (P + tD)^2 - R^2 = 0
             t^2 D^2 + tPD + P^2 - R^2 = 0
@@ -128,7 +128,7 @@ namespace ray
 
         const float b = 2.0f * dot(P, D);
         const float c = dot(P, P) - R * R;
-        
+
         const float d = b * b - 4.0f * c;
 
         if (d < 0.0f) return std::nullopt;
@@ -180,7 +180,7 @@ namespace ray
         if (t_ca < 0.0f) return std::nullopt;
 
         const float d2 = dot(L, L) - t_ca * t_ca;
-        const float r = R*R - d2;
+        const float r = R * R - d2;
         if (r < 0.0f) return std::nullopt;
         const float t_hc = std::sqrt(r);
 
@@ -207,10 +207,10 @@ namespace ray
 #endif
         const float nd = dot(ray.direction(), plane.normal);
         const float pn = dot(Vec3f(ray.origin()), plane.normal);
-        float t = (plane.distance - pn) / nd;
+        const float t = (plane.distance - pn) / nd;
 
         // t must be positive
-        if (t >= 0.0f) 
+        if (t >= 0.0f)
         {
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addObjectRaycastHit<Plane>();

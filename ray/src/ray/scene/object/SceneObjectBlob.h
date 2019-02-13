@@ -68,17 +68,17 @@ namespace ray
         std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
         {
             std::optional<ResolvableRaycastHit> hitOpt = std::nullopt;
-            float minDist = std::numeric_limits<float>::max();
+            float minDistSqr = std::numeric_limits<float>::max();
             for_each(m_objects, [&](const auto& objects) {
                 if (objects.size() > 0)
                 {
                     std::optional<ResolvableRaycastHit> hitOptNow = objects.queryNearest(ray);
                     if (hitOptNow)
                     {
-                        const float dist = distance(hitOptNow->point, ray.origin());
-                        if (dist < minDist)
+                        const float distSqr = distanceSqr(hitOptNow->point, ray.origin());
+                        if (distSqr < minDistSqr)
                         {
-                            minDist = dist;
+                            minDistSqr = distSqr;
                             hitOpt = std::move(*hitOptNow);
                         }
                     }
