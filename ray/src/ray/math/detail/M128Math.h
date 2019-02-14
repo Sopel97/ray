@@ -7,6 +7,30 @@ namespace ray
 {
     namespace detail
     {
+        inline float hadd(__m128 a)
+        {
+            __m128 shuf = _mm_movehdup_ps(a); // broadcast elements 3,1 to 2,0
+            __m128 sums = _mm_add_ps(a, shuf);
+            shuf = _mm_movehl_ps(shuf, sums); // high half -> low half
+            sums = _mm_add_ss(sums, shuf);
+            return _mm_cvtss_f32(sums);
+        }
+
+        // ignores the last component
+        inline float hadd3(__m128 a)
+        {
+            // a = x y z _
+            __m128 shuf = _mm_movehdup_ps(a); // broadcast elements 3,1 to 2,0
+            // shuf = y y _ _
+            __m128 sums = _mm_add_ps(a, shuf);
+            // sums = x+y, 2y, z+_, 2_
+            a = _mm_movehl_ps(a, a); // high half -> low half
+            // a = z, _, z, _
+            sums = _mm_add_ss(sums, a);
+            // sums = x+y+z, ...
+            return _mm_cvtss_f32(sums);
+        }
+
         inline __m128 abs(__m128 a)
         {
             return _mm_and_ps(a, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
@@ -100,7 +124,10 @@ namespace ray
         inline float dot(__m128 a, __m128 b)
         {
             // mul first 3 components of xmm, sum it, and store in the first component, return first component
-            return _mm_cvtss_f32(_mm_dp_ps(a, b, 0b0111'0001));
+            // return _mm_cvtss_f32(_mm_dp_ps(a, b, 0b0111'0001));
+
+            // should be faster
+            return hadd3(mul(a, b));
         }
 
         inline __m128 cross(__m128 a, __m128 b)
@@ -120,6 +147,11 @@ namespace ray
         inline __m128 max(__m128 a, __m128 b)
         {
             return _mm_max_ps(a, b);
+        }
+
+        inline __m128 clamp(__m128 a, float minv, float maxv)
+        {
+            return max(min(a, _mm_set1_ps(maxv)), _mm_set1_ps(minv));
         }
 
         inline __m128 neg(__m128 a)
