@@ -225,51 +225,39 @@ namespace ray
     std::optional<RaycastHit> raycast(const Ray& ray, const Box3& box)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Box3>();
+        perf::gPerfStats.addBoxRaycast();
 #endif
+        const Point3f origin = ray.origin();
         const Vec3f invDir = ray.invDirection();
+
         const Vec3f t0 = (box.min - ray.origin()) * invDir;
         const Vec3f t1 = (box.max - ray.origin()) * invDir;
-        float tmin = min(t0, t1).max();
 
+        float tmin = min(t0, t1).max();
+        float tmax = max(t0, t1).min();
+        if (tmin > tmax) return std::nullopt;
+
+        float n = -1.0f;
         const bool isInside = tmin < 0.0f;
         if (isInside)
         {
-            tmin = max(t0, t1).min();
-            if (tmin < 0.0f) return std::nullopt;
+            if (tmax < 0.0f) return std::nullopt;
+            tmin = tmax;
+            n = 1.0f;
         }
 
-        Normal3f normal{};
-        if (t0.x == tmin || t1.x == tmin)
-        {
-            normal = Normal3f::xAxis();
-        }
-        else if (t0.y == tmin || t1.y == tmin)
-        {
-            normal = Normal3f::yAxis();
-        }
-        else
-        {
-            normal = Normal3f::zAxis();
-        }
-
-        /*
         __m128 t0c = _mm_cmpeq_ps(t0.v, _mm_set1_ps(tmin));
         __m128 t1c = _mm_cmpeq_ps(t1.v, _mm_set1_ps(tmin));
         __m128 mask = _mm_or_ps(t0c, t1c);
-        const Vec3f mul = _mm_blendv_ps(_mm_set1_ps(-1.0f), _mm_set1_ps(1.0f), ray.signs().v);
-        Normal3f normal(_mm_mul_ps(_mm_blendv_ps(_mm_set1_ps(0.0f), _mm_set1_ps(1.0f), mask), mul.v));
-        */
-
-        const Vec3f mul = _mm_blendv_ps(_mm_set1_ps(-1.0f), _mm_set1_ps(1.0f), ray.signs().v);
-        normal = (Vec3f(normal) * mul).assumeNormalized();
-
-        if (isInside) normal = -normal;
+        Normal3f normal(AssumeNormalized{}, _mm_blendv_ps(_mm_set1_ps(0.0f), _mm_set1_ps(n), mask));
+        normal.v = _mm_xor_ps(_mm_and_ps(ray.signs().v, _mm_castsi128_ps(_mm_set1_epi32(0x80000000))), normal.v);
+        
         const Point3f point = ray.origin() + ray.direction() * tmin;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycastHit<Box3>();
+        perf::gPerfStats.addBoxRaycastHit();
 #endif
         return RaycastHit{ point, normal, 0, 0, isInside };
+
     }
 }

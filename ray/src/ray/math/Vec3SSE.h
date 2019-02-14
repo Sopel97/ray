@@ -440,18 +440,28 @@ namespace ray
         return Vec3<float>(_mm_max_ps(lhs.v, rhs.v));
     }
 
+    constexpr Point3<float> min(const Point3<float>& lhs, const Point3<float>& rhs)
+    {
+        return Point3<float>(_mm_min_ps(lhs.v, rhs.v));
+    }
+
+    constexpr Point3<float> max(const Point3<float>& lhs, const Point3<float>& rhs)
+    {
+        return Point3<float>(_mm_max_ps(lhs.v, rhs.v));
+    }
+
     constexpr Normal3<float> operator-(const Normal3<float>& vec)
     {
-        return Normal3<float>(AssumeNormalized{}, _mm_sub_ps(_mm_set1_ps(0.0f), vec.v));
+        return Normal3<float>(AssumeNormalized{}, _mm_xor_ps(vec.v, _mm_set1_ps(-0.0f)));
     }
 
     constexpr Vec3<float> operator-(const Vec3<float>& vec)
     {
-        return Vec3<float>(_mm_sub_ps(_mm_set1_ps(0.0f), vec.v));
+        return Vec3<float>(_mm_xor_ps(vec.v, _mm_set1_ps(-0.0f)));
     }
 
     constexpr Point3<float> operator-(const Point3<float>& vec)
     {
-        return Point3<float>(_mm_sub_ps(_mm_set1_ps(0.0f), vec.v));
+        return Point3<float>(_mm_xor_ps(vec.v, _mm_set1_ps(-0.0f)));
     }
 }

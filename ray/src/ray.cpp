@@ -90,13 +90,25 @@ int main()
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-3.0, 0, -7), 1.5), { &m1 }));
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(3.0, 0, -7), 1.5), { &m1 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
-    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -2, -20), Point3f(20, 8, -10)), { &m11 }));
+    //boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -2, -20), Point3f(20, 8, -10)), { &m11 }));
+    
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -2+0.01f, -20), Point3f(20, -1, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -1 + 0.01f, -20), Point3f(20, 0, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 0+0.01f, -20), Point3f(20, 1, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 1+0.01f, -20), Point3f(20, 2, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 2+0.01f, -20), Point3f(20, 3, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 3+0.01f, -20), Point3f(20, 4, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 4+0.01f, -20), Point3f(20, 5, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 5+0.01f, -20), Point3f(20, 6, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 6+0.01f, -20), Point3f(20, 7, -10)), { &m11 }));
+    boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 7+0.01f, -20), Point3f(20, 8, -10)), { &m11 }));
+    
     using ShapesT = Shapes<ShapeT, Plane, Box3>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes));
-    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/
 
     /*
