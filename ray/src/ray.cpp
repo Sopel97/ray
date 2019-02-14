@@ -102,13 +102,13 @@ int main()
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 5+0.01f, -20), Point3f(20, 6, -10)), { &m11 }));
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 6+0.01f, -20), Point3f(20, 7, -10)), { &m11 }));
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 7+0.01f, -20), Point3f(20, 8, -10)), { &m11 }));
-    
+
     using ShapesT = Shapes<ShapeT, Plane, Box3>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes));
-    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/
 
     /*
@@ -165,6 +165,7 @@ int main()
     //auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(3, 256, 0.66f));
     //auto sampler = AdaptiveMultisampler(0.05f, QuincunxMultisampler());
     auto sampler = AdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
+    //auto sampler = Sampler{};
     Image img = raytracer.capture(camera, sampler);
     //Image img = raytracer.capture(camera);
 

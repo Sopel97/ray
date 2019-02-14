@@ -8,29 +8,29 @@ namespace ray
     {
         Point3f min, max;
 
-        constexpr Box3() :
+        Box3() :
             min{},
             max{}
         {
         }
 
-        constexpr Box3(const Point3f& min, const Point3f& max) :
+        Box3(const Point3f& min, const Point3f& max) :
             min(min),
             max(max)
         {
         }
 
-        inline Point3f center() const
+        Point3f center() const
         {
             return (min + (max - min) * 0.5f);
         }
 
-        inline Vec3f extent() const
+        Vec3f extent() const
         {
             return max - min;
         }
 
-        constexpr const Box3& aabb() const
+        const Box3& aabb() const
         {
             return *this;
         }

@@ -54,11 +54,6 @@ namespace ray
         {
         }
 
-        constexpr explicit Normal3(const Vec3<T>& v) :
-            Normal3(v.normalized())
-        {
-        }
-
         constexpr Normal3(AssumeNormalized, const T& x, const T& y, const T& z) :
             x(x),
             y(y),

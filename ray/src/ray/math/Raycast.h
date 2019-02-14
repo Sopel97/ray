@@ -23,12 +23,16 @@ namespace ray
 {
     bool contains(const Box3& box, const Point3f& point)
     {
+        return (((point <= box.max) & (box.min <= point)).packed() & 0b0111) == 0b0111;
+
+        /*
         __m128 mask = _mm_and_ps(
-            _mm_cmple_ps(point.v, box.max.v),
-            _mm_cmple_ps(box.min.v, point.v)
+            _mm_cmple_ps(point.xmm, box.max.xmm),
+            _mm_cmple_ps(box.min.xmm, point.xmm)
         );
         // has to be true for first 3 components. We don't care about the forth one
         return (_mm_movemask_ps(mask) & 0b0111) == 0b0111;
+        */
     }
 
     // tNearest is the nearest object (not BV) so we don't update it here
@@ -254,25 +258,28 @@ namespace ray
         const Vec3f t0 = (box.min - ray.origin()) * invDir;
         const Vec3f t1 = (box.max - ray.origin()) * invDir;
 
-        float tmin = min(t0, t1).max();
         float tmax = max(t0, t1).min();
+        if (tmax < 0.0f) return false;
+        float tmin = min(t0, t1).max();
         if (tmin > tmax) return false;
 
-        float n = -1.0f;
-        const bool isInside = tmin < 0.0f;
-        if (isInside)
+        float n;
+        bool isInside;
+        if (tmin < 0.0f)
         {
-            if (tmax < 0.0f) return false;
-            tmin = tmax;
+            isInside = true;
             n = 1.0f;
+            tmin = tmax;
+        }
+        else
+        {
+            isInside = false;
+            n = -1.0f;
         }
         if (tmin >= hit.dist) return false;
 
-        __m128 t0c = _mm_cmpeq_ps(t0.v, _mm_set1_ps(tmin));
-        __m128 t1c = _mm_cmpeq_ps(t1.v, _mm_set1_ps(tmin));
-        __m128 mask = _mm_or_ps(t0c, t1c);
-        Normal3f normal(AssumeNormalized{}, _mm_blendv_ps(_mm_set1_ps(0.0f), _mm_set1_ps(n), mask));
-        normal.v = _mm_xor_ps(_mm_and_ps(ray.signs().v, _mm_castsi128_ps(_mm_set1_epi32(0x80000000))), normal.v);
+        Normal3f normal(AssumeNormalized{}, Vec3f::blend(0.0f, n, (t0 == tmin) | (t1 == tmin)));
+        normal.negate(ray.signs());
         
         const Point3f point = ray.origin() + ray.direction() * tmin;
 

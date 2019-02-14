@@ -9,7 +9,7 @@ namespace ray
         Normal3f normal;
         float distance; // distance to origin
 
-        constexpr Plane(const Normal3f& normal, float distance) :
+        Plane(const Normal3f& normal, float distance) :
             normal(normal),
             distance(distance)
         {

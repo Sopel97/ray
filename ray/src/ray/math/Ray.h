@@ -16,7 +16,7 @@ namespace ray
         Ray(const Point3f& origin, const Normal3f& direction) :
             m_origin(origin),
             m_direction(direction),
-            m_invDirection(m_direction.reciprocal()),
+            m_invDirection(rcp(m_direction)),
             m_signs(m_direction < 0.0f)
         {
 
@@ -37,7 +37,7 @@ namespace ray
             return m_invDirection;
         }
 
-        constexpr Vec3Mask<float> signs() const
+        Vec3Mask<float> signs() const
         {
             return m_signs;
         }
@@ -50,7 +50,7 @@ namespace ray
         void setDirection(const Normal3f& newDirection)
         {
             m_direction = newDirection;
-            m_invDirection = m_direction.reciprocal();
+            m_invDirection = rcp(m_direction);
             m_signs = m_direction < 0.0f;
         }
 
