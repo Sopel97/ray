@@ -5,7 +5,7 @@ namespace ray
     // for bounding volumes we don't need that much information
     struct RaycastBvHit
     {
-        float distSqr;
+        float dist;
     };
 
     struct RaycastHit

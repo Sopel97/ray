@@ -34,7 +34,7 @@ namespace ray
     template <typename BvShapeT>
     struct StaticBvhNode
     {
-        virtual std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, float nearestHitDist2) const = 0;
+        virtual std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, float& tNearest) const = 0;
     };
 
     template <typename BvShapeT>
@@ -59,22 +59,22 @@ namespace ray
     template <typename BvShapeT>
     struct StaticBvhNodeHit
     {
-        StaticBvhNodeHit(float distSqr, const StaticBvhNode<BvShapeT>& node) :
-            distSqr(distSqr),
+        StaticBvhNodeHit(float dist, const StaticBvhNode<BvShapeT>& node) :
+            dist(dist),
             node(&node)
         {
         }
 
-        float distSqr;
+        float dist;
         const StaticBvhNode<BvShapeT>* node;
 
         friend bool operator<(const StaticBvhNodeHit& lhs, const StaticBvhNodeHit& rhs) noexcept
         {
-            return lhs.distSqr < rhs.distSqr;
+            return lhs.dist < rhs.dist;
         }
         friend bool operator>(const StaticBvhNodeHit& lhs, const StaticBvhNodeHit& rhs) noexcept
         {
-            return lhs.distSqr > rhs.distSqr;
+            return lhs.dist > rhs.dist;
         }
     };
 
@@ -100,9 +100,9 @@ namespace ray
             m_objects.add(std::move(so));
         }
 
-        std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, float nearestHitDist2) const override
+        std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, float& tNearest) const override
         {
-            return m_objects.queryNearest(ray);
+            return m_objects.queryNearest(ray, tNearest);
         }
 
     private:
@@ -113,17 +113,14 @@ namespace ray
     struct StaticBvhPartitionNode : StaticBvhNode<BvShapeT>
     {
         // provide memory from outside to prevent a lot of small allocations
-        std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& hits, float nearestHitDist2) const override
+        std::optional<ResolvableRaycastHit> nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& hits, float& tNearest) const override
         {
             for (const auto& child : m_children)
             {
-                std::optional<RaycastBvHit> hitOpt = raycastBv(ray, child.boundingVolume);
+                std::optional<RaycastBvHit> hitOpt = raycastBv(ray, child.boundingVolume, tNearest);
                 if (hitOpt)
                 {
-                    if (hitOpt->distSqr < nearestHitDist2)
-                    {
-                        hits.push(StaticBvhNodeHit(hitOpt->distSqr, *child.node));
-                    }
+                    hits.push(StaticBvhNodeHit(hitOpt->dist, *child.node));
                 }
             }
             return std::nullopt;

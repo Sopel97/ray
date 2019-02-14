@@ -54,25 +54,19 @@ namespace ray
                 return static_cast<int>(m_objects.size());
             }
 
-            std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
+            std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, float& tNearest) const
             {
                 const int size = static_cast<int>(m_objects.size());
                 std::optional<RaycastHit> nearestHit{};
-                float nearestHitDistance = std::numeric_limits<float>::max();
                 int nearestHitShapeNo{};
                 for (int shapeNo = 0; shapeNo < size; ++shapeNo)
                 {
-                    std::optional<RaycastHit> hitOpt = m_objects[shapeNo].raycast(ray);
+                    std::optional<RaycastHit> hitOpt = m_objects[shapeNo].raycast(ray, tNearest);
                     if (hitOpt)
                     {
                         RaycastHit& hit = *hitOpt;
-                        const float dist = distance(ray.origin(), hit.point);
-                        if (dist < nearestHitDistance)
-                        {
-                            nearestHit = hit;
-                            nearestHitDistance = dist;
-                            nearestHitShapeNo = shapeNo;
-                        }
+                        nearestHit = hit;
+                        nearestHitShapeNo = shapeNo;
                     }
                 }
 
@@ -84,9 +78,9 @@ namespace ray
                 return std::nullopt;
             }
 
-            std::optional<ResolvableRaycastHit> queryLocal(const Ray& ray, int shapeNo) const override
+            std::optional<ResolvableRaycastHit> queryLocal(const Ray& ray, int shapeNo, float& tNearest) const override
             {
-                std::optional<RaycastHit> hitOpt = m_objects[shapeNo].raycast(ray);
+                std::optional<RaycastHit> hitOpt = m_objects[shapeNo].raycast(ray, tNearest);
                 if (hitOpt)
                 {
                     return resolveHitPartially(*hitOpt, shapeNo);
@@ -184,25 +178,19 @@ namespace ray
             return m_size;
         }
 
-        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray) const
+        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, float& tNearest) const
         {
             const int size = static_cast<int>(m_shapePacks.size());
             std::optional<RaycastHit> nearestHit{};
-            float nearestHitDistance = std::numeric_limits<float>::max();
             int nearestHitPackNo{};
             for (int packNo = 0; packNo < size; ++packNo)
             {
-                std::optional<RaycastHit> hitOpt = raycast(ray, m_shapePacks[packNo]);
+                std::optional<RaycastHit> hitOpt = raycast(ray, m_shapePacks[packNo], tNearest);
                 if (hitOpt)
                 {
                     RaycastHit& hit = *hitOpt;
-                    const float dist = distance(ray.origin(), hit.point);
-                    if (dist < nearestHitDistance)
-                    {
-                        nearestHit = hit;
-                        nearestHitDistance = dist;
-                        nearestHitPackNo = packNo;
-                    }
+                    nearestHit = hit;
+                    nearestHitPackNo = packNo;
                 }
             }
 
@@ -216,10 +204,10 @@ namespace ray
             return std::nullopt;
         }
 
-        std::optional<ResolvableRaycastHit> queryLocal(const Ray& ray, int shapeNo) const override
+        std::optional<ResolvableRaycastHit> queryLocal(const Ray& ray, int shapeNo, float& tNearest) const override
         {
             const int packNo = shapeNo / numShapesInPack;
-            std::optional<RaycastHit> hitOpt = raycast(ray, m_shapePacks[packNo]);
+            std::optional<RaycastHit> hitOpt = raycast(ray, m_shapePacks[packNo], tNearest);
             if (hitOpt)
             {
                 return resolveHitPartially(*hitOpt, shapeNo);

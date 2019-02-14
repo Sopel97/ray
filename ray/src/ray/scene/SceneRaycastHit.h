@@ -82,7 +82,7 @@ namespace ray
         bool isInside;
         bool isLocallyContinuable;
 
-        std::optional<ResolvableRaycastHit> next(const Ray& ray) const;
+        std::optional<ResolvableRaycastHit> next(const Ray& ray, float& tNearest) const;
 
         SceneObjectId objectId() const;
     };
