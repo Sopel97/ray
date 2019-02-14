@@ -10,6 +10,7 @@ namespace ray
 
     struct RaycastHit
     {
+        float dist;
         Point3f point;
         Normal3f normal;
         int shapeInPackNo;

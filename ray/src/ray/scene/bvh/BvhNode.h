@@ -34,7 +34,7 @@ namespace ray
     template <typename BvShapeT>
     struct StaticBvhNode
     {
-        virtual bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, float& tNearest, ResolvableRaycastHit& hit) const = 0;
+        virtual bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, ResolvableRaycastHit& hit) const = 0;
     };
 
     template <typename BvShapeT>
@@ -100,9 +100,9 @@ namespace ray
             m_objects.add(std::move(so));
         }
 
-        bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, float& tNearest, ResolvableRaycastHit& hit) const override
+        bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, ResolvableRaycastHit& hit) const override
         {
-            return m_objects.queryNearest(ray, tNearest, hit);
+            return m_objects.queryNearest(ray, hit);
         }
 
     private:
@@ -113,14 +113,14 @@ namespace ray
     struct StaticBvhPartitionNode : StaticBvhNode<BvShapeT>
     {
         // provide memory from outside to prevent a lot of small allocations
-        bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& hits, float& tNearest, ResolvableRaycastHit& hit) const override
+        bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& hits, ResolvableRaycastHit& hit) const override
         {
+            RaycastBvHit bvhit;
             for (const auto& child : m_children)
             {
-                std::optional<RaycastBvHit> hitOpt = raycastBv(ray, child.boundingVolume, tNearest);
-                if (hitOpt)
+                if (raycastBv(ray, child.boundingVolume, hit.dist, bvhit))
                 {
-                    hits.push(StaticBvhNodeHit(hitOpt->dist, *child.node));
+                    hits.push(StaticBvhNodeHit(bvhit.dist, *child.node));
                 }
             }
             return false;

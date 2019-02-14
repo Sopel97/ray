@@ -12,7 +12,7 @@ namespace ray
 
     struct Scene
     {
-        virtual bool queryNearest(const Ray& ray, float& tNearest, ResolvableRaycastHit& hit) const = 0;
+        virtual bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const = 0;
         virtual const std::vector<LightHandle>& lights() const = 0;
         virtual const ColorRGBf& backgroundColor() const = 0;
     };

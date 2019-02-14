@@ -65,13 +65,13 @@ namespace ray
             objectsOfType<ShapeT>().add(std::move(so));
         }
 
-        bool queryNearest(const Ray& ray, float& tNearest, ResolvableRaycastHit& hit) const
+        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
         {
             bool anyHit = false;
             for_each(m_objects, [&](const auto& objects) {
                 if (objects.size() > 0)
                 {
-                    anyHit |= objects.queryNearest(ray, tNearest, hit);
+                    anyHit |= objects.queryNearest(ray, hit);
                 }
             });
 

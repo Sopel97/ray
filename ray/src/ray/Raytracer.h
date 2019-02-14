@@ -103,12 +103,12 @@ namespace ray
             perf::gPerfStats.addTrace(depth);
 #endif
 
-            float tNearest = std::numeric_limits<float>::max();
             ResolvableRaycastHit rhit;
+            rhit.dist = std::numeric_limits<float>::max();
             bool anyHit =
                 isInside && m_options.assumeNoVolumeIntersections && prevHit && prevHit->isLocallyContinuable // if we're not inside we can't locally continue, even if shape allows that
-                ? prevHit->next(ray, tNearest, rhit)
-                : m_scene->queryNearest(ray, tNearest, rhit);
+                ? prevHit->next(ray, rhit)
+                : m_scene->queryNearest(ray, rhit);
             if (!anyHit) return m_scene->backgroundColor();
 
 #if defined(RAY_GATHER_PERF_STATS)
@@ -123,7 +123,7 @@ namespace ray
 
             const ColorRGBf unabsorbed = 
                 (isInside && prevHit) 
-                ? exp(-hit.material->absorbtion * tNearest) 
+                ? exp(-hit.material->absorbtion * hit.dist) 
                 : ColorRGBf(1.0f, 1.0f, 1.0f);
 
             const ColorRGBf refractionColor = computeRefractionColor(ray, contribution * unabsorbed * refractionContribution, prevHit, hit, depth);
@@ -204,11 +204,11 @@ namespace ray
 
             ColorRGBf color{};
             ResolvableRaycastHit rhit;
+            rhit.dist = std::numeric_limits<float>::max();
             for (const auto& light : lights)
             {
                 const Ray ray = Ray::between(point, light.center());
-                float tNearest = std::numeric_limits<float>::max();
-                if (!m_scene->queryNearest(ray, tNearest, rhit)) continue;
+                if (!m_scene->queryNearest(ray, rhit)) continue;
 
 #if defined(RAY_GATHER_PERF_STATS)
                 perf::gPerfStats.addTraceHit(depth);

@@ -54,13 +54,13 @@ namespace ray
                 return static_cast<int>(m_objects.size());
             }
 
-           bool queryNearest(const Ray& ray, float& tNearest, ResolvableRaycastHit& hit) const
+           bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
             {
                 const int size = static_cast<int>(m_objects.size());
                 bool anyHit = false;
                 for (int shapeNo = 0; shapeNo < size; ++shapeNo)
                 {
-                    if (m_objects[shapeNo].raycast(ray, tNearest, hit))
+                    if (m_objects[shapeNo].raycast(ray, hit))
                     {
                         anyHit = true;
                         hit.shapeNo = shapeNo;
@@ -75,9 +75,9 @@ namespace ray
                 return anyHit;
             }
 
-            bool queryLocal(const Ray& ray, int shapeNo, float& tNearest, ResolvableRaycastHit& hit) const override
+            bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
             {
-                if (m_objects[shapeNo].raycast(ray, tNearest, hit))
+                if (m_objects[shapeNo].raycast(ray, hit))
                 {
                     hit.shapeNo = shapeNo;
                     hit.owner = this;
@@ -92,7 +92,7 @@ namespace ray
                 const auto& obj = m_objects[hit.shapeNo];
                 const Material& mat = material(hit.shapeNo, hit.materialNo);
                 const TexCoords texCoords = mat.texture ? m_objects[hit.shapeNo].resolveTexCoords(hit, 0) : TexCoords{ 0.0f, 0.0f };
-                return ResolvedRaycastHit(hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, obj.hasVolume());
+                return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, obj.hasVolume());
             }
 
         private:
@@ -171,14 +171,14 @@ namespace ray
             return m_size;
         }
 
-        bool queryNearest(const Ray& ray, float& tNearest, ResolvableRaycastHit& hit) const
+        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
         {
             const int size = static_cast<int>(m_shapePacks.size());
             int nearestHitPackNo{};
             bool anyHit = false;
             for (int packNo = 0; packNo < size; ++packNo)
             {
-                if (raycast(ray, m_shapePacks[packNo], tNearest, hit))
+                if (raycast(ray, m_shapePacks[packNo], hit))
                 {
                     anyHit = true;
                     nearestHitPackNo = packNo;
@@ -195,10 +195,10 @@ namespace ray
             return anyHit;
         }
 
-        bool queryLocal(const Ray& ray, int shapeNo, float& tNearest, ResolvableRaycastHit& hit) const override
+        bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
         {
             const int packNo = shapeNo / numShapesInPack;
-            if (raycast(ray, m_shapePacks[packNo], tNearest, hit))
+            if (raycast(ray, m_shapePacks[packNo], hit))
             {
                 hit.shapeNo = shapeNo;
                 hit.owner = this;
@@ -214,7 +214,7 @@ namespace ray
             const int shapeInPackNo = hit.shapeNo % numShapesInPack;
             const Material& mat = material(hit.shapeNo, hit.materialNo);
             const TexCoords texCoords = mat.texture ? resolveTexCoords(m_shapePacks[packNo], hit, shapeInPackNo) : TexCoords{ 0.0f, 0.0f };
-            return ResolvedRaycastHit(hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, hasVolume);
+            return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, hasVolume);
         }
 
     private:

@@ -115,7 +115,7 @@ namespace ray
         struct PolymorphicSceneObjectBase
         {
             virtual Point3f center() const = 0;
-            virtual bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const = 0;
+            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
@@ -153,9 +153,9 @@ namespace ray
             {
                 return m_shape.aabb();
             }
-            bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const override
+            bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
-                return ray::raycast(ray, m_shape, tNearest, hit);
+                return ray::raycast(ray, m_shape, hit);
             }
             std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
             {
@@ -223,9 +223,9 @@ namespace ray
             return m_obj->aabb();
         }
 
-        bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const
+        bool raycast(const Ray& ray, RaycastHit& hit) const
         {
-            return m_obj->raycast(ray, tNearest, hit);
+            return m_obj->raycast(ray, hit);
         }
 
         TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
@@ -262,7 +262,7 @@ namespace ray
         struct PolymorphicSceneObjectBase
         {
             virtual Point3f center() const = 0;
-            virtual bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const = 0;
+            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
             virtual Box3 aabb() const = 0;
@@ -299,9 +299,9 @@ namespace ray
             {
                 return m_shape.aabb();
             }
-            bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const override
+            bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
-                return ray::raycast(ray, m_shape, tNearest, hit);
+                return ray::raycast(ray, m_shape, hit);
             }
             TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
@@ -359,9 +359,9 @@ namespace ray
             return m_obj->aabb();
         }
 
-        bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const
+        bool raycast(const Ray& ray, RaycastHit& hit) const
         {
-            return m_obj->raycast(ray, tNearest, hit);
+            return m_obj->raycast(ray, hit);
         }
 
         TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
@@ -398,7 +398,7 @@ namespace ray
     private:
         struct PolymorphicSceneObjectBase
         {
-            virtual bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const = 0;
+            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
@@ -426,9 +426,9 @@ namespace ray
             {
 
             }
-            bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const override
+            bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
-                return ray::raycast(ray, m_shape, tNearest, hit);
+                return ray::raycast(ray, m_shape, hit);
             }
             std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
             {
@@ -486,9 +486,9 @@ namespace ray
             return m_obj->id();
         }
 
-        bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const
+        bool raycast(const Ray& ray, RaycastHit& hit) const
         {
-            return m_obj->raycast(ray, tNearest, hit);
+            return m_obj->raycast(ray, hit);
         }
 
         TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
@@ -524,7 +524,7 @@ namespace ray
     private:
         struct PolymorphicSceneObjectBase
         {
-            virtual bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const = 0;
+            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
             virtual const Material& material(int materialNo) const = 0;
@@ -551,9 +551,9 @@ namespace ray
             {
 
             }
-            bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const override
+            bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
-                return ray::raycast(ray, m_shape, tNearest, hit);
+                return ray::raycast(ray, m_shape, hit);
             }
             TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
@@ -601,9 +601,9 @@ namespace ray
             return m_obj->id();
         }
 
-        bool raycast(const Ray& ray, float& tNearest, RaycastHit& hit) const
+        bool raycast(const Ray& ray, RaycastHit& hit) const
         {
-            return m_obj->raycast(ray, tNearest, hit);
+            return m_obj->raycast(ray, hit);
         }
 
         TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const

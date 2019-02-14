@@ -31,6 +31,7 @@ namespace ray
     struct ResolvedRaycastHit
     {
         ResolvedRaycastHit(
+            float dist,
             const Point3f& point,
             const Normal3f& normal,
             const TexCoords& texCoords,
@@ -40,6 +41,7 @@ namespace ray
             bool isInside,
             bool local
         ) :
+            dist(dist),
             point(point),
             normal(normal),
             texCoords(texCoords),
@@ -52,6 +54,7 @@ namespace ray
 
         }
 
+        float dist;
         Point3f point;
         Normal3f normal;
         TexCoords texCoords;
@@ -61,7 +64,7 @@ namespace ray
         bool isInside;
         bool isLocallyContinuable;
 
-        bool next(const Ray& ray, float& tNearest, ResolvableRaycastHit& hit) const;
+        bool next(const Ray& ray, ResolvableRaycastHit& hit) const;
 
         SceneObjectId objectId() const;
     };

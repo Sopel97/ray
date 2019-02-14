@@ -66,7 +66,7 @@ namespace ray
 #endif
         }
 
-        bool queryNearest(const Ray& ray, float& tNearest, ResolvableRaycastHit& hit) const
+        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
         {
             thread_local BvhNodeHitQueue<BvShapeT> queue = []() {
                 std::vector<StaticBvhNodeHit<BvShapeT>> vec;
@@ -75,15 +75,15 @@ namespace ray
             }();
 
             queue.push(StaticBvhNodeHit(0.0f, *m_root));
-            bool anyHit = m_unboundedObjects.queryNearest(ray, tNearest, hit);
+            bool anyHit = m_unboundedObjects.queryNearest(ray, hit);
 
             while (!queue.empty())
             {
                 StaticBvhNodeHit entry = queue.top();
-                if (entry.dist >= tNearest) break;
+                if (entry.dist >= hit.dist) break;
                 queue.pop();
 
-                anyHit |= entry.node->nextHit(ray, queue, tNearest, hit);
+                anyHit |= entry.node->nextHit(ray, queue, hit);
             }
             while (!queue.empty()) queue.pop();
 

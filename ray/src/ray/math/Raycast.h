@@ -32,7 +32,7 @@ namespace ray
     }
 
     // tNearest is the nearest object (not BV) so we don't update it here
-    std::optional<RaycastBvHit> raycastBv(const Ray& ray, const Box3& box, float tNearest)
+    bool raycastBv(const Ray& ray, const Box3& box, float tNearest, RaycastBvHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addBvRaycast<Box3>();
@@ -43,7 +43,8 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addBvRaycastHit<Box3>();
 #endif
-            return RaycastBvHit{ 0.0f };
+            hit.dist = 0.0f;
+            return true;
         }
         /*
         const Point3f origin = ray.origin();
@@ -85,14 +86,15 @@ namespace ray
 
         if (tmin <= tmax && tmin < tNearest)
         {
-            return RaycastBvHit{ tmin };
+            hit.dist = tmin;
+            return true;
         }
 
-        return std::nullopt;
+        return false;
         //*/
     }
 
-    bool raycast(const Ray& ray, const Sphere& sphere, float& tNearest, RaycastHit& hit)
+    bool raycast(const Ray& ray, const Sphere& sphere, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycast<Sphere>();
@@ -178,7 +180,7 @@ namespace ray
 
 
         const Vec3f L = C - O;
-        if (L.lengthSqr() - R >= tNearest * tNearest) return false;
+        if (L.lengthSqr() - R >= hit.dist * hit.dist) return false;
         const float t_ca = dot(L, D);
         if (t_ca < 0.0f) return false;
 
@@ -197,12 +199,12 @@ namespace ray
         // and that t2 is greater
         bool isInside = t < 0.0f;
         if (isInside) t = t_ca + t_hc;
-        if (t >= tNearest) return false;
-        tNearest = t;
+        if (t >= hit.dist) return false;
         const Point3f hitPoint = O + t * D;
         Normal3f normal = ((hitPoint - C) / R).assumeNormalized();
         if (isInside) normal = -normal;
 
+        hit.dist = t;
         hit.point = hitPoint;
         hit.normal = normal;
         hit.shapeInPackNo = 0;
@@ -211,7 +213,7 @@ namespace ray
         return true;
     }
 
-    bool raycast(const Ray& ray, const Plane& plane, float& tNearest, RaycastHit& hit)
+    bool raycast(const Ray& ray, const Plane& plane, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycast<Plane>();
@@ -221,14 +223,14 @@ namespace ray
         const float t = (plane.distance - pn) / nd;
 
         // t must be positive
-        if (t >= 0.0f && t < tNearest)
+        if (t >= 0.0f && t < hit.dist)
         {
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addObjectRaycastHit<Plane>();
 #endif
-            tNearest = t;
             const Point3f point = ray.origin() + ray.direction() * t;
 
+            hit.dist = t;
             hit.point = point;
             hit.normal = (nd < 0.0f) ? plane.normal : -plane.normal;
             hit.shapeInPackNo = 0;
@@ -241,7 +243,7 @@ namespace ray
         return false;
     }
 
-    bool raycast(const Ray& ray, const Box3& box, float& tNearest, RaycastHit& hit)
+    bool raycast(const Ray& ray, const Box3& box, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addBoxRaycast();
@@ -264,9 +266,8 @@ namespace ray
             tmin = tmax;
             n = 1.0f;
         }
-        if (tmin >= tNearest) return false;
+        if (tmin >= hit.dist) return false;
 
-        tNearest = tmin;
         __m128 t0c = _mm_cmpeq_ps(t0.v, _mm_set1_ps(tmin));
         __m128 t1c = _mm_cmpeq_ps(t1.v, _mm_set1_ps(tmin));
         __m128 mask = _mm_or_ps(t0c, t1c);
@@ -278,6 +279,7 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addBoxRaycastHit();
 #endif
+        hit.dist = tmin;
         hit.point = point;
         hit.normal = normal;
         hit.shapeInPackNo = 0;
