@@ -92,7 +92,7 @@ namespace ray
         //*/
     }
 
-    std::optional<RaycastHit> raycast(const Ray& ray, const Sphere& sphere, float& tNearest)
+    bool raycast(const Ray& ray, const Sphere& sphere, float& tNearest, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycast<Sphere>();
@@ -178,13 +178,13 @@ namespace ray
 
 
         const Vec3f L = C - O;
-        if (L.lengthSqr() - R >= tNearest * tNearest) return std::nullopt;
+        if (L.lengthSqr() - R >= tNearest * tNearest) return false;
         const float t_ca = dot(L, D);
-        if (t_ca < 0.0f) return std::nullopt;
+        if (t_ca < 0.0f) return false;
 
         const float d2 = dot(L, L) - t_ca * t_ca;
         const float r = R * R - d2;
-        if (r < 0.0f) return std::nullopt;
+        if (r < 0.0f) return false;
         const float t_hc = std::sqrt(r);
 
         float t = t_ca - t_hc;
@@ -197,15 +197,21 @@ namespace ray
         // and that t2 is greater
         bool isInside = t < 0.0f;
         if (isInside) t = t_ca + t_hc;
-        if (t >= tNearest) return std::nullopt;
+        if (t >= tNearest) return false;
         tNearest = t;
         const Point3f hitPoint = O + t * D;
         Normal3f normal = ((hitPoint - C) / R).assumeNormalized();
         if (isInside) normal = -normal;
-        return RaycastHit{ hitPoint, normal, 0, 0, isInside };
+
+        hit.point = hitPoint;
+        hit.normal = normal;
+        hit.shapeInPackNo = 0;
+        hit.materialNo = 0;
+        hit.isInside = isInside;
+        return true;
     }
 
-    std::optional<RaycastHit> raycast(const Ray& ray, const Plane& plane, float& tNearest)
+    bool raycast(const Ray& ray, const Plane& plane, float& tNearest, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycast<Plane>();
@@ -222,13 +228,20 @@ namespace ray
 #endif
             tNearest = t;
             const Point3f point = ray.origin() + ray.direction() * t;
-            return RaycastHit{ point, (nd < 0.0f) ? plane.normal : -plane.normal, 0, 0, false };
+
+            hit.point = point;
+            hit.normal = (nd < 0.0f) ? plane.normal : -plane.normal;
+            hit.shapeInPackNo = 0;
+            hit.materialNo = 0;
+            hit.isInside = false;
+
+            return true;
         }
 
-        return std::nullopt;
+        return false;
     }
 
-    std::optional<RaycastHit> raycast(const Ray& ray, const Box3& box, float& tNearest)
+    bool raycast(const Ray& ray, const Box3& box, float& tNearest, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addBoxRaycast();
@@ -241,17 +254,17 @@ namespace ray
 
         float tmin = min(t0, t1).max();
         float tmax = max(t0, t1).min();
-        if (tmin > tmax) return std::nullopt;
+        if (tmin > tmax) return false;
 
         float n = -1.0f;
         const bool isInside = tmin < 0.0f;
         if (isInside)
         {
-            if (tmax < 0.0f) return std::nullopt;
+            if (tmax < 0.0f) return false;
             tmin = tmax;
             n = 1.0f;
         }
-        if (tmin >= tNearest) return std::nullopt;
+        if (tmin >= tNearest) return false;
 
         tNearest = tmin;
         __m128 t0c = _mm_cmpeq_ps(t0.v, _mm_set1_ps(tmin));
@@ -265,7 +278,12 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addBoxRaycastHit();
 #endif
-        return RaycastHit{ point, normal, 0, 0, isInside };
+        hit.point = point;
+        hit.normal = normal;
+        hit.shapeInPackNo = 0;
+        hit.materialNo = 0;
+        hit.isInside = isInside;
 
+        return true;
     }
 }

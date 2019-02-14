@@ -27,9 +27,9 @@ namespace ray
             rememberLights(collection);
         }
 
-        std::optional<ResolvableRaycastHit> queryNearest(const Ray& ray, float& tNearest) const override
+        bool queryNearest(const Ray& ray, float& tNearest, ResolvableRaycastHit& hit) const override
         {
-            return m_storage.queryNearest(ray, tNearest);
+            return m_storage.queryNearest(ray, tNearest, hit);
         }
 
         const std::vector<LightHandle>& lights() const override

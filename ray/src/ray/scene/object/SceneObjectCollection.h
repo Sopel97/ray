@@ -12,7 +12,7 @@ namespace ray
 
     struct HomogeneousSceneObjectCollection
     {
-        virtual std::optional<ResolvableRaycastHit> queryLocal(const Ray& ray, int shapeNo, float& tNearest) const = 0;
+        virtual bool queryLocal(const Ray& ray, int shapeNo, float& tNearest, ResolvableRaycastHit& hit) const = 0;
         virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
         virtual SceneObjectId id(int shapeNo) const = 0;
     };

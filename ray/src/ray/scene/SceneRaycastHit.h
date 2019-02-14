@@ -5,6 +5,7 @@
 #include <ray/material/TexCoords.h>
 
 #include <ray/math/Ray.h>
+#include <ray/math/RaycastHit.h>
 #include <ray/math/Vec3.h>
 
 #include <cstdint>
@@ -17,32 +18,10 @@ namespace ray
     struct ResolvedRaycastHit;
     struct Material;
 
-    struct ResolvableRaycastHit
+    struct ResolvableRaycastHit : RaycastHit
     {
-        ResolvableRaycastHit(
-            const Point3f& point,
-            const Normal3f& normal,
-            int shapeNo,
-            int materialNo,
-            const HomogeneousSceneObjectCollection& owner,
-            bool isInside
-        ) :
-            point(point),
-            normal(normal),
-            shapeNo(shapeNo),
-            materialNo(materialNo),
-            owner(&owner),
-            isInside(isInside)
-        {
-
-        }
-
-        Point3f point;
-        Normal3f normal;
         int shapeNo;
-        int materialNo;
         const HomogeneousSceneObjectCollection* owner;
-        bool isInside;
 
         ResolvedRaycastHit resolve() const;
 
@@ -82,7 +61,7 @@ namespace ray
         bool isInside;
         bool isLocallyContinuable;
 
-        std::optional<ResolvableRaycastHit> next(const Ray& ray, float& tNearest) const;
+        bool next(const Ray& ray, float& tNearest, ResolvableRaycastHit& hit) const;
 
         SceneObjectId objectId() const;
     };

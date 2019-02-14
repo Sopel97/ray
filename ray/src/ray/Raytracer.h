@@ -104,18 +104,19 @@ namespace ray
 #endif
 
             float tNearest = std::numeric_limits<float>::max();
-            std::optional<ResolvableRaycastHit> hitOpt =
+            ResolvableRaycastHit rhit;
+            bool anyHit =
                 isInside && m_options.assumeNoVolumeIntersections && prevHit && prevHit->isLocallyContinuable // if we're not inside we can't locally continue, even if shape allows that
-                ? prevHit->next(ray, tNearest)
-                : m_scene->queryNearest(ray, tNearest);
-            if (!hitOpt) return m_scene->backgroundColor();
+                ? prevHit->next(ray, tNearest, rhit)
+                : m_scene->queryNearest(ray, tNearest, rhit);
+            if (!anyHit) return m_scene->backgroundColor();
 
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gPerfStats.addTraceHit(depth);
             perf::gPerfStats.addTraceResolved(depth);
 #endif
 
-            const ResolvedRaycastHit hit = hitOpt->resolve();
+            const ResolvedRaycastHit hit = rhit.resolve();
 
             const float reflectionContribution = fresnelReflectAmount(ray, hit);
             const float refractionContribution = ((1.0f - reflectionContribution) * hit.material->transparency);
@@ -202,24 +203,24 @@ namespace ray
 #endif
 
             ColorRGBf color{};
+            ResolvableRaycastHit rhit;
             for (const auto& light : lights)
             {
                 const Ray ray = Ray::between(point, light.center());
                 float tNearest = std::numeric_limits<float>::max();
-                std::optional<ResolvableRaycastHit> lightHitOpt = m_scene->queryNearest(ray, tNearest);
-                if (!lightHitOpt) continue;
+                if (!m_scene->queryNearest(ray, tNearest, rhit)) continue;
 
 #if defined(RAY_GATHER_PERF_STATS)
                 perf::gPerfStats.addTraceHit(depth);
 #endif
 
-                if (lightHitOpt->objectId() != light.id()) continue;
+                if (rhit.objectId() != light.id()) continue;
 
 #if defined(RAY_GATHER_PERF_STATS)
                 perf::gPerfStats.addTraceResolved(depth);
 #endif
 
-                auto lightHit = lightHitOpt->resolve();
+                auto lightHit = rhit.resolve();
                 color += lightHit.material->emissionColor * std::max(0.0f, dot(hit.normal, ray.direction()));
             }
 
