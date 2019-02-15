@@ -77,6 +77,7 @@
     <ClInclude Include="src\ray\scene\SceneRaycastHit.h" />
     <ClInclude Include="src\ray\scene\StaticScene.h" />
     <ClInclude Include="src\ray\shape\Box3.h" />
+    <ClInclude Include="src\ray\shape\Triangle3.h" />
     <ClInclude Include="src\ray\shape\Plane.h" />
     <ClInclude Include="src\ray\shape\Shapes.h" />
     <ClInclude Include="src\ray\shape\ShapeTraits.h" />

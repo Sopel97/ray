@@ -248,5 +248,8 @@
     <ClInclude Include="src\ray\math\detail\M128Math.h">
       <Filter>Header Files\src\math\detail</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\shape\Triangle3.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@
 #include <ray/perf/PerformanceStats.h>
 #endif
 
+#include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/Shapes.h>
 #include <ray/shape/Sphere.h>
@@ -78,6 +79,7 @@ int main()
     std::vector<SceneObject<ShapeT>> spheres;
     std::vector<SceneObject<Plane>> planes;
     std::vector<SceneObject<Box3>> boxes;
+    std::vector<SceneObject<Triangle3>> tris;
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
@@ -92,6 +94,7 @@ int main()
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
     //boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -2, -20), Point3f(20, 8, -10)), { &m11 }));
     
+    /*
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -2+0.01f, -20), Point3f(20, -1, -10)), { &m11 }));
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -1 + 0.01f, -20), Point3f(20, 0, -10)), { &m11 }));
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 0+0.01f, -20), Point3f(20, 1, -10)), { &m11 }));
@@ -102,11 +105,23 @@ int main()
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 5+0.01f, -20), Point3f(20, 6, -10)), { &m11 }));
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 6+0.01f, -20), Point3f(20, 7, -10)), { &m11 }));
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 7+0.01f, -20), Point3f(20, 8, -10)), { &m11 }));
+    */
 
-    using ShapesT = Shapes<ShapeT, Plane, Box3>;
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 9-10, -10), Point3f(20, 9 -10, -10), Point3f(10, 9 - 10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 10-10, -10), Point3f(20, 10-10, -10), Point3f(10, 10-10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 11-10, -10), Point3f(20, 11-10, -10), Point3f(10, 11-10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 12-10, -10), Point3f(20, 12-10, -10), Point3f(10, 12-10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 13-10, -10), Point3f(20, 13-10, -10), Point3f(10, 13-10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 14-10, -10), Point3f(20, 14-10, -10), Point3f(10, 14-10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 15-10, -10), Point3f(20, 15-10, -10), Point3f(10, 15-10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 16-10, -10), Point3f(20, 16-10, -10), Point3f(10, 16-10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 17-10, -10), Point3f(20, 17-10, -10), Point3f(10, 17-10, -20)), { &m11 }));
+    tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 18-10, -10), Point3f(20, 18-10, -10), Point3f(10, 18-10, -20)), { &m11 }));
+
+    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
-    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes));
+    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes), std::move(tris));
     //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
     StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/

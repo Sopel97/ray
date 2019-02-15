@@ -12,6 +12,7 @@ namespace ray
     struct Sphere;
     struct Plane;
     struct Box3;
+    struct Triangle3;
 
     namespace perf
     {
@@ -167,6 +168,8 @@ namespace ray
                 out += "   hits/all: " + entry2(objectRaycasts<Plane>().hits.load(), objectRaycasts<Plane>().all.load()) + "\n";
                 out += "Box tests:\n";
                 out += "   hits/all: " + entry2(objectRaycasts<Box3>().hits.load(), objectRaycasts<Box3>().all.load()) + "\n";
+                out += "MTTriangle tests:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Triangle3>().hits.load(), objectRaycasts<Triangle3>().all.load()) + "\n";
                 out += "Box BV tests:\n";
                 out += "   hits/all: " + entry2(bvRaycasts<Box3>().hits.load(), bvRaycasts<Box3>().all.load()) + "\n";
 
@@ -191,6 +194,7 @@ namespace ray
                 ObjectRaycastStats<Sphere>,
                 ObjectRaycastStats<Plane>,
                 ObjectRaycastStats<Box3>,
+                ObjectRaycastStats<Triangle3>,
                 BvRaycastStats<Box3>
             > m_raycasts;
             TimeStats m_traceDuration;

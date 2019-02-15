@@ -9,9 +9,17 @@ namespace ray
         Normal3f normal;
         float distance; // distance to origin
 
+        Plane() = default;
+
         Plane(const Normal3f& normal, float distance) :
             normal(normal),
             distance(distance)
+        {
+        }
+
+        Plane(const Point3f& p, const Vec3f& v1, const Vec3f& v2) :
+            normal(cross(v1, v2).normalized()),
+            distance(dot(normal, Vec3f(p)))
         {
         }
     };

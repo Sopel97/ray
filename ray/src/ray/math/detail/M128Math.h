@@ -124,10 +124,10 @@ namespace ray
         inline float dot(__m128 a, __m128 b)
         {
             // mul first 3 components of xmm, sum it, and store in the first component, return first component
-            // return _mm_cvtss_f32(_mm_dp_ps(a, b, 0b0111'0001));
+            return _mm_cvtss_f32(_mm_dp_ps(a, b, 0b0111'0001));
 
-            // should be faster
-            return hadd3(mul(a, b));
+            // should be faster, but on nehalem it actually isn't?
+            // return hadd3(mul(a, b));
         }
 
         inline __m128 cross(__m128 a, __m128 b)

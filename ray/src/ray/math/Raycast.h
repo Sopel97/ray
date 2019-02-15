@@ -9,19 +9,21 @@
 #include "Vec3.h"
 
 #include <ray/shape/Box3.h>
+#include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/Sphere.h>
 
 #include <algorithm>
 #include <cmath>
 #include <optional>
+#include <iostream>
 
 #include <xmmintrin.h>
 #include <smmintrin.h>
 
 namespace ray
 {
-    bool contains(const Box3& box, const Point3f& point)
+    inline bool contains(const Box3& box, const Point3f& point)
     {
         return (((point <= box.max) & (box.min <= point)).packed() & 0b0111) == 0b0111;
 
@@ -36,7 +38,7 @@ namespace ray
     }
 
     // tNearest is the nearest object (not BV) so we don't update it here
-    bool raycastBv(const Ray& ray, const Box3& box, float tNearest, RaycastBvHit& hit)
+    inline bool raycastBv(const Ray& ray, const Box3& box, float tNearest, RaycastBvHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addBvRaycast<Box3>();
@@ -98,7 +100,7 @@ namespace ray
         //*/
     }
 
-    bool raycast(const Ray& ray, const Sphere& sphere, RaycastHit& hit)
+    inline bool raycast(const Ray& ray, const Sphere& sphere, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycast<Sphere>();
@@ -217,7 +219,7 @@ namespace ray
         return true;
     }
 
-    bool raycast(const Ray& ray, const Plane& plane, RaycastHit& hit)
+    inline bool raycast(const Ray& ray, const Plane& plane, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gPerfStats.addObjectRaycast<Plane>();
@@ -247,10 +249,10 @@ namespace ray
         return false;
     }
 
-    bool raycast(const Ray& ray, const Box3& box, RaycastHit& hit)
+    inline bool raycast(const Ray& ray, const Box3& box, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addBoxRaycast();
+        perf::gPerfStats.addObjectRaycast<Box3>();
 #endif
         const Point3f origin = ray.origin();
         const Vec3f invDir = ray.invDirection();
@@ -284,7 +286,7 @@ namespace ray
         const Point3f point = ray.origin() + ray.direction() * tmin;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addBoxRaycastHit();
+        perf::gPerfStats.addObjectRaycastHit<Box3>();
 #endif
         hit.dist = tmin;
         hit.point = point;
@@ -292,6 +294,111 @@ namespace ray
         hit.shapeInPackNo = 0;
         hit.materialNo = 0;
         hit.isInside = isInside;
+
+        return true;
+    }
+
+    /*
+    // this one has faster exit when the triangle is behind or farther than prev hit
+    // but otherwise it is slower and requires a precomputed plane
+    inline bool raycast(const Ray& ray, const Triangle3& tri, RaycastHit& hit)
+    {
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addObjectRaycast<Triangle3>();
+#endif
+        
+        const Point3f orig = ray.origin();
+        const Vec3f invDir = ray.invDirection();
+        const Normal3f nor = tri.plane().normal;
+        const float dist = tri.plane().distance;
+
+        const float nd = dot(invDir, nor);
+        const float pn = dot(Vec3f(orig), nor);
+        const float t = (dist - pn) * nd;
+
+        if (t < 0.0f) return false;
+        if (t >= hit.dist) return false;
+
+        const Normal3f dir = ray.direction();
+        const Point3f point = orig + dir * t;
+
+        const Vec3f v0v1 = tri.e01();
+        const Vec3f v0v2 = tri.e02();
+        const Vec3f pvec = cross(dir, v0v2);
+        const float det = dot(v0v1, pvec);
+
+        // ray and triangle are parallel if det is close to 0
+        if (std::abs(det) < 0.00001f) return false;
+
+        const float invDet = 1.0f / det;
+
+        const Vec3f tvec = orig - tri.v0();
+        const float u = dot(tvec, pvec) * invDet;
+        if (u < 0 || u > 1) return false;
+
+        const Vec3f qvec = cross(tvec, v0v1);
+        const float v = dot(dir, qvec) * invDet;
+        if (v < 0 || (v + u) > 1) return false;
+
+        const float w = 1.0f - (v + u);
+
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addObjectRaycastHit<Triangle3>();
+#endif
+
+        hit.dist = t;
+        hit.point = point;
+        hit.normal = (tri.normal(0) * u + tri.normal(1) * v + tri.normal(2) * w).assumeNormalized();
+        if (nd > 0.0f) hit.normal = -hit.normal;
+        hit.shapeInPackNo = 0;
+        hit.materialNo = 0;
+        hit.isInside = false;
+
+        return true;
+    }
+    */
+
+    inline bool raycast(const Ray& ray, const Triangle3& tri, RaycastHit& hit)
+    {
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addObjectRaycast<Triangle3>();
+#endif
+
+        const Vec3f pvec = cross(ray.direction(), tri.e02());
+        const float det = dot(tri.e01(), pvec);
+
+        // ray and triangle are parallel if det is close to 0
+        if (std::abs(det) < 0.00001f) return false;
+
+        const float invDet = 1.0f / det;
+
+        const Vec3f tvec = ray.origin() - tri.v0();
+        const float u = dot(tvec, pvec) * invDet;
+        if (u < 0.0f || u > 1.0f) return false;
+
+        const Vec3f qvec = cross(tvec, tri.e01());
+        const float v = dot(ray.direction(), qvec) * invDet;
+        const float uv = u + v;
+        if (v < 0.0f || uv > 1.0f) return false;
+
+        const float w = 1.0f - uv;
+
+        const float t = dot(tri.e02(), qvec) * invDet;
+
+        if (t < 0.0f) return false;
+        if (t >= hit.dist) return false;
+
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addObjectRaycastHit<Triangle3>();
+#endif
+
+        hit.dist = t;
+        hit.point = ray.origin() + ray.direction() * t;
+        hit.normal = (tri.normal(0) * u + tri.normal(1) * v + tri.normal(2) * w).assumeNormalized();
+        if (det < 0.0f) hit.normal = -hit.normal;
+        hit.shapeInPackNo = 0;
+        hit.materialNo = 0;
+        hit.isInside = false;
 
         return true;
     }
