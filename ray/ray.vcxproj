@@ -29,6 +29,7 @@
   <ItemGroup>
     <ClCompile Include="src\ray.cpp" />
     <ClCompile Include="src\ray\scene\SceneRaycastHit.cpp" />
+    <ClCompile Include="src\ray\shape\ClosedTriangleMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ray\Camera.h" />
@@ -41,6 +42,7 @@
     <ClInclude Include="src\ray\material\Texture.h" />
     <ClInclude Include="src\ray\material\TextureDatabase.h" />
     <ClInclude Include="src\ray\math\Angle.h" />
+    <ClInclude Include="src\ray\math\BarycentricCoords.h" />
     <ClInclude Include="src\ray\math\BoundingVolume.h" />
     <ClInclude Include="src\ray\math\detail\M128Math.h" />
     <ClInclude Include="src\ray\math\detail\VecDetail.h" />
@@ -77,6 +79,7 @@
     <ClInclude Include="src\ray\scene\SceneRaycastHit.h" />
     <ClInclude Include="src\ray\scene\StaticScene.h" />
     <ClInclude Include="src\ray\shape\Box3.h" />
+    <ClInclude Include="src\ray\shape\ClosedTriangleMesh.h" />
     <ClInclude Include="src\ray\shape\Triangle3.h" />
     <ClInclude Include="src\ray\shape\Plane.h" />
     <ClInclude Include="src\ray\shape\Shapes.h" />

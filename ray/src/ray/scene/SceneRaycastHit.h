@@ -39,6 +39,7 @@ namespace ray
             const Material& material,
             const HomogeneousSceneObjectCollection& owner,
             bool isInside,
+            bool hasVolume,
             bool local
         ) :
             dist(dist),
@@ -49,6 +50,7 @@ namespace ray
             material(&material),
             owner(&owner),
             isInside(isInside),
+            hasVolume(hasVolume),
             isLocallyContinuable(local)
         {
 
@@ -62,6 +64,7 @@ namespace ray
         const Material* material;
         const HomogeneousSceneObjectCollection* owner;
         bool isInside;
+        bool hasVolume;
         bool isLocallyContinuable;
 
         bool next(const Ray& ray, ResolvableRaycastHit& hit) const;

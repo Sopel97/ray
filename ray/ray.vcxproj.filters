@@ -84,6 +84,9 @@
     <ClCompile Include="src\ray\scene\SceneRaycastHit.cpp">
       <Filter>Source Files\src\scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\ray\shape\ClosedTriangleMesh.cpp">
+      <Filter>Source Files\src\shape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ray\material\Color.h">
@@ -250,6 +253,12 @@
     </ClInclude>
     <ClInclude Include="src\ray\shape\Triangle3.h">
       <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\ClosedTriangleMesh.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\BarycentricCoords.h">
+      <Filter>Header Files\src\math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

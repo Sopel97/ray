@@ -7,6 +7,7 @@
 #include <ray/scene/SceneRaycastHit.h>
 
 #include <ray/shape/Box3.h>
+#include <ray/shape/ClosedTriangleMesh.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/Sphere.h>
@@ -73,5 +74,11 @@ namespace ray
     {
         BarycentricCoords bc = tri.barycentric(hit.point);
         return tri.uv(0) * bc.u + tri.uv(1) * bc.v + tri.uv(2) * bc.w;
+    }
+
+    inline TexCoords resolveTexCoords(const ClosedTriangleMeshFace& tri, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    {
+        BarycentricCoords bc = tri.barycentric(hit.point);
+        return tri.vertex(0).uv * bc.u + tri.vertex(1).uv * bc.v + tri.vertex(2).uv * bc.w;
     }
 }

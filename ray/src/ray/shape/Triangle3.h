@@ -4,15 +4,11 @@
 
 #include <ray/material/TexCoords.h>
 
+#include <ray/math/BarycentricCoords.h>
 #include <ray/math/Vec3.h>
 
 namespace ray
 {
-    struct BarycentricCoords
-    {
-        float u, v, w;
-    };
-
     // Allows per vertex normals, but requires their directions
     // to be coherent with direction of cross(m_e01, m_e02).
     // NOTE: this assumption could be removed by doing one more dot in raycast

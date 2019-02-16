@@ -9,6 +9,7 @@
 #include "Vec3.h"
 
 #include <ray/shape/Box3.h>
+#include <ray/shape/ClosedTriangleMesh.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/Sphere.h>
@@ -399,6 +400,54 @@ namespace ray
         hit.shapeInPackNo = 0;
         hit.materialNo = 0;
         hit.isInside = false;
+
+        return true;
+    }
+
+    inline bool raycast(const Ray& ray, const ClosedTriangleMeshFace& tri, RaycastHit& hit)
+    {
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addObjectRaycast<Triangle3>();
+#endif
+
+        const Point3f v0 = tri.vertex(0).point;
+        const Vec3f e01 = tri.vertex(1).point - v0;
+        const Vec3f e02 = tri.vertex(2).point - v0;
+        const Vec3f pvec = cross(ray.direction(), e02);
+        const float det = dot(e01, pvec);
+
+        // ray and triangle are parallel if det is close to 0
+        if (std::abs(det) < 0.00001f) return false;
+
+        const float invDet = 1.0f / det;
+
+        const Vec3f tvec = ray.origin() - v0;
+        const float u = dot(tvec, pvec) * invDet;
+        if (u < 0.0f || u > 1.0f) return false;
+
+        const Vec3f qvec = cross(tvec, e01);
+        const float v = dot(ray.direction(), qvec) * invDet;
+        const float uv = u + v;
+        if (v < 0.0f || uv > 1.0f) return false;
+
+        const float w = 1.0f - uv;
+
+        const float t = dot(e02, qvec) * invDet;
+
+        if (t < 0.0f) return false;
+        if (t >= hit.dist) return false;
+
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gPerfStats.addObjectRaycastHit<Triangle3>();
+#endif
+        const bool isInside = det < 0.0f;
+        hit.dist = t;
+        hit.point = ray.origin() + ray.direction() * t;
+        hit.normal = (tri.vertex(0).normal * u + tri.vertex(1).normal * v + tri.vertex(2).normal * w).assumeNormalized();
+        if(isInside) hit.normal = -hit.normal;
+        hit.shapeInPackNo = 0;
+        hit.materialNo = 0;
+        hit.isInside = isInside;
 
         return true;
     }

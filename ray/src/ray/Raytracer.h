@@ -253,7 +253,7 @@ namespace ray
             // do outside->inside refraction
             const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
             const Ray nextRay(hit.point + refractionDirection * m_options.paddingDistance, refractionDirection);
-            return trace(nextRay, contribution, depth + 1, &hit, !hit.isInside);
+            return trace(nextRay, contribution, depth + 1, &hit, hit.hasVolume ? !hit.isInside : hit.isInside);
         }
 
         ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const

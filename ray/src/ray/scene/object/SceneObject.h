@@ -119,6 +119,7 @@ namespace ray
             virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
+            virtual bool isLocallyContinuable() const = 0;
             virtual Box3 aabb() const = 0;
             virtual const Material& material(int materialNo) const = 0;
             virtual bool isLight() const = 0;
@@ -168,6 +169,10 @@ namespace ray
             bool hasVolume() const override
             {
                 return ShapeTraits<ShapeT>::hasVolume;
+            }
+            bool isLocallyContinuable() const override
+            {
+                return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
             const Material& material(int materialNo) const override
             {
@@ -237,6 +242,10 @@ namespace ray
         {
             return m_obj->hasVolume();
         }
+        bool isLocallyContinuable() const
+        {
+            return m_obj->isLocallyContinuable();
+        }
 
         const Material& material(int materialNo) const
         {
@@ -265,6 +274,7 @@ namespace ray
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
+            virtual bool isLocallyContinuable() const = 0;
             virtual Box3 aabb() const = 0;
             virtual const Material& material(int materialNo) const = 0;
             virtual bool isLight() const = 0;
@@ -310,6 +320,10 @@ namespace ray
             bool hasVolume() const override
             {
                 return ShapeTraits<ShapeT>::hasVolume;
+            }
+            bool isLocallyContinuable() const override
+            {
+                return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
             const Material& material(int materialNo) const override
             {
@@ -374,6 +388,11 @@ namespace ray
             return m_obj->hasVolume();
         }
 
+        bool isLocallyContinuable() const
+        {
+            return m_obj->isLocallyContinuable();
+        }
+
         const Material& material(int materialNo) const
         {
             return m_obj->material(materialNo);
@@ -402,6 +421,7 @@ namespace ray
             virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
+            virtual bool isLocallyContinuable() const = 0;
             virtual const Material& material(int materialNo) const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
@@ -441,6 +461,10 @@ namespace ray
             bool hasVolume() const override
             {
                 return ShapeTraits<ShapeT>::hasVolume;
+            }
+            bool isLocallyContinuable() const override
+            {
+                return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
             const Material& material(int materialNo) const override
             {
@@ -501,6 +525,11 @@ namespace ray
             return m_obj->hasVolume();
         }
 
+        bool isLocallyContinuable() const
+        {
+            return m_obj->isLocallyContinuable();
+        }
+
         const Material& material(int materialNo) const
         {
             return m_obj->material(materialNo);
@@ -527,6 +556,7 @@ namespace ray
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
+            virtual bool isLocallyContinuable() const = 0;
             virtual const Material& material(int materialNo) const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
@@ -562,6 +592,10 @@ namespace ray
             bool hasVolume() const override
             {
                 return ShapeTraits<ShapeT>::hasVolume;
+            }
+            bool isLocallyContinuable() const override
+            {
+                return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
             const Material& material(int materialNo) const override
             {
@@ -614,6 +648,11 @@ namespace ray
         bool hasVolume() const
         {
             return m_obj->hasVolume();
+        }
+
+        bool isLocallyContinuable() const
+        {
+            return m_obj->isLocallyContinuable();
         }
 
         const Material& material(int materialNo) const

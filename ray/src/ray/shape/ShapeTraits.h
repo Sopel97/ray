@@ -6,6 +6,7 @@ namespace ray
     struct Plane;
     struct Sphere;
     struct Triangle3;
+    struct ClosedTriangleMeshFace;
     struct BoundedUniqueAnyShape;
     struct BoundedSharedAnyShape;
     struct UnboundedUniqueAnyShape;
@@ -22,6 +23,7 @@ namespace ray
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
         static constexpr int numMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
+        static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;
     };
 
@@ -33,6 +35,7 @@ namespace ray
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
         static constexpr int numMaterialsPerShape = 1;
         static constexpr bool hasVolume = false;
+        static constexpr bool isLocallyContinuable = false;
         static constexpr bool isBounded = false;
     };
 
@@ -44,6 +47,7 @@ namespace ray
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
         static constexpr int numMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
+        static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;
     };
 
@@ -55,6 +59,19 @@ namespace ray
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
         static constexpr int numMaterialsPerShape = 1;
         static constexpr bool hasVolume = false;
+        static constexpr bool isLocallyContinuable = false;
+        static constexpr bool isBounded = true;
+    };
+
+    template <>
+    struct ShapeTraits<ClosedTriangleMeshFace>
+    {
+        using ShapePackType = ClosedTriangleMeshFace;
+        using BaseShapeType = ClosedTriangleMeshFace; // for a pack it should be an underlying shape
+        static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
+        static constexpr int numMaterialsPerShape = 1;
+        static constexpr bool hasVolume = true;
+        static constexpr bool isLocallyContinuable = false;
         static constexpr bool isBounded = true;
     };
 
