@@ -30,6 +30,7 @@ namespace ray
     struct BoundedSharedAnyShape;
     struct UnboundedUniqueAnyShape;
     struct UnboundedSharedAnyShape;
+    struct CsgShape;
 
     namespace detail
     {
@@ -101,6 +102,206 @@ namespace ray
         ShapeType m_shape;
         MaterialStorageType m_materials;
         SceneObjectId m_id;
+    };
+
+    // Stores a tree of polymorphic volumetric shapes with boolean operations
+    // Supports shape packs as single shapes
+    // A copy is shallow, ie. all data is shared.
+    template <>
+    struct SceneObject<CsgShape>
+    {
+    private:
+        struct PolymorphicSceneObjectBase
+        {
+            virtual Point3f center() const = 0;
+            virtual bool raycastMinMax(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const = 0;
+            virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            virtual Box3 aabb() const = 0;
+            virtual const Material& material(int materialNo) const = 0;
+            virtual bool isLight() const = 0;
+            virtual SceneObjectId id() const = 0;
+        };
+
+        template <typename ShapeT>
+        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
+        {
+            static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
+            static constexpr bool isPack = numShapesInPack > 1;
+            static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
+            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
+            static constexpr bool hasVolume = ShapeTraits<ShapeT>::hasVolume;
+            static constexpr bool isLocallyContinuable = ShapeTraits<ShapeT>::isLocallyContinuable;
+            using MaterialStorageType = MaterialArrayType<ShapeT>;
+
+            static_assert(isBounded, "Must be bounded.");
+            static_assert(hasVolume, "Must have volume.");
+            static_assert(isLocallyContinuable, "Must be locally continuable.");
+
+            template <typename... ArgsTs>
+            PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
+                m_shape(std::forward<ArgsTs>(args)...),
+                m_materials(materials),
+                m_id(detail::gNextSceneObjectId.fetch_add(1))
+            {
+
+            }
+
+            Point3f center() const override
+            {
+                return m_shape.center();
+            }
+            Box3 aabb() const override
+            {
+                return m_shape.aabb();
+            }
+            bool raycast(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const override
+            {
+                return ray::raycastMinMax(ray, m_shape, hitMin, hitMax);
+            }
+            TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            {
+                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+            }
+            const Material& material(int materialNo) const override
+            {
+                return *(m_materials[materialNo]);
+            }
+            bool isLight() const override
+            {
+                for (const auto& mat : m_materials)
+                {
+                    if (mat->emissionColor.total() > 0.0001f) return true;
+                }
+                return false;
+            }
+            SceneObjectId id() const override
+            {
+                return m_id;
+            }
+
+        private:
+            ShapeT m_shape;
+            MaterialStorageType m_materials;
+            SceneObjectId m_id;
+        };
+
+        struct CsgOperation
+        {
+            virtual std::optional<std::weak_ptr<PolymorphicSceneObjectBase>> raycastMinMax(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const = 0;
+        };
+
+        struct CsgIdentity : CsgOperation
+        {
+            CsgIdentity(std::shared_ptr<PolymorphicSceneObjectBase>&& obj) :
+                m_obj(std::move(obj))
+            {
+            }
+
+            std::optional<std::weak_ptr<PolymorphicSceneObjectBase>> raycastMinMax(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const override
+            {
+                if (m_obj->raycastMinMax(ray, hitMin, hitMax))
+                {
+                    return std::weak_ptr(m_obj);
+                }
+                return std::nullopt;
+            }
+
+        private:
+            std::shared_ptr<PolymorphicSceneObjectBase> m_obj;
+        };
+
+        struct CsgUnion : CsgOperation
+        {
+            CsgUnion(std::shared_ptr<CsgOperation>&& lhs, std::shared_ptr<CsgOperation>&& rhs) :
+                m_lhs(std::move(lhs)),
+                m_rhs(std::move(rhs))
+            {
+            }
+
+            std::optional<std::weak_ptr<PolymorphicSceneObjectBase>> raycastMinMax(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const override
+            {
+                RaycastHit hitMinLhs;
+                RaycastHit hitMaxLhs;
+                auto rlhs = m_lhs->raycastMinMax(ray, hitMinLhs, hitMaxLhs);
+                RaycastHit hitMinRhs;
+                RaycastHit hitMaxRhs;
+                auto rrhs = m_lhs->raycastMinMax(ray, hitMinRhs, hitMaxRhs);
+                if (rlhs && rrhs)
+                {
+                    if (hitMinLhs.dist < 0.0f)
+                    {
+                        // we're inside
+                        // find maximum of lhs max and rhs max
+
+                    }
+                    else
+                    {
+                        // we're outside
+                        // find minimum of lhs min and rhs min
+                    }
+                }
+                else if(rlhs)
+                {
+                    // we only hit left
+
+                }
+                else if (rrhs)
+                {
+                    // we only hit right
+                }
+                else
+                {
+                    // we hit nothing
+                    return std::nullopt;
+                }
+            }
+
+        private:
+            std::shared_ptr<CsgOperation> m_lhs;
+            std::shared_ptr<CsgOperation> m_rhs;
+        };
+
+    public:
+        using ShapeType = CsgShape;
+
+        template <typename ShapeT>
+        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
+            m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
+        {
+
+        }
+
+        std::optional<std::weak_ptr<PolymorphicSceneObjectBase>> raycast(const Ray& ray, RaycastHit& hit) const
+        {
+            RaycastHit hitMin;
+            RaycastHit hitMax;
+            auto r = m_obj->raycastMinMax(ray, hitMin, hitMax);
+            if (r)
+            {
+                if (hitMin.dist < 0.0f)
+                {
+                    hit = hitMax;
+                }
+                else
+                {
+                    hit = hitMin;
+                }
+            }
+            return r;
+        }
+
+        bool hasVolume() const
+        {
+            return true;
+        }
+
+        bool isLocallyContinuable() const
+        {
+            return true;
+        }
+
+    private:
+        std::shared_ptr<CsgOperation> m_obj;
     };
 
     // TODO: think how to merge the following cases nicely
