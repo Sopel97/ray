@@ -374,15 +374,15 @@ namespace ray
         const float invDet = 1.0f / det;
 
         const Vec3f tvec = ray.origin() - tri.v0();
-        const float u = dot(tvec, pvec) * invDet;
-        if (u < 0.0f || u > 1.0f) return false;
+        const float v = dot(tvec, pvec) * invDet;
+        if (v < 0.0f || v > 1.0f) return false;
 
         const Vec3f qvec = cross(tvec, tri.e01());
-        const float v = dot(ray.direction(), qvec) * invDet;
-        const float uv = u + v;
-        if (v < 0.0f || uv > 1.0f) return false;
+        const float w = dot(ray.direction(), qvec) * invDet;
+        const float wv = v + w;
+        if (w < 0.0f || wv > 1.0f) return false;
 
-        const float w = 1.0f - uv;
+        const float u = 1.0f - wv;
 
         const float t = dot(tri.e02(), qvec) * invDet;
 
@@ -395,7 +395,7 @@ namespace ray
 
         hit.dist = t;
         hit.point = ray.origin() + ray.direction() * t;
-        hit.normal = (tri.normal(0) * u + tri.normal(1) * v + tri.normal(2) * w).assumeNormalized();
+        hit.normal = (tri.normal(0) * u + tri.normal(1) * v + tri.normal(2) * w).normalized();
         if (det < 0.0f) hit.normal = -hit.normal;
         hit.shapeInPackNo = 0;
         hit.materialNo = 0;
@@ -422,15 +422,15 @@ namespace ray
         const float invDet = 1.0f / det;
 
         const Vec3f tvec = ray.origin() - v0;
-        const float u = dot(tvec, pvec) * invDet;
-        if (u < 0.0f || u > 1.0f) return false;
+        const float v = dot(tvec, pvec) * invDet;
+        if (v < 0.0f || v > 1.0f) return false;
 
         const Vec3f qvec = cross(tvec, e01);
-        const float v = dot(ray.direction(), qvec) * invDet;
-        const float uv = u + v;
-        if (v < 0.0f || uv > 1.0f) return false;
+        const float w = dot(ray.direction(), qvec) * invDet;
+        const float wv = v + w;
+        if (w < 0.0f || wv > 1.0f) return false;
 
-        const float w = 1.0f - uv;
+        const float u = 1.0f - wv;
 
         const float t = dot(e02, qvec) * invDet;
 
@@ -443,7 +443,7 @@ namespace ray
         const bool isInside = det < 0.0f;
         hit.dist = t;
         hit.point = ray.origin() + ray.direction() * t;
-        hit.normal = (tri.vertex(0).normal * u + tri.vertex(1).normal * v + tri.vertex(2).normal * w).assumeNormalized();
+        hit.normal = (tri.vertex(0).normal * u + tri.vertex(1).normal * v + tri.vertex(2).normal * w).normalized();
         if(isInside) hit.normal = -hit.normal;
         hit.shapeInPackNo = 0;
         hit.materialNo = 0;

@@ -71,6 +71,8 @@ namespace ray
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
         static constexpr int numMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
+        // TODO: think if it can be somehow made semi-locally continuable
+        //       the raytracer and storage would have to know that it's a mesh and know all its faces
         static constexpr bool isLocallyContinuable = false;
         static constexpr bool isBounded = true;
     };

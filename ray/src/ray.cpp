@@ -43,69 +43,114 @@
 
 using namespace ray;
 
-ClosedTriangleMesh createIcosahedron(const Vec3f& offset, float radius, const Material* material)
+struct Index3
 {
-    ClosedTriangleMesh mesh;
-
-    const float t = (1.0f + std::sqrt(5.0f)) * 0.5f *radius;
-
-    std::vector<Point3f> vertices;
-    vertices.emplace_back(-radius, t, 0.0f);
-    vertices.emplace_back(radius, t, 0.0f);
-    vertices.emplace_back(-radius, -t, 0.0f);
-    vertices.emplace_back(radius, -t, 0.0f);
-
-    vertices.emplace_back(0.0f, -radius, t);
-    vertices.emplace_back(0.0f, radius, t);
-    vertices.emplace_back(0.0f, -radius, -t);
-    vertices.emplace_back(0.0f, radius, -t);
-
-    vertices.emplace_back(t, 0.0f, -radius);
-    vertices.emplace_back(t, 0.0f, radius);
-    vertices.emplace_back(-t, 0.0f, -radius);
-    vertices.emplace_back(-t, 0.0f, radius);
-
-    std::vector<Vec3<int>> faces;
-    // 5 faces around point 0
-    faces.emplace_back(0, 11, 5);
-    faces.emplace_back(0, 5, 1);
-    faces.emplace_back(0, 1, 7);
-    faces.emplace_back(0, 7, 10);
-    faces.emplace_back(0, 10, 11);
-
-    // 5 adjacent faces
-    faces.emplace_back(1, 5, 9);
-    faces.emplace_back(5, 11, 4);
-    faces.emplace_back(11, 10, 2);
-    faces.emplace_back(10, 7, 6);
-    faces.emplace_back(7, 1, 8);
-
-    // 5 faces around point 3
-    faces.emplace_back(3, 9, 4);
-    faces.emplace_back(3, 4, 2);
-    faces.emplace_back(3, 2, 6);
-    faces.emplace_back(3, 6, 8);
-    faces.emplace_back(3, 8, 9);
-
-    // 5 adjacent faces
-    faces.emplace_back(4, 9, 5);
-    faces.emplace_back(2, 4, 11);
-    faces.emplace_back(6, 2, 10);
-    faces.emplace_back(8, 6, 7);
-    faces.emplace_back(9, 8, 1);
-
-    for (Vec3<int> face : faces)
+    Index3(int i, int j, int k) :
+        i(i),
+        j(j),
+        k(k)
     {
-        Vec3f centerOffset = (Vec3f(vertices[face.x]) + Vec3f(vertices[face.y]) + Vec3f(vertices[face.z])) * 0.333333333333f;
-        Normal3f normal = centerOffset.normalized();
-        mesh.addVertex(ClosedTriangleMeshVertex{ vertices[face.x] + offset, normal, {} });
-        mesh.addVertex(ClosedTriangleMeshVertex{ vertices[face.y] + offset, normal, {} });
-        mesh.addVertex(ClosedTriangleMeshVertex{ vertices[face.z] + offset, normal, {} });
     }
 
-    for (int i = 0; i < faces.size(); ++i)
+    int i, j, k;
+};
+
+struct RawTriangleMesh
+{
+    std::vector<Point3f> vertices;
+    std::vector<Index3> faces;
+};
+
+RawTriangleMesh createRawIcosahedron(const Vec3f& offset, float radius)
+{
+    RawTriangleMesh mesh;
+
+    const float t = (1.0f + std::sqrt(5.0f)) * 0.5f * radius;
+
+    mesh.vertices.emplace_back(-radius, t, 0.0f);
+    mesh.vertices.emplace_back(radius, t, 0.0f);
+    mesh.vertices.emplace_back(-radius, -t, 0.0f);
+    mesh.vertices.emplace_back(radius, -t, 0.0f);
+
+    mesh.vertices.emplace_back(0.0f, -radius, t);
+    mesh.vertices.emplace_back(0.0f, radius, t);
+    mesh.vertices.emplace_back(0.0f, -radius, -t);
+    mesh.vertices.emplace_back(0.0f, radius, -t);
+
+    mesh.vertices.emplace_back(t, 0.0f, -radius);
+    mesh.vertices.emplace_back(t, 0.0f, radius);
+    mesh.vertices.emplace_back(-t, 0.0f, -radius);
+    mesh.vertices.emplace_back(-t, 0.0f, radius);
+
+    // 5 faces around point 0
+    mesh.faces.emplace_back(0, 11, 5);
+    mesh.faces.emplace_back(0, 5, 1);
+    mesh.faces.emplace_back(0, 1, 7);
+    mesh.faces.emplace_back(0, 7, 10);
+    mesh.faces.emplace_back(0, 10, 11);
+
+    // 5 adjacent faces
+    mesh.faces.emplace_back(1, 5, 9);
+    mesh.faces.emplace_back(5, 11, 4);
+    mesh.faces.emplace_back(11, 10, 2);
+    mesh.faces.emplace_back(10, 7, 6);
+    mesh.faces.emplace_back(7, 1, 8);
+
+    // 5 faces around point 3
+    mesh.faces.emplace_back(3, 9, 4);
+    mesh.faces.emplace_back(3, 4, 2);
+    mesh.faces.emplace_back(3, 2, 6);
+    mesh.faces.emplace_back(3, 6, 8);
+    mesh.faces.emplace_back(3, 8, 9);
+
+    // 5 adjacent faces
+    mesh.faces.emplace_back(4, 9, 5);
+    mesh.faces.emplace_back(2, 4, 11);
+    mesh.faces.emplace_back(6, 2, 10);
+    mesh.faces.emplace_back(8, 6, 7);
+    mesh.faces.emplace_back(9, 8, 1);
+
+    return mesh;
+}
+
+ClosedTriangleMesh createIcosahedron(const Vec3f& offset, float radius, const Material* material)
+{
+    RawTriangleMesh basicMesh = createRawIcosahedron(offset, radius);
+
+    ClosedTriangleMesh mesh;
+
+    for (const Index3& face : basicMesh.faces)
     {
-        mesh.addFace(3*i, 3 * i+1, 3 * i+2, material);
+        Vec3f centerOffset = (Vec3f(basicMesh.vertices[face.i]) + Vec3f(basicMesh.vertices[face.j]) + Vec3f(basicMesh.vertices[face.k])) * 0.333333333333f;
+        Normal3f normal = centerOffset.normalized();
+        mesh.addVertex(ClosedTriangleMeshVertex{ basicMesh.vertices[face.i] + offset, normal, {} });
+        mesh.addVertex(ClosedTriangleMeshVertex{ basicMesh.vertices[face.j] + offset, normal, {} });
+        mesh.addVertex(ClosedTriangleMeshVertex{ basicMesh.vertices[face.k] + offset, normal, {} });
+    }
+
+    for (int i = 0; i < basicMesh.faces.size(); ++i)
+    {
+        mesh.addFace(3*i, 3*i+1, 3*i+2, material);
+    }
+
+    return mesh;
+}
+
+ClosedTriangleMesh createSmoothIcosahedron(const Vec3f& offset, float radius, const Material* material)
+{
+    RawTriangleMesh basicMesh = createRawIcosahedron(offset, radius);
+
+    ClosedTriangleMesh mesh;
+
+    for (const Point3f& vertex : basicMesh.vertices)
+    {
+        Normal3f normal = Vec3f(vertex).normalized();
+        mesh.addVertex(ClosedTriangleMeshVertex{ vertex + offset, normal, {} });
+    }
+
+    for (const Index3& face : basicMesh.faces)
+    {
+        mesh.addFace(face.i, face.j, face.k, material);
     }
 
     return mesh;
@@ -117,15 +162,6 @@ int main()
     constexpr int height = 1080;
 
     sf::RenderWindow window(sf::VideoMode(width, height), "ray");
-
-    /*
-        ColorRGBf surfaceColor;
-        ColorRGBf emissionColor;
-        float transparency;
-        float refractiveIndex;
-        float reflectivity;
-        float diffuse;
-    */
 
     TextureDatabase texDb;
     texDb.emplace<SquarePattern>("square-pattern", ColorRGBf(0.8f, 0.8f, 0.8f), ColorRGBf(0.6f, 0.6f, 0.6f), 0.25f);
@@ -142,7 +178,7 @@ int main()
     auto& m5 = matDb.emplace("mat5", ColorRGBf(0.90, 0.90, 0.90), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f, ColorRGBf(0, 0, 0));
     auto& m6 = matDb.emplace("mat6", ColorRGBf(0.00, 0.00, 0.00), ColorRGBf(3, 3, 3), 0.0f, 1.1f, 0.0f, 0.0f, ColorRGBf(0, 0, 0));
     auto& m7 = matDb.emplace("mat7", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 1.13f, 0.05f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
-    auto& m7a = matDb.emplace("mat7", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 1.0f, 0.0f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
+    auto& m7a = matDb.emplace("mat7a", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.0f, 1.0f, 1.0f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
     auto& m8 = matDb.emplace("mat8", ColorRGBf(0.9f, 0.9f, 0.9f), ColorRGBf(0, 0, 0), 0.0f, 1.13f, 1.0f, 0.0f, ColorRGBf(0, 0, 0));
 
     //*
@@ -153,7 +189,8 @@ int main()
     std::vector<SceneObject<Triangle3>> tris;
     std::vector<SceneObject<ClosedTriangleMeshFace>> closedTris;
 
-    ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7a);
+    //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
+    ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
 
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
