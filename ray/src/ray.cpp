@@ -178,7 +178,7 @@ int main()
     auto& m5 = matDb.emplace("mat5", ColorRGBf(0.90, 0.90, 0.90), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f, ColorRGBf(0, 0, 0));
     auto& m6 = matDb.emplace("mat6", ColorRGBf(0.00, 0.00, 0.00), ColorRGBf(3, 3, 3), 0.0f, 1.1f, 0.0f, 0.0f, ColorRGBf(0, 0, 0));
     auto& m7 = matDb.emplace("mat7", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 1.13f, 0.05f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
-    auto& m7a = matDb.emplace("mat7a", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.0f, 1.0f, 1.0f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
+    auto& m7a = matDb.emplace("mat7a", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 1.0f, 1.0f, 0.0f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
     auto& m8 = matDb.emplace("mat8", ColorRGBf(0.9f, 0.9f, 0.9f), ColorRGBf(0, 0, 0), 0.0f, 1.13f, 1.0f, 0.0f, ColorRGBf(0, 0, 0));
 
     //*
@@ -188,6 +188,7 @@ int main()
     std::vector<SceneObject<Box3>> boxes;
     std::vector<SceneObject<Triangle3>> tris;
     std::vector<SceneObject<ClosedTriangleMeshFace>> closedTris;
+    std::vector<SceneObject<CsgShape>> csgs;
 
     //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
     ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
@@ -238,10 +239,22 @@ int main()
     tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 17 - 10, -10), Point3f(20, 17 - 10, -10), Point3f(10, 17 - 10, -20)), { &m11 }));
     tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 18 - 10, -10), Point3f(20, 18 - 10, -10), Point3f(10, 18 - 10, -20)), { &m11 }));
 
-    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace>;
+    auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { &m7 });
+    auto sumPart2 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -7), 3.5), { &m7 });
+    // TODO: investigate why this looks like normals were flipped (sphere below looks ok?).
+    //       maybe box normals are calculated wrong?
+    //       maybe the second raycast to retrieve the normal is wrong?
+    auto subPart3 = SceneObject<CsgShape>(Box3(Point3f(-1.5, -2, -7), Point3f(1.5, 2, -3.5)), { &m7 });
+    //auto subPart3 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -5), 2.0), { &m7 });
+    csgs.emplace_back((sumPart1 | sumPart2) - subPart3);
+    //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
+    //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
+    //csgs.emplace_back(lensPart1 | lensPart2);
+
+    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
-    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris));
+    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs));
     //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
     StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/

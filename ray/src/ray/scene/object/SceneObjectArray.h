@@ -257,6 +257,11 @@ namespace ray
             return static_cast<int>(m_objects.size());
         }
 
+        SceneObjectId id(int shapeNo) const
+        {
+            return m_objects[shapeNo].id();
+        }
+
         bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
         {
             const int size = static_cast<int>(m_objects.size());

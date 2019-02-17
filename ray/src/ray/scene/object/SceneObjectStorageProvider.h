@@ -38,6 +38,12 @@ namespace ray
             using Type = SceneObjectArray<UnboundedUniqueAnyShape>;
         };
 
+        template <>
+        struct Storage<CsgShape>
+        {
+            using Type = SceneObjectArray<CsgShape>;
+        };
+
         template <typename ShapeT>
         using ArrayType = typename Storage<ShapeT>::Type;
     };

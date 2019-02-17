@@ -6,6 +6,7 @@
 #include <ray/material/TexCoords.h>
 
 #include <ray/math/Interval.h>
+#include <ray/math/Raycast.h>
 #include <ray/math/RaycastHit.h>
 #include <ray/math/Vec3.h>
 
@@ -16,8 +17,8 @@
 
 #include <array>
 #include <atomic>
-#include <memory>
 #include <optional>
+#include <memory>
 
 namespace ray
 {
@@ -113,11 +114,19 @@ namespace ray
     template <>
     struct SceneObject<CsgShape>
     {
+        struct PolymorphicSceneObjectBase;
+
+        struct Data
+        {
+            const PolymorphicSceneObjectBase* shape;
+            bool invert;
+        };
+
         struct PolymorphicSceneObjectBase
         {
             virtual Point3f center() const = 0;
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            virtual bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const = 0;
+            virtual bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual Box3 aabb() const = 0;
             virtual const Material& material(int materialNo) const = 0;
@@ -162,9 +171,9 @@ namespace ray
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const override
+            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
             {
-                return ray::raycastIntervals(ray, m_shape, hitIntervals, this);
+                return ray::raycastIntervals<Data>(ray, m_shape, hitIntervals, { this, invert });
             }
             TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
@@ -195,7 +204,8 @@ namespace ray
 
         struct CsgOperation
         {
-            virtual bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const = 0;
+            virtual bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const = 0;
+            virtual Box3 aabb() const = 0;
         };
 
         struct CsgIdentity : CsgOperation
@@ -205,9 +215,14 @@ namespace ray
             {
             }
 
-            bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const override
+            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
             {
-                return m_obj->raycastIntervals(ray, hitIntervals);
+                return m_obj->raycastIntervals(ray, hitIntervals, invert);
+            }
+
+            Box3 aabb() const override
+            {
+                return m_obj->aabb();
             }
 
         private:
@@ -216,23 +231,28 @@ namespace ray
 
         struct CsgUnion : CsgOperation
         {
-            CsgUnion(std::shared_ptr<CsgOperation>&& lhs, std::shared_ptr<CsgOperation>&& rhs) :
+            CsgUnion(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
                 m_lhs(std::move(lhs)),
                 m_rhs(std::move(rhs))
             {
             }
 
-            bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const override
+            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
             {
-                thread_local IntervalSet<const PolymorphicSceneObjectBase*> rhsHitIntervals;
-                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals);
-                auto rrhs = m_lhs->raycastIntervals(ray, rhsHitIntervals);
-                if (rlhs || rrhs)
-                {
-                    hitIntervals |= rhsHitIntervals;
-                    return true;
-                }
-                return false;
+                // TODO: can't be thread_local because this function is reentrant
+                //       somehow reduce allocations (pass a scratch one as param?)
+                IntervalSet<Data> rhsHitIntervals;
+                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, invert);
+                auto rrhs = m_rhs->raycastIntervals(ray, rhsHitIntervals, invert);
+                hitIntervals |= rhsHitIntervals;
+                return !hitIntervals.isEmpty();
+            }
+
+            Box3 aabb() const override
+            {
+                Box3 b = m_lhs->aabb();
+                b.extend(m_rhs->aabb());
+                return b;
             }
 
         private:
@@ -240,19 +260,97 @@ namespace ray
             std::shared_ptr<CsgOperation> m_rhs;
         };
 
+        struct CsgIntersection : CsgOperation
+        {
+            CsgIntersection(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
+                m_lhs(std::move(lhs)),
+                m_rhs(std::move(rhs))
+            {
+            }
+
+            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
+            {
+                IntervalSet<Data> rhsHitIntervals;
+                auto rrhs = m_rhs->raycastIntervals(ray, rhsHitIntervals, invert);
+                if (!rrhs) return false;
+                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, invert);
+                if (!rlhs) return false;
+
+                hitIntervals &= rhsHitIntervals;
+                return true;
+            }
+
+            Box3 aabb() const override
+            {
+                Box3 b = m_lhs->aabb();
+                b.extend(m_rhs->aabb());
+                return b;
+            }
+
+        private:
+            std::shared_ptr<CsgOperation> m_lhs;
+            std::shared_ptr<CsgOperation> m_rhs;
+        };
+
+        struct CsgDifference : CsgOperation
+        {
+            CsgDifference(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
+                m_lhs(std::move(lhs)),
+                m_rhs(std::move(rhs))
+            {
+            }
+
+            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
+            {
+                IntervalSet<Data> rhsHitIntervals;
+                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, invert);
+                if (!rlhs) return false;
+                auto rrhs = m_rhs->raycastIntervals(ray, rhsHitIntervals, !invert);
+                if (!rrhs)
+                {
+                    return true;
+                }
+                else
+                {
+                    hitIntervals -= rhsHitIntervals;
+                    return true;
+                }
+            }
+
+            Box3 aabb() const override
+            {
+                Box3 b = m_lhs->aabb();
+                b.extend(m_rhs->aabb());
+                return b;
+            }
+
+        private:
+            std::shared_ptr<CsgOperation> m_lhs;
+            std::shared_ptr<CsgOperation> m_rhs;
+        };
+
+        SceneObject(std::shared_ptr<CsgOperation> op) :
+            m_obj(op),
+            m_id(detail::gNextSceneObjectId.fetch_add(1))
+        {
+
+        }
+
     public:
         using ShapeType = CsgShape;
 
         template <typename ShapeT>
         SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
-            m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
+            m_obj(std::make_shared<CsgIdentity>(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))),
+            m_id(detail::gNextSceneObjectId.fetch_add(1))
         {
 
         }
 
         const PolymorphicSceneObjectBase* raycast(const Ray& ray, RaycastHit& hit) const
         {
-            thread_local IntervalSet<const PolymorphicSceneObjectBase*> hitIntervals;
+            thread_local IntervalSet<Data> hitIntervals;
+            hitIntervals.clear();
             m_obj->raycastIntervals(ray, hitIntervals);
             for (const auto& interval : hitIntervals)
             {
@@ -266,20 +364,34 @@ namespace ray
                 // distance will be required. Or just collect all hits on the way - may be too expensive.
                 if (interval.min > 0.0f)
                 {
-                    RaycastHit hit;
-                    hit.dist = std::numeric_limits<float>::max();
-                    interval.minData->raycast(ray.translated(ray.direction() * (interval.min - 0.001f)), hit);
-                    return interval.minData;
+                    hit.dist -= (interval.min - 0.001f);
+                    bool b = interval.minData.shape->raycast(ray.translated(ray.direction() * (interval.min - 0.001f)), hit);
+                    hit.dist += (interval.min - 0.001f);
+                    if (b && interval.minData.invert) hit.isInside = !hit.isInside;
+                    //if (b && interval.minData.invert) hit.normal = -hit.normal; // ???
+                    return b ? interval.minData.shape : nullptr;
                 }
                 else if (interval.max > 0.0f)
                 {
-                    RaycastHit hit;
-                    hit.dist = std::numeric_limits<float>::max();
-                    interval.maxData->raycast(ray.translated(ray.direction() * (interval.max - 0.001f)), hit);
-                    return interval.maxData;
+                    hit.dist -= (interval.max - 0.001f);
+                    bool b = interval.maxData.shape->raycast(ray.translated(ray.direction() * (interval.max - 0.001f)), hit);
+                    hit.dist += (interval.max - 0.001f);
+                    if (b && interval.maxData.invert) hit.isInside = !hit.isInside;
+                    //if (b && interval.maxData.invert) hit.normal = -hit.normal; // ???
+                    return b ? interval.maxData.shape : nullptr;
                 }
             }
             return nullptr;
+        }
+
+        decltype(auto) aabb() const
+        {
+            return m_obj->aabb();
+        }
+
+        decltype(auto) center() const
+        {
+            return aabb().center();
         }
 
         bool hasVolume() const
@@ -292,8 +404,35 @@ namespace ray
             return true;
         }
 
+        // TODO: maybe this properly
+        bool isLight() const
+        {
+            return false;
+        }
+
+        SceneObjectId id() const
+        {
+            return m_id;
+        }
+
+        friend SceneObject<CsgShape> operator|(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
+        {
+            return SceneObject<CsgShape>(std::make_shared<CsgUnion>(lhs.m_obj, rhs.m_obj));
+        }
+
+        friend SceneObject<CsgShape> operator&(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
+        {
+            return SceneObject<CsgShape>(std::make_shared<CsgIntersection>(lhs.m_obj, rhs.m_obj));
+        }
+
+        friend SceneObject<CsgShape> operator-(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
+        {
+            return SceneObject<CsgShape>(std::make_shared<CsgDifference>(lhs.m_obj, rhs.m_obj));
+        }
+
     private:
         std::shared_ptr<CsgOperation> m_obj;
+        SceneObjectId m_id;
     };
 
     // TODO: think how to merge the following cases nicely

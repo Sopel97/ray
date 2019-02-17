@@ -3,6 +3,7 @@
 #include <ray/math/Vec3.h>
 
 #include <array>
+#include <cmath>
 
 namespace ray
 {
@@ -16,7 +17,7 @@ namespace ray
         Ray(const Point3f& origin, const Normal3f& direction) :
             m_origin(origin),
             m_direction(direction),
-            m_invDirection(rcp(m_direction)),
+            m_invDirection(safeInv(m_direction)),
             m_signs(m_direction < 0.0f)
         {
 
@@ -50,7 +51,7 @@ namespace ray
         void setDirection(const Normal3f& newDirection)
         {
             m_direction = newDirection;
-            m_invDirection = rcp(m_direction);
+            m_invDirection = safeInv(m_direction);
             m_signs = m_direction < 0.0f;
         }
 
@@ -69,5 +70,14 @@ namespace ray
         Normal3f m_direction;
         Vec3f m_invDirection;
         Vec3Mask<float> m_signs;
+
+        Vec3f safeInv(const Normal3f& n) const
+        {
+            Vec3f nv(n);
+            if (std::abs(nv.x) < 0.00001f) nv.x = 0.00001f;
+            if (std::abs(nv.y) < 0.00001f) nv.y = 0.00001f;
+            if (std::abs(nv.z) < 0.00001f) nv.z = 0.00001f;
+            return rcp(nv);
+        }
     };
 }

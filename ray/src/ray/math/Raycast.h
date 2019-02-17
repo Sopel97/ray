@@ -186,11 +186,9 @@ namespace ray
         const Point3f C = sphere.center();
         const float R = sphere.radius();
 
-
         const Vec3f L = C - O;
-        if (L.lengthSqr() - R >= hit.dist * hit.dist) return false;
         const float t_ca = dot(L, D);
-        if (t_ca < 0.0f) return false;
+        //if (t_ca < 0.0f) return false;
 
         const float d2 = dot(L, L) - t_ca * t_ca;
         const float r = R * R - d2;
@@ -207,7 +205,7 @@ namespace ray
         // and that t2 is greater
         bool isInside = t < 0.0f;
         if (isInside) t = t_ca + t_hc;
-        if (t >= hit.dist) return false;
+        if (t < 0.0f || t >= hit.dist) return false;
         const Point3f hitPoint = O + t * D;
         Normal3f normal = ((hitPoint - C) / R).assumeNormalized();
         if (isInside) normal = -normal;
@@ -459,6 +457,7 @@ namespace ray
     template <typename DataT>
     inline bool raycastIntervals(const Ray& ray, const Sphere& sphere, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
+
         const Point3f O = ray.origin();
         const Normal3f D = ray.direction();
         const Point3f C = sphere.center();
@@ -466,7 +465,7 @@ namespace ray
 
         const Vec3f L = C - O;
         const float t_ca = dot(L, D);
-        if (t_ca < 0.0f) return false;
+        // if (t_ca < 0.0f) return false;
 
         const float d2 = dot(L, L) - t_ca * t_ca;
         const float r = R * R - d2;
@@ -486,7 +485,7 @@ namespace ray
         const float tmin = min(t0, t1).max();
         const float tmax = max(t0, t1).min();
 
-        if (tmin <= tmax)
+        if (tmin < tmax)
         {
             hitIntervals.pushBack(Interval<DataT>{tmin, tmax, data, data});
             return true;

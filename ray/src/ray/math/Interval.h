@@ -89,6 +89,11 @@ namespace ray
             return m_intervals.cend();
         }
 
+        void clear()
+        {
+            m_intervals.clear();
+        }
+
         bool operator==(const IntervalSet<DataT>& rhs) const noexcept
         {
             if (size() != rhs.size()) return false;

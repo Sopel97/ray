@@ -11,6 +11,7 @@ namespace ray
     struct BoundedSharedAnyShape;
     struct UnboundedUniqueAnyShape;
     struct UnboundedSharedAnyShape;
+    struct CsgShape;
 
     template <typename ShapeT>
     struct ShapeTraits;
@@ -99,6 +100,12 @@ namespace ray
     struct ShapeTraits<UnboundedSharedAnyShape>
     {
         static constexpr bool isBounded = false;
+    };
+
+    template <>
+    struct ShapeTraits<CsgShape>
+    {
+        static constexpr bool isBounded = true;
     };
 
     struct ShapePredicates

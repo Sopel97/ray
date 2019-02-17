@@ -27,7 +27,7 @@ namespace ray
             // Used to ensure for example that the hit point is
             // not considered obstructed by the shape it is on
             // due to floating point inaccuracies
-            float paddingDistance = 0.0001f;
+            float paddingDistance = 0.002f;
             int maxRayDepth = 5;
             float airRefractiveIndex = 1.00027717f;
             
@@ -105,10 +105,25 @@ namespace ray
 
             ResolvableRaycastHit rhit;
             rhit.dist = std::numeric_limits<float>::max();
-            bool anyHit =
-                isInside && m_options.assumeNoVolumeIntersections && prevHit && prevHit->isLocallyContinuable // if we're not inside we can't locally continue, even if shape allows that
-                ? prevHit->next(ray, rhit)
-                : m_scene->queryNearest(ray, rhit);
+            bool anyHit = false;
+            if (isInside && m_options.assumeNoVolumeIntersections && prevHit && prevHit->isLocallyContinuable)
+            {
+                // if we're not inside we can't locally continue, even if shape allows that
+                anyHit = prevHit->next(ray, rhit);
+                if (!anyHit)
+                {
+                    isInside = false;
+                }
+            }
+
+            // if it didn't hit locally again (due to fp precision)
+            // assume the ray is past the shape (shape was thinner than paddingDistance)
+            // mark as if we are not inside anymore
+            // do a full raycast
+            if (!anyHit)
+            {
+                anyHit = m_scene->queryNearest(ray, rhit);
+            }
             if (!anyHit) return m_scene->backgroundColor();
 
 #if defined(RAY_GATHER_PERF_STATS)
