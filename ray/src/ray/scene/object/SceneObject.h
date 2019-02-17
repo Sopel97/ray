@@ -5,6 +5,7 @@
 #include <ray/material/Material.h>
 #include <ray/material/TexCoords.h>
 
+#include <ray/math/Interval.h>
 #include <ray/math/RaycastHit.h>
 #include <ray/math/Vec3.h>
 
@@ -114,7 +115,8 @@ namespace ray
         struct PolymorphicSceneObjectBase
         {
             virtual Point3f center() const = 0;
-            virtual bool raycastMinMax(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const = 0;
+            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
+            virtual bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual Box3 aabb() const = 0;
             virtual const Material& material(int materialNo) const = 0;
@@ -154,9 +156,13 @@ namespace ray
             {
                 return m_shape.aabb();
             }
-            bool raycast(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const override
+            bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
-                return ray::raycastMinMax(ray, m_shape, hitMin, hitMax);
+                return ray::raycast(ray, m_shape, hit);
+            }
+            bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const override
+            {
+                return ray::raycastIntervals(ray, m_shape, hitIntervals);
             }
             TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
@@ -187,7 +193,7 @@ namespace ray
 
         struct CsgOperation
         {
-            virtual std::optional<std::weak_ptr<PolymorphicSceneObjectBase>> raycastMinMax(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const = 0;
+            virtual bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const = 0;
         };
 
         struct CsgIdentity : CsgOperation
@@ -197,13 +203,9 @@ namespace ray
             {
             }
 
-            std::optional<std::weak_ptr<PolymorphicSceneObjectBase>> raycastMinMax(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const override
+            bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const override
             {
-                if (m_obj->raycastMinMax(ray, hitMin, hitMax))
-                {
-                    return std::weak_ptr(m_obj);
-                }
-                return std::nullopt;
+                return m_obj->raycastIntervals(ray, hitIntervals);
             }
 
         private:
@@ -218,42 +220,17 @@ namespace ray
             {
             }
 
-            std::optional<std::weak_ptr<PolymorphicSceneObjectBase>> raycastMinMax(const Ray& ray, RaycastHit& hitMin, RaycastHit& hitMax) const override
+            bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const override
             {
-                RaycastHit hitMinLhs;
-                RaycastHit hitMaxLhs;
-                auto rlhs = m_lhs->raycastMinMax(ray, hitMinLhs, hitMaxLhs);
-                RaycastHit hitMinRhs;
-                RaycastHit hitMaxRhs;
-                auto rrhs = m_lhs->raycastMinMax(ray, hitMinRhs, hitMaxRhs);
-                if (rlhs && rrhs)
+                thread_local IntervalSet<const PolymorphicSceneObjectBase*> rhsHitIntervals;
+                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals);
+                auto rrhs = m_lhs->raycastIntervals(ray, rhsHitIntervals);
+                if (rlhs || rrhs)
                 {
-                    if (hitMinLhs.dist < 0.0f)
-                    {
-                        // we're inside
-                        // find maximum of lhs max and rhs max
-
-                    }
-                    else
-                    {
-                        // we're outside
-                        // find minimum of lhs min and rhs min
-                    }
+                    hitIntervals |= rhsHitIntervals;
+                    return true;
                 }
-                else if(rlhs)
-                {
-                    // we only hit left
-
-                }
-                else if (rrhs)
-                {
-                    // we only hit right
-                }
-                else
-                {
-                    // we hit nothing
-                    return std::nullopt;
-                }
+                return false;
             }
 
         private:
@@ -271,23 +248,28 @@ namespace ray
 
         }
 
-        std::optional<std::weak_ptr<PolymorphicSceneObjectBase>> raycast(const Ray& ray, RaycastHit& hit) const
+        bool raycast(const Ray& ray, RaycastHit& hit) const
         {
-            RaycastHit hitMin;
-            RaycastHit hitMax;
-            auto r = m_obj->raycastMinMax(ray, hitMin, hitMax);
-            if (r)
+            thread_local IntervalSet<const PolymorphicSceneObjectBase*> hitIntervals;
+            auto r = m_obj->raycastIntervals(ray, hitIntervals);
+            for (const auto& interval : hitIntervals)
             {
-                if (hitMin.dist < 0.0f)
+                if (interval.min > 0.0f)
                 {
-                    hit = hitMax;
+                    RaycastHit hit;
+                    hit.dist = std::numeric_limits<float>::max();
+                    interval.minData->raycast(ray.translated(ray.direction() * (interval.min - 0.001f)), hit);
+                    return true;
                 }
-                else
+                else if (interval.max > 0.0f)
                 {
-                    hit = hitMin;
+                    RaycastHit hit;
+                    hit.dist = std::numeric_limits<float>::max();
+                    interval.maxData->raycast(ray.translated(ray.direction() * (interval.max - 0.001f)), hit);
+                    return true;
                 }
             }
-            return r;
+            return false;
         }
 
         bool hasVolume() const
