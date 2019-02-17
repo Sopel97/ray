@@ -4,6 +4,7 @@
 #include <ray/perf/PerformanceStats.h>
 #endif
 
+#include "Interval.h"
 #include "Ray.h"
 #include "RaycastHit.h"
 #include "Vec3.h"
@@ -450,5 +451,47 @@ namespace ray
         hit.isInside = isInside;
 
         return true;
+    }
+
+    // Interval raycasts
+
+    // TODO: somehow make the data be assigned elsewhere
+    template <typename DataT>
+    inline bool raycastIntervals(const Ray& ray, const Sphere& sphere, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    {
+        const Point3f O = ray.origin();
+        const Normal3f D = ray.direction();
+        const Point3f C = sphere.center();
+        const float R = sphere.radius();
+
+        const Vec3f L = C - O;
+        const float t_ca = dot(L, D);
+        if (t_ca < 0.0f) return false;
+
+        const float d2 = dot(L, L) - t_ca * t_ca;
+        const float r = R * R - d2;
+        if (r < 0.0f) return false;
+        const float t_hc = std::sqrt(r);
+
+        hitIntervals.pushBack(Interval<DataT>{t_ca - t_hc, t_ca + t_hc, data, data});
+        return true;
+    }
+
+    template <typename DataT>
+    inline bool raycastIntervals(const Ray& ray, const Box3& box, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    {
+        const Vec3f invDir = ray.invDirection();
+        const Vec3f t0 = (box.min - ray.origin()) * invDir;
+        const Vec3f t1 = (box.max - ray.origin()) * invDir;
+        const float tmin = min(t0, t1).max();
+        const float tmax = max(t0, t1).min();
+
+        if (tmin <= tmax)
+        {
+            hitIntervals.pushBack(Interval<DataT>{tmin, tmax, data, data});
+            return true;
+        }
+
+        return false;
     }
 }

@@ -108,6 +108,8 @@ namespace ray
     // Stores a tree of polymorphic volumetric shapes with boolean operations
     // Supports shape packs as single shapes
     // A copy is shallow, ie. all data is shared.
+    // TODO: Working on full intervals is costly.
+    //       Could benefit from a local BVH, we already have a nice tree structure.
     template <>
     struct SceneObject<CsgShape>
     {
@@ -251,9 +253,17 @@ namespace ray
         bool raycast(const Ray& ray, RaycastHit& hit) const
         {
             thread_local IntervalSet<const PolymorphicSceneObjectBase*> hitIntervals;
-            auto r = m_obj->raycastIntervals(ray, hitIntervals);
+            m_obj->raycastIntervals(ray, hitIntervals);
             for (const auto& interval : hitIntervals)
             {
+                // NOTE: we'll see how it goes, kinda hacky
+                // Instead of remembering all information about all hits
+                // we only remember the object and the distance
+                // so that we can later reraycast it from close by hoping to 
+                // get what we want
+                // If this doesn't work properly then a specialized raycast function
+                // for each shape that returns a hit closest to the given
+                // distance will be required. Or just collect all hits on the way - may be too expensive.
                 if (interval.min > 0.0f)
                 {
                     RaycastHit hit;
