@@ -368,7 +368,6 @@ namespace ray
                     bool b = interval.minData.shape->raycast(ray.translated(ray.direction() * (interval.min - 0.001f)), hit);
                     hit.dist += (interval.min - 0.001f);
                     if (b && interval.minData.invert) hit.isInside = !hit.isInside;
-                    //if (b && interval.minData.invert) hit.normal = -hit.normal; // ???
                     return b ? interval.minData.shape : nullptr;
                 }
                 else if (interval.max > 0.0f)
@@ -377,7 +376,6 @@ namespace ray
                     bool b = interval.maxData.shape->raycast(ray.translated(ray.direction() * (interval.max - 0.001f)), hit);
                     hit.dist += (interval.max - 0.001f);
                     if (b && interval.maxData.invert) hit.isInside = !hit.isInside;
-                    //if (b && interval.maxData.invert) hit.normal = -hit.normal; // ???
                     return b ? interval.maxData.shape : nullptr;
                 }
             }

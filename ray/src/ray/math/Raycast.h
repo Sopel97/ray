@@ -180,7 +180,6 @@ namespace ray
             t = t_ca +- t_hc
         */
 
-        // doesn't work if we're inside? surely doesn't work if we're past the sphere origin
         const Point3f O = ray.origin();
         const Normal3f D = ray.direction();
         const Point3f C = sphere.center();
@@ -188,11 +187,11 @@ namespace ray
 
         const Vec3f L = C - O;
         const float t_ca = dot(L, D);
-        //if (t_ca < 0.0f) return false;
+        //if (t_ca < 0.0f) return false; // we need to handle cases where ray origin is past the sphere center
 
         const float d2 = dot(L, L) - t_ca * t_ca;
+        if (d2 > R * R) return false;
         const float r = R * R - d2;
-        if (r < 0.0f) return false;
         const float t_hc = std::sqrt(r);
 
         float t = t_ca - t_hc;
@@ -265,22 +264,15 @@ namespace ray
         float tmin = min(t0, t1).max();
         if (tmin > tmax) return false;
 
-        float n;
-        bool isInside;
-        if (tmin < 0.0f)
+        bool isInside = tmin < 0.0f;
+        if (isInside)
         {
-            isInside = true;
-            n = 1.0f;
             tmin = tmax;
-        }
-        else
-        {
-            isInside = false;
-            n = -1.0f;
         }
         if (tmin >= hit.dist) return false;
 
-        Normal3f normal(AssumeNormalized{}, Vec3f::blend(0.0f, n, (t0 == tmin) | (t1 == tmin)));
+        // TODO: make this fast but also reliable. Currently breaks on the edges (sets multiple components).
+        Normal3f normal(AssumeNormalized{}, Vec3f::blend(0.0f, -1.0f, (t0 == tmin) | (t1 == tmin)));
         normal.negate(ray.signs());
         
         const Point3f point = ray.origin() + ray.direction() * tmin;

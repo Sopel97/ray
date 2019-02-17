@@ -241,9 +241,6 @@ int main()
 
     auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { &m7 });
     auto sumPart2 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -7), 3.5), { &m7 });
-    // TODO: investigate why this looks like normals were flipped (sphere below looks ok?).
-    //       maybe box normals are calculated wrong?
-    //       maybe the second raycast to retrieve the normal is wrong?
     auto subPart3 = SceneObject<CsgShape>(Box3(Point3f(-1.5, -2, -7), Point3f(1.5, 2, -3.5)), { &m7 });
     //auto subPart3 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -5), 2.0), { &m7 });
     csgs.emplace_back((sumPart1 | sumPart2) - subPart3);
