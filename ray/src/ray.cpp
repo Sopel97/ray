@@ -202,7 +202,7 @@ int main()
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     for (int i = 0; i < mesh.numFaces(); ++i)
     {
-        closedTris.emplace_back(SceneObject<ClosedTriangleMeshFace>(mesh.face(i), { mesh.material(i) }));
+        //closedTris.emplace_back(SceneObject<ClosedTriangleMeshFace>(mesh.face(i), { mesh.material(i) }));
     }
     for (int i = 0; i < mesh.numFaces(); ++i)
     {

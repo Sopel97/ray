@@ -234,4 +234,75 @@ namespace ray
     struct SceneObjectArray<UnboundedUniqueAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedUniqueAnyShape> {};
     template <>
     struct SceneObjectArray<UnboundedSharedAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedSharedAnyShape> {};
+
+    template <>
+    struct SceneObjectArray<CsgShape> : HomogeneousSceneObjectCollection
+    {
+        using ShapeStorageType = std::vector<SceneObject<CsgShape>>;
+        using ShapeType = SceneObject<CsgShape>::PolymorphicSceneObjectBase;
+        using ShapePtrType = const ShapeType*;
+
+        SceneObjectArray()
+        {
+
+        }
+
+        void add(const SceneObject<CsgShape>& so)
+        {
+            m_objects.emplace_back(so);
+        }
+
+        int size() const
+        {
+            return static_cast<int>(m_objects.size());
+        }
+
+        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
+        {
+            const int size = static_cast<int>(m_objects.size());
+            bool anyHit = false;
+            for (int shapeNo = 0; shapeNo < size; ++shapeNo)
+            {
+                if (ShapePtrType shapePtr = m_objects[shapeNo].raycast(ray, hit))
+                {
+                    anyHit = true;
+                    hit.shapeNo = shapeNo;
+                    hit.additionalData = static_cast<const void*>(shapePtr);
+                }
+            }
+
+            if (anyHit)
+            {
+                hit.owner = this;
+            }
+
+            return anyHit;
+        }
+
+        bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
+        {
+            if (ShapePtrType shapePtr = m_objects[shapeNo].raycast(ray, hit))
+            {
+                hit.shapeNo = shapeNo;
+                hit.owner = this;
+                hit.additionalData = static_cast<const void*>(shapePtr);
+                return true;
+            }
+
+            return false;
+        }
+
+        ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        {
+            ShapePtrType obj = static_cast<ShapePtrType>(hit.additionalData);
+            const Material& mat = obj->material(hit.materialNo);
+            const TexCoords texCoords = mat.texture ? obj->resolveTexCoords(hit, 0) : TexCoords{ 0.0f, 0.0f };
+            return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, 
+                true, // hasVolume
+                true); // isLocallyContinuable
+        }
+
+    private:
+        ShapeStorageType m_objects;
+    };
 }

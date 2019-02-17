@@ -113,7 +113,6 @@ namespace ray
     template <>
     struct SceneObject<CsgShape>
     {
-    private:
         struct PolymorphicSceneObjectBase
         {
             virtual Point3f center() const = 0;
@@ -126,6 +125,7 @@ namespace ray
             virtual SceneObjectId id() const = 0;
         };
 
+    private:
         template <typename ShapeT>
         struct PolymorphicSceneObject : PolymorphicSceneObjectBase
         {
@@ -164,7 +164,7 @@ namespace ray
             }
             bool raycastIntervals(const Ray& ray, IntervalSet<const PolymorphicSceneObjectBase*>& hitIntervals) const override
             {
-                return ray::raycastIntervals(ray, m_shape, hitIntervals);
+                return ray::raycastIntervals(ray, m_shape, hitIntervals, this);
             }
             TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
@@ -250,7 +250,7 @@ namespace ray
 
         }
 
-        bool raycast(const Ray& ray, RaycastHit& hit) const
+        const PolymorphicSceneObjectBase* raycast(const Ray& ray, RaycastHit& hit) const
         {
             thread_local IntervalSet<const PolymorphicSceneObjectBase*> hitIntervals;
             m_obj->raycastIntervals(ray, hitIntervals);
@@ -269,17 +269,17 @@ namespace ray
                     RaycastHit hit;
                     hit.dist = std::numeric_limits<float>::max();
                     interval.minData->raycast(ray.translated(ray.direction() * (interval.min - 0.001f)), hit);
-                    return true;
+                    return interval.minData;
                 }
                 else if (interval.max > 0.0f)
                 {
                     RaycastHit hit;
                     hit.dist = std::numeric_limits<float>::max();
                     interval.maxData->raycast(ray.translated(ray.direction() * (interval.max - 0.001f)), hit);
-                    return true;
+                    return interval.maxData;
                 }
             }
-            return false;
+            return nullptr;
         }
 
         bool hasVolume() const
