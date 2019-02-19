@@ -39,6 +39,11 @@ namespace ray
                 m_objects.emplace_back(so);
             }
 
+            void add(SceneObject<AnyShapeT>&& so)
+            {
+                m_objects.emplace_back(std::move(so));
+            }
+
             const Material& material(int shapeNo, int materialNo) const
             {
                 return m_objects[shapeNo].material(materialNo);
@@ -250,6 +255,11 @@ namespace ray
         void add(const SceneObject<CsgShape>& so)
         {
             m_objects.emplace_back(so);
+        }
+
+        void add(SceneObject<CsgShape>&& so)
+        {
+            m_objects.emplace_back(std::move(so));
         }
 
         int size() const

@@ -127,7 +127,6 @@ namespace ray
 
         struct PolymorphicSceneObjectBase
         {
-            virtual Point3f center() const = 0;
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, bool invert = false) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
@@ -160,11 +159,6 @@ namespace ray
                 m_id(detail::gNextSceneObjectId.fetch_add(1))
             {
 
-            }
-
-            Point3f center() const override
-            {
-                return m_shape.center();
             }
             Box3 aabb() const override
             {
@@ -239,15 +233,38 @@ namespace ray
             std::shared_ptr<PolymorphicSceneObjectBase> m_obj;
         };
 
-        struct CsgUnion : CsgOperation
+        struct CsgBinaryOperation : CsgOperation
         {
-            CsgUnion(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
+            CsgBinaryOperation(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
                 m_lhs(std::move(lhs)),
                 m_rhs(std::move(rhs)),
                 m_aabb(aabb()),
                 m_depth(std::max(m_lhs->depth(), m_rhs->depth()) + 1)
             {
             }
+
+            Box3 aabb() const override
+            {
+                Box3 b = m_lhs->aabb();
+                b.extend(m_rhs->aabb());
+                return b;
+            }
+
+            int depth() const override
+            {
+                return m_depth;
+            }
+
+        protected:
+            std::shared_ptr<CsgOperation> m_lhs;
+            std::shared_ptr<CsgOperation> m_rhs;
+            Box3 m_aabb;
+            int m_depth;
+        };
+
+        struct CsgUnion : CsgBinaryOperation
+        {
+            using CsgBinaryOperation::CsgBinaryOperation;
 
             bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
             {
@@ -257,47 +274,21 @@ namespace ray
                     hitIntervals.clear();
                     return false;
                 }
-                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
-                if (!rlhs)
+                if (!m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert))
                 {
-                    auto rrhs = m_rhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
+                    m_rhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
                 }
-                else
+                else if(m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), invert))
                 {
-                    auto rrhs = m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), invert);
                     hitIntervals |= *scratchHitIntervals;
                 }
                 return !hitIntervals.isEmpty();
             }
-
-            Box3 aabb() const override
-            {
-                Box3 b = m_lhs->aabb();
-                b.extend(m_rhs->aabb());
-                return b;
-            }
-
-            int depth() const override
-            {
-                return m_depth;
-            }
-
-        private:
-            std::shared_ptr<CsgOperation> m_lhs;
-            std::shared_ptr<CsgOperation> m_rhs;
-            Box3 m_aabb;
-            int m_depth;
         };
 
-        struct CsgIntersection : CsgOperation
+        struct CsgIntersection : CsgBinaryOperation
         {
-            CsgIntersection(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
-                m_lhs(std::move(lhs)),
-                m_rhs(std::move(rhs)),
-                m_aabb(aabb()),
-                m_depth(std::max(m_lhs->depth(), m_rhs->depth()) + 1)
-            {
-            }
+            using CsgBinaryOperation::CsgBinaryOperation;
 
             bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
             {
@@ -307,47 +298,24 @@ namespace ray
                     hitIntervals.clear();
                     return false;
                 }
-                auto rrhs = m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), invert);
-                if (!rrhs)
+                if (!m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), invert))
                 {
                     hitIntervals.clear();
                     return false;
                 }
-                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
-                if (!rlhs) return false;
+                if (!m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert))
+                {
+                    return false;
+                }
 
                 hitIntervals &= *scratchHitIntervals;
                 return !hitIntervals.isEmpty();
             }
-
-            Box3 aabb() const override
-            {
-                Box3 b = m_lhs->aabb();
-                b.extend(m_rhs->aabb());
-                return b;
-            }
-
-            int depth() const override
-            {
-                return m_depth;
-            }
-
-        private:
-            std::shared_ptr<CsgOperation> m_lhs;
-            std::shared_ptr<CsgOperation> m_rhs;
-            Box3 m_aabb;
-            int m_depth;
         };
 
-        struct CsgDifference : CsgOperation
+        struct CsgDifference : CsgBinaryOperation
         {
-            CsgDifference(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
-                m_lhs(std::move(lhs)),
-                m_rhs(std::move(rhs)),
-                m_aabb(aabb()),
-                m_depth(std::max(m_lhs->depth(), m_rhs->depth()) + 1)
-            {
-            }
+            using CsgBinaryOperation::CsgBinaryOperation;
 
             bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
             {
@@ -357,33 +325,16 @@ namespace ray
                     hitIntervals.clear();
                     return false;
                 }
-                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
-                if (!rlhs) return false;
-                auto rrhs = m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), !invert);
-                if(rrhs)
+                if (!m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert))
+                {
+                    return false;
+                }
+                if(m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), !invert))
                 {
                     hitIntervals -= *scratchHitIntervals;
                 }
                 return !hitIntervals.isEmpty();
             }
-
-            Box3 aabb() const override
-            {
-                Box3 b = m_lhs->aabb();
-                b.extend(m_rhs->aabb());
-                return b;
-            }
-
-            int depth() const override
-            {
-                return m_depth;
-            }
-
-        private:
-            std::shared_ptr<CsgOperation> m_lhs;
-            std::shared_ptr<CsgOperation> m_rhs;
-            Box3 m_aabb;
-            int m_depth;
         };
 
         SceneObject(std::shared_ptr<CsgOperation> op) :
@@ -418,6 +369,7 @@ namespace ray
             auto scratchHitIntervalsIter = std::next(allHitIntervals.begin());
             hitIntervals.clear();
             m_obj->raycastIntervals(ray, hitIntervals, scratchHitIntervalsIter);
+
             for (const auto& interval : hitIntervals)
             {
                 // NOTE: we'll see how it goes, kinda hacky
@@ -428,23 +380,32 @@ namespace ray
                 // If this doesn't work properly then a specialized raycast function
                 // for each shape that returns a hit closest to the given
                 // distance will be required. Or just collect all hits on the way - may be too expensive.
-                if (interval.min > 0.0f)
+                // NOTE: for now, after testing, seems ok
+                if (interval.max > 0.0f)
                 {
-                    hit.dist -= (interval.min - 0.001f);
-                    bool b = interval.minData.shape->raycast(ray.translated(ray.direction() * (interval.min - 0.001f)), hit);
-                    hit.dist += (interval.min - 0.001f);
-                    if (b && interval.minData.invert) hit.isInside = !hit.isInside;
-                    return b ? interval.minData.shape : nullptr;
-                }
-                else if (interval.max > 0.0f)
-                {
-                    hit.dist -= (interval.max - 0.001f);
-                    bool b = interval.maxData.shape->raycast(ray.translated(ray.direction() * (interval.max - 0.001f)), hit);
-                    hit.dist += (interval.max - 0.001f);
-                    if (b && interval.maxData.invert) hit.isInside = !hit.isInside;
-                    return b ? interval.maxData.shape : nullptr;
+                    constexpr float padding = 0.001f;
+                    const Data& data = interval.min > 0.0f ? interval.minData : interval.maxData;
+                    // apply padding because we are raycasting it again, we don't want to miss it
+                    const float dist = (interval.min > 0.0f ? interval.min : interval.max) - padding;
+
+                    const Ray offsetRay = ray.translated(ray.direction() * dist);
+                    const PolymorphicSceneObjectBase* shape = nullptr;
+                    hit.dist -= dist;
+                    if (data.shape->raycast(offsetRay, hit))
+                    {
+                        // technically we should always hit, but just to be safe from floating point inaccuracy
+                        shape = data.shape;
+                        if (data.invert)
+                        {
+                            hit.isInside = !hit.isInside;
+                        }
+                    }
+                    hit.dist += dist;
+
+                    return shape;
                 }
             }
+
             return nullptr;
         }
 
