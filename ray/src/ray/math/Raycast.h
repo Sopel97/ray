@@ -449,7 +449,6 @@ namespace ray
     template <typename DataT>
     inline bool raycastIntervals(const Ray& ray, const Sphere& sphere, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
-
         const Point3f O = ray.origin();
         const Normal3f D = ray.direction();
         const Point3f C = sphere.center();

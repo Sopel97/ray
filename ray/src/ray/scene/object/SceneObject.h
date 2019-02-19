@@ -122,11 +122,14 @@ namespace ray
             bool invert;
         };
 
+        using HitIntervals = IntervalSet<Data>;
+        using HitIntervalsIter = std::vector<IntervalSet<Data>>::iterator;
+
         struct PolymorphicSceneObjectBase
         {
             virtual Point3f center() const = 0;
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            virtual bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const = 0;
+            virtual bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, bool invert = false) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual Box3 aabb() const = 0;
             virtual const Material& material(int materialNo) const = 0;
@@ -171,7 +174,7 @@ namespace ray
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, bool invert = false) const override
             {
                 return ray::raycastIntervals<Data>(ray, m_shape, hitIntervals, { this, invert });
             }
@@ -204,8 +207,9 @@ namespace ray
 
         struct CsgOperation
         {
-            virtual bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const = 0;
+            virtual bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const = 0;
             virtual Box3 aabb() const = 0;
+            virtual int depth() const = 0;
         };
 
         struct CsgIdentity : CsgOperation
@@ -215,14 +219,20 @@ namespace ray
             {
             }
 
-            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
             {
+                hitIntervals.clear();
                 return m_obj->raycastIntervals(ray, hitIntervals, invert);
             }
 
             Box3 aabb() const override
             {
                 return m_obj->aabb();
+            }
+
+            int depth() const override
+            {
+                return 1;
             }
 
         private:
@@ -233,18 +243,30 @@ namespace ray
         {
             CsgUnion(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
                 m_lhs(std::move(lhs)),
-                m_rhs(std::move(rhs))
+                m_rhs(std::move(rhs)),
+                m_aabb(aabb()),
+                m_depth(std::max(m_lhs->depth(), m_rhs->depth()) + 1)
             {
             }
 
-            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
             {
-                // TODO: can't be thread_local because this function is reentrant
-                //       somehow reduce allocations (pass a scratch one as param?)
-                IntervalSet<Data> rhsHitIntervals;
-                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, invert);
-                auto rrhs = m_rhs->raycastIntervals(ray, rhsHitIntervals, invert);
-                hitIntervals |= rhsHitIntervals;
+                RaycastBvHit bvHit;
+                if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
+                {
+                    hitIntervals.clear();
+                    return false;
+                }
+                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
+                if (!rlhs)
+                {
+                    auto rrhs = m_rhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
+                }
+                else
+                {
+                    auto rrhs = m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), invert);
+                    hitIntervals |= *scratchHitIntervals;
+                }
                 return !hitIntervals.isEmpty();
             }
 
@@ -255,29 +277,47 @@ namespace ray
                 return b;
             }
 
+            int depth() const override
+            {
+                return m_depth;
+            }
+
         private:
             std::shared_ptr<CsgOperation> m_lhs;
             std::shared_ptr<CsgOperation> m_rhs;
+            Box3 m_aabb;
+            int m_depth;
         };
 
         struct CsgIntersection : CsgOperation
         {
             CsgIntersection(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
                 m_lhs(std::move(lhs)),
-                m_rhs(std::move(rhs))
+                m_rhs(std::move(rhs)),
+                m_aabb(aabb()),
+                m_depth(std::max(m_lhs->depth(), m_rhs->depth()) + 1)
             {
             }
 
-            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
             {
-                IntervalSet<Data> rhsHitIntervals;
-                auto rrhs = m_rhs->raycastIntervals(ray, rhsHitIntervals, invert);
-                if (!rrhs) return false;
-                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, invert);
+                RaycastBvHit bvHit;
+                if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
+                {
+                    hitIntervals.clear();
+                    return false;
+                }
+                auto rrhs = m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), invert);
+                if (!rrhs)
+                {
+                    hitIntervals.clear();
+                    return false;
+                }
+                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
                 if (!rlhs) return false;
 
-                hitIntervals &= rhsHitIntervals;
-                return true;
+                hitIntervals &= *scratchHitIntervals;
+                return !hitIntervals.isEmpty();
             }
 
             Box3 aabb() const override
@@ -287,34 +327,44 @@ namespace ray
                 return b;
             }
 
+            int depth() const override
+            {
+                return m_depth;
+            }
+
         private:
             std::shared_ptr<CsgOperation> m_lhs;
             std::shared_ptr<CsgOperation> m_rhs;
+            Box3 m_aabb;
+            int m_depth;
         };
 
         struct CsgDifference : CsgOperation
         {
             CsgDifference(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
                 m_lhs(std::move(lhs)),
-                m_rhs(std::move(rhs))
+                m_rhs(std::move(rhs)),
+                m_aabb(aabb()),
+                m_depth(std::max(m_lhs->depth(), m_rhs->depth()) + 1)
             {
             }
 
-            bool raycastIntervals(const Ray& ray, IntervalSet<Data>& hitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
             {
-                IntervalSet<Data> rhsHitIntervals;
-                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, invert);
+                RaycastBvHit bvHit;
+                if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
+                {
+                    hitIntervals.clear();
+                    return false;
+                }
+                auto rlhs = m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
                 if (!rlhs) return false;
-                auto rrhs = m_rhs->raycastIntervals(ray, rhsHitIntervals, !invert);
-                if (!rrhs)
+                auto rrhs = m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), !invert);
+                if(rrhs)
                 {
-                    return true;
+                    hitIntervals -= *scratchHitIntervals;
                 }
-                else
-                {
-                    hitIntervals -= rhsHitIntervals;
-                    return true;
-                }
+                return !hitIntervals.isEmpty();
             }
 
             Box3 aabb() const override
@@ -324,9 +374,16 @@ namespace ray
                 return b;
             }
 
+            int depth() const override
+            {
+                return m_depth;
+            }
+
         private:
             std::shared_ptr<CsgOperation> m_lhs;
             std::shared_ptr<CsgOperation> m_rhs;
+            Box3 m_aabb;
+            int m_depth;
         };
 
         SceneObject(std::shared_ptr<CsgOperation> op) :
@@ -349,9 +406,18 @@ namespace ray
 
         const PolymorphicSceneObjectBase* raycast(const Ray& ray, RaycastHit& hit) const
         {
-            thread_local IntervalSet<Data> hitIntervals;
+            thread_local std::vector<IntervalSet<Data>> allHitIntervals;
+
+            const int depth = m_obj->depth();
+            if (allHitIntervals.size() < depth)
+            {
+                // technically +1 is not needed because identity doesn't use scratch, but just to be safe
+                allHitIntervals.resize(depth + 1);
+            }
+            auto& hitIntervals = allHitIntervals[0];
+            auto scratchHitIntervalsIter = std::next(allHitIntervals.begin());
             hitIntervals.clear();
-            m_obj->raycastIntervals(ray, hitIntervals);
+            m_obj->raycastIntervals(ray, hitIntervals, scratchHitIntervalsIter);
             for (const auto& interval : hitIntervals)
             {
                 // NOTE: we'll see how it goes, kinda hacky
