@@ -242,8 +242,19 @@ int main()
     auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { &m7 });
     auto sumPart2 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -7), 3.5), { &m7 });
     auto subPart3 = SceneObject<CsgShape>(Box3(Point3f(-1.5, -2, -7), Point3f(1.5, 2, -3.5)), { &m7 });
-    //auto subPart3 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -5), 2.0), { &m7 });
-    csgs.emplace_back((sumPart1 | sumPart2) - subPart3);
+    auto subPart4 = SceneObject<CsgShape>(Box3(Point3f(-0.5, -1, -7), Point3f(0.5, 1, -5)), { &m11 });
+    auto mulPart5 = SceneObject<CsgShape>(Sphere(Point3f(0, -7.5, -7), 8.5), { &m7 });
+    auto sumPart6 = SceneObject<CsgShape>(Sphere(Point3f(-2, 0, -7), 1.5), { &m4 });
+    auto sumPart7 = SceneObject<CsgShape>(Sphere(Point3f(2, 0, -7), 1.5), { &m4 });
+
+    auto subPart8 = SceneObject<CsgShape>(Sphere(Point3f(0, 2.4, -7), 2.5), { &m7 });
+    auto subPart9 = SceneObject<CsgShape>(Sphere(Point3f(0, 2.4, -7), 2.4), { &m7 });
+
+    auto subPart10 = SceneObject<CsgShape>(Sphere(Point3f(-1.8, -0.9, -4.1), 0.8), { &m7 });
+    auto subPart11 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -3.5), 0.5), { &m7 });
+    auto subPart12 = SceneObject<CsgShape>(Sphere(Point3f(1.8, -0.9, -4.1), 0.8), { &m7 });
+    auto subPart13 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -3.5), 0.5), { &m7 });
+    csgs.emplace_back(((((sumPart1 | sumPart2) - (subPart3 - subPart4)) & mulPart5) | (sumPart6 | sumPart7) | (subPart8 - subPart9)) - (subPart10 | subPart11 | subPart12 | subPart13));
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
