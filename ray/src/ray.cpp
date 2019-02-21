@@ -5,13 +5,6 @@
 #include <ray/perf/PerformanceStats.h>
 #endif
 
-#include <ray/shape/Box3.h>
-#include <ray/shape/ClosedTriangleMesh.h>
-#include <ray/shape/Triangle3.h>
-#include <ray/shape/Plane.h>
-#include <ray/shape/Shapes.h>
-#include <ray/shape/Sphere.h>
-
 #include <ray/material/MaterialDatabase.h>
 #include <ray/material/Patterns.h>
 #include <ray/material/TextureDatabase.h>
@@ -31,6 +24,14 @@
 #include <ray/sampler/QuincunxMultisampler.h>
 #include <ray/sampler/UniformGridMultisampler.h>
 #include <ray/sampler/Sampler.h>
+
+#include <ray/shape/Box3.h>
+#include <ray/shape/ClosedTriangleMesh.h>
+#include <ray/shape/Disc3.h>
+#include <ray/shape/Triangle3.h>
+#include <ray/shape/Plane.h>
+#include <ray/shape/Shapes.h>
+#include <ray/shape/Sphere.h>
 
 #include <ray/Camera.h>
 #include <ray/Image.h>
@@ -189,12 +190,14 @@ int main()
     std::vector<SceneObject<Triangle3>> tris;
     std::vector<SceneObject<ClosedTriangleMeshFace>> closedTris;
     std::vector<SceneObject<CsgShape>> csgs;
+    std::vector<SceneObject<Disc3>> discs;
 
     //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
     ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
 
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
-    planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
+    //planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
+    discs.emplace_back(SceneObject<Disc3>(Disc3(Point3f(0, -4, 0), Normal3f(0.0, -1.0, 0.0), 100), { &m1 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 })); // this sphere looks weird, is it right?
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
@@ -259,10 +262,10 @@ int main()
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
 
-    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape>;
+    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
-    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs));
+    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs));
     //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
     StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/

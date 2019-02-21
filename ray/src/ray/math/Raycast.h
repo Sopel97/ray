@@ -11,6 +11,7 @@
 
 #include <ray/shape/Box3.h>
 #include <ray/shape/ClosedTriangleMesh.h>
+#include <ray/shape/Disc3.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/Sphere.h>
@@ -238,6 +239,32 @@ namespace ray
             hit.dist = t;
             hit.point = point;
             hit.normal = (nd < 0.0f) ? plane.normal : -plane.normal;
+            hit.shapeInPackNo = 0;
+            hit.materialNo = 0;
+            hit.isInside = false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    inline bool raycast(const Ray& ray, const Disc3& disc, RaycastHit& hit)
+    {
+        const float nd = dot(ray.direction(), disc.normal);
+        const float pn = dot(Vec3f(ray.origin()), disc.normal);
+        const float t = (disc.distance - pn) / nd;
+
+        // t must be positive
+        if (t >= 0.0f && t < hit.dist)
+        {
+            const Point3f point = ray.origin() + ray.direction() * t;
+            if (distanceSqr(disc.origin, point) > disc.radius * disc.radius)
+                return false;
+
+            hit.dist = t;
+            hit.point = point;
+            hit.normal = (nd < 0.0f) ? disc.normal : -disc.normal;
             hit.shapeInPackNo = 0;
             hit.materialNo = 0;
             hit.isInside = false;

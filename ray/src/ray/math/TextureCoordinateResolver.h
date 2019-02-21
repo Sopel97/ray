@@ -8,6 +8,7 @@
 
 #include <ray/shape/Box3.h>
 #include <ray/shape/ClosedTriangleMesh.h>
+#include <ray/shape/Disc3.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/Sphere.h>
@@ -32,7 +33,13 @@ namespace ray
         return { u, v };
     }
 
+    // TODO: the following 2 functions
     inline TexCoords resolveTexCoords(const Plane& plane, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    {
+        return { hit.point.x, hit.point.z };
+    }
+
+    inline TexCoords resolveTexCoords(const Disc3& plane, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         return { hit.point.x, hit.point.z };
     }

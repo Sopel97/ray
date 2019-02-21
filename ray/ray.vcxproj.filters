@@ -263,5 +263,8 @@
     <ClInclude Include="src\ray\math\Interval.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\shape\Disc3.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
