@@ -49,7 +49,7 @@ namespace ray
 
             // if true allows local continuation of tracing
             // when inside a volumetric shape
-            bool assumeNoVolumeIntersections = true;
+            bool assumeNoVolumeIntersections = false;
         };
 
         Raytracer(const Scene& scene, const Options& options = {}) :

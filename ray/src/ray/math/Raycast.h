@@ -11,9 +11,12 @@
 
 #include <ray/shape/Box3.h>
 #include <ray/shape/ClosedTriangleMesh.h>
+#include <ray/shape/Capsule.h>
+#include <ray/shape/Cylinder.h>
 #include <ray/shape/Disc3.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
+#include <ray/shape/HalfSphere.h>
 #include <ray/shape/Sphere.h>
 
 #include <algorithm>
@@ -219,6 +222,58 @@ namespace ray
         return true;
     }
 
+    inline bool raycast(const Ray& ray, const HalfSphere& sphere, RaycastHit& hit)
+    {
+        const Point3f O = ray.origin();
+        const Normal3f D = ray.direction();
+        const Point3f C = sphere.center();
+        const float R = sphere.radius();
+
+        const Vec3f L = C - O;
+        const float t_ca = dot(L, D);
+        //if (t_ca < 0.0f) return false; // we need to handle cases where ray origin is past the sphere center
+
+        const float d2 = dot(L, L) - t_ca * t_ca;
+        if (d2 > R * R) return false;
+        const float r = R * R - d2;
+        const float t_hc = std::sqrt(r);
+
+        float tmin = t_ca - t_hc;
+        float tmax = t_ca + t_hc;
+
+        Point3f hitPointMin = O + tmin * D;
+        Point3f hitPointMax = O + tmax * D;
+        if (tmin > 0.0f && tmin < hit.dist && dot(hitPointMin - C, sphere.normal()) > 0.0f)
+        {
+            Normal3f normal = ((hitPointMin - C) / R).assumeNormalized();
+
+            hit.dist = tmin;
+            hit.point = hitPointMin;
+            hit.normal = normal;
+            hit.shapeInPackNo = 0;
+            hit.materialNo = 0;
+            hit.isInside = false;
+            return true;
+        }
+        else if (tmax > 0.0f && tmax < hit.dist && dot(hitPointMax - C, sphere.normal()) > 0.0f)
+        {
+            Normal3f normal = ((hitPointMax - C) / R).assumeNormalized();
+
+            hit.dist = tmax;
+            hit.point = hitPointMax;
+            hit.normal = -normal;
+            hit.shapeInPackNo = 0;
+            hit.materialNo = 0;
+            hit.isInside = true;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+    }
+
     inline bool raycast(const Ray& ray, const Plane& plane, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
@@ -269,6 +324,158 @@ namespace ray
             hit.materialNo = 0;
             hit.isInside = false;
 
+            return true;
+        }
+
+        return false;
+    }
+
+    inline bool raycast(const Ray& ray, const Cylinder& cyl, RaycastHit& hit)
+    {
+        // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
+        const Point3f& P = ray.origin();
+        const Normal3f& d = ray.direction();
+        const Point3f& A = cyl.begin;
+        const Point3f& B = cyl.end;
+        const float r = cyl.radius;
+
+        // infinite cylinder
+        const Normal3f v = (B - A).normalized();
+        const Vec3f dP = P - A;
+
+        const float dv = dot(d, v);
+        if (!(std::abs(dv) < 0.00001f))
+        {
+            // not parallel
+            const float dPv = dot(dP, v);
+            const Vec3f dvv = Vec3f(d) - dv * v;
+            const Vec3f dPvv = Vec3f(dP) - dPv * v;
+
+            const float a = dot(dvv, dvv);
+            const float b = 2.0f * dot(dvv, dPvv);
+            const float c = dot(dPvv, dPvv) - (cyl.radius * cyl.radius);
+
+            const float delta = b * b - 4.0f*a*c;
+            if (delta < 0.0f)
+                return false;
+
+            const float sqrtDelta = std::sqrt(delta);
+
+            const float t0 = (-b - sqrtDelta) / (2.0f * a);
+            const float t1 = (-b + sqrtDelta) / (2.0f * a);
+
+            const bool isInside = t0 < 0.0f;
+            if (isInside && t1 < 0.0f)
+            {
+                return false;
+            }
+            const float t = isInside ? t1 : t0;
+            if (t >= hit.dist)
+                return false;
+
+            const Point3f point = P + d * t;
+            const float pl = dot(point - A, v);
+            const Point3f pointL = A + pl * v;
+
+            if (pl > 0.0f && pl < distance(A, B))
+            {
+                // we hit the shaft
+                const Normal3f normal = (point - pointL).normalized();
+
+                hit.dist = t;
+                hit.point = point;
+                hit.normal = isInside ? -normal : normal;
+                hit.shapeInPackNo = 0;
+                hit.materialNo = 0;
+                hit.isInside = isInside;
+
+                return true;
+            }
+        }
+
+        // parallel or we didn't hit the shaft in the proper range
+        // we may hit the caps
+        const Disc3 d0(A, -v, cyl.radius);
+        const Disc3 d1(B, v, cyl.radius);
+        if (raycast(ray, d0, hit) || raycast(ray, d1, hit))
+        {
+            hit.materialNo = 1;
+            return true;
+        }
+
+        return false;
+    }
+
+    inline bool raycast(const Ray& ray, const Capsule& cyl, RaycastHit& hit)
+    {
+        // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
+        const Point3f& P = ray.origin();
+        const Normal3f& d = ray.direction();
+        const Point3f& A = cyl.begin;
+        const Point3f& B = cyl.end;
+        const float r = cyl.radius;
+
+        // infinite cylinder
+        const Normal3f v = (B - A).normalized();
+        const Vec3f dP = P - A;
+
+        const float dv = dot(d, v);
+        if (!(std::abs(dv) < 0.00001f))
+        {
+            // not parallel
+            const float dPv = dot(dP, v);
+            const Vec3f dvv = Vec3f(d) - dv * v;
+            const Vec3f dPvv = Vec3f(dP) - dPv * v;
+
+            const float a = dot(dvv, dvv);
+            const float b = 2.0f * dot(dvv, dPvv);
+            const float c = dot(dPvv, dPvv) - (cyl.radius * cyl.radius);
+
+            const float delta = b * b - 4.0f*a*c;
+            if (delta < 0.0f)
+                return false;
+
+            const float sqrtDelta = std::sqrt(delta);
+
+            const float t0 = (-b - sqrtDelta) / (2.0f * a);
+            const float t1 = (-b + sqrtDelta) / (2.0f * a);
+
+            const bool isInside = t0 < 0.0f;
+            if (isInside && t1 < 0.0f)
+            {
+                return false;
+            }
+            const float t = isInside ? t1 : t0;
+            if (t >= hit.dist)
+                return false;
+
+            const Point3f point = P + d * t;
+            const float pl = dot(point - A, v);
+            const Point3f pointL = A + pl * v;
+
+            if (pl > 0.0f && pl < distance(A, B))
+            {
+                // we hit the shaft
+                const Normal3f normal = (point - pointL).normalized();
+
+                hit.dist = t;
+                hit.point = point;
+                hit.normal = isInside ? -normal : normal;
+                hit.shapeInPackNo = 0;
+                hit.materialNo = 0;
+                hit.isInside = isInside;
+
+                return true;
+            }
+        }
+
+        // parallel or we didn't hit the shaft in the proper range
+        // we may hit the caps
+        const HalfSphere d0(A, -v, cyl.radius);
+        const HalfSphere d1(B, v, cyl.radius);
+        if (raycast(ray, d0, hit) || raycast(ray, d1, hit))
+        {
+            hit.materialNo = 1;
             return true;
         }
 

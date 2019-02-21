@@ -18,7 +18,7 @@ namespace ray
         Disc3(const Point3f& point, const Normal3f& normal, float radius) :
             origin(point),
             normal(normal),
-            distance(Vec3f(origin).length()),
+            distance(dot(normal, Vec3f(point))),
             radius(radius)
         {
         }
@@ -40,7 +40,7 @@ namespace ray
         {
             Vec3f halfExtent(radius, radius, radius);
             // NOTE: not sure if this is right
-            halfExtent *= Vec3f::broadcast(1.0f) - abs(Vec3f(normal));
+            // halfExtent *= Vec3f::broadcast(1.0f) - abs(Vec3f(normal));
             return Box3(origin - halfExtent, origin + halfExtent);
         }
     };

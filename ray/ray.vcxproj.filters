@@ -266,5 +266,14 @@
     <ClInclude Include="src\ray\shape\Disc3.h">
       <Filter>Header Files\src\shape</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\shape\Cylinder.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\Capsule.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\HalfSphere.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
