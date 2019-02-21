@@ -85,6 +85,7 @@
     <ClInclude Include="src\ray\shape\Cylinder.h" />
     <ClInclude Include="src\ray\shape\Disc3.h" />
     <ClInclude Include="src\ray\shape\HalfSphere.h" />
+    <ClInclude Include="src\ray\shape\OrientedBox3.h" />
     <ClInclude Include="src\ray\shape\Triangle3.h" />
     <ClInclude Include="src\ray\shape\Plane.h" />
     <ClInclude Include="src\ray\shape\Shapes.h" />

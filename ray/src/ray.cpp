@@ -30,6 +30,7 @@
 #include <ray/shape/Capsule.h>
 #include <ray/shape/Cylinder.h>
 #include <ray/shape/Disc3.h>
+#include <ray/shape/OrientedBox3.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/Shapes.h>
@@ -197,9 +198,10 @@ int main()
     std::vector<SceneObject<Disc3>> discs;
     std::vector<SceneObject<Cylinder>> cylinders;
     std::vector<SceneObject<Capsule>> capsules;
+    std::vector<SceneObject<OrientedBox3>> obbs;
 
     //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
-    ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
+    ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f / 2.0f, &m7);
 
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     //planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
@@ -274,15 +276,23 @@ int main()
     auto subPart11 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -3.5), 0.5), { &m7 });
     auto subPart12 = SceneObject<CsgShape>(Sphere(Point3f(1.8, -0.9, -4.1), 0.8), { &m7 });
     auto subPart13 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -3.5), 0.5), { &m7 });
-    csgs.emplace_back(((((sumPart1 | sumPart2) - (subPart3 - subPart4)) & mulPart5) | (sumPart6 | sumPart7) | (subPart8 - subPart9)) - (subPart10 | subPart11 | subPart12 | subPart13));
+    //csgs.emplace_back(((((sumPart1 | sumPart2) - (subPart3 - subPart4)) & mulPart5) | (sumPart6 | sumPart7) | (subPart8 - subPart9)) - (subPart10 | subPart11 | subPart12 | subPart13));
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
 
-    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule>;
+    Normal3f n1(-1.0f, 0.5f, 0.0f);
+    Normal3f n2(1.0f, 2.0f, 1.0f);
+    obbs.emplace_back(SceneObject<OrientedBox3>(OrientedBox3{
+        Point3f(0, 0, -7),
+        Vec3f(1, 2, 3),
+        {n1, n2, cross(n1, n2).normalized()}
+        }, { &m11 }));
+
+    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
-    RawSceneObjectBlob<ShapesT> shapes(std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
+    RawSceneObjectBlob<ShapesT> shapes(std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
     //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
     StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/

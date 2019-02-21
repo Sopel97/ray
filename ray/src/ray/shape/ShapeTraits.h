@@ -9,6 +9,7 @@ namespace ray
     struct Disc3;
     struct Capsule;
     struct Cylinder;
+    struct OrientedBox3;
     struct ClosedTriangleMeshFace;
     struct BoundedUniqueAnyShape;
     struct BoundedSharedAnyShape;
@@ -74,6 +75,18 @@ namespace ray
         using BaseShapeType = Capsule; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
         static constexpr int numMaterialsPerShape = 2;
+        static constexpr bool hasVolume = true;
+        static constexpr bool isLocallyContinuable = true;
+        static constexpr bool isBounded = true;
+    };
+
+    template <>
+    struct ShapeTraits<OrientedBox3>
+    {
+        using ShapePackType = OrientedBox3;
+        using BaseShapeType = OrientedBox3; // for a pack it should be an underlying shape
+        static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
+        static constexpr int numMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
         static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;

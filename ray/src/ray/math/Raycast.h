@@ -14,6 +14,7 @@
 #include <ray/shape/Capsule.h>
 #include <ray/shape/Cylinder.h>
 #include <ray/shape/Disc3.h>
+#include <ray/shape/OrientedBox3.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/HalfSphere.h>
@@ -219,6 +220,53 @@ namespace ray
         hit.shapeInPackNo = 0;
         hit.materialNo = 0;
         hit.isInside = isInside;
+        return true;
+    }
+
+    inline bool raycast(const Ray& ray, const OrientedBox3& obb, RaycastHit& hit)
+    {
+        const Vec3f p = obb.origin - ray.origin();
+
+        const Normal3f& X = obb.axes[0];
+        const Normal3f& Y = obb.axes[1];
+        const Normal3f& Z = obb.axes[2];
+
+        const Vec3f f(
+            dot(X, ray.direction()),
+            dot(Y, ray.direction()),
+            dot(Z, ray.direction())
+        );
+
+        const Vec3f e(
+            dot(X, p),
+            dot(Y, p),
+            dot(Z, p)
+        );
+
+        const Vec3f t0 = (e - obb.halfSize) / f;
+        const Vec3f t1 = (e + obb.halfSize) / f;
+        const float tmax = max(t0, t1).min();
+        if (tmax < 0.0f) return false;
+        float tmin = min(t0, t1).max();
+        if (tmin > tmax) return false;
+
+        bool isInside = tmin < 0.0f;
+        if (isInside)
+        {
+            tmin = tmax;
+        }
+        if (tmin >= hit.dist) return false;
+
+        Normal3f normal(AssumeNormalized{}, Vec3f::blend(0.0f, -1.0f, (t0 == tmin) | (t1 == tmin)));
+        normal.negate(f < 0.0f);
+
+        hit.dist = tmin;
+        hit.point = ray.origin() + ray.direction() * tmin;
+        hit.normal = (normal.x * X + normal.y * Y + normal.z * Z).normalized();
+        hit.shapeInPackNo = 0;
+        hit.materialNo = 0;
+        hit.isInside = isInside;
+
         return true;
     }
 

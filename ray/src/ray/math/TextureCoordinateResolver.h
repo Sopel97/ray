@@ -10,6 +10,7 @@
 #include <ray/shape/ClosedTriangleMesh.h>
 #include <ray/shape/Capsule.h>
 #include <ray/shape/Cylinder.h>
+#include <ray/shape/OrientedBox3.h>
 #include <ray/shape/Disc3.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
@@ -75,6 +76,49 @@ namespace ray
         }
         
         const Vec3f diff = (hit.point - base) / extent;
+        if (diff.x < diff.y && diff.x < diff.z)
+        {
+            // x = 0
+            return { diff.y, diff.z };
+        }
+        if (diff.y < diff.x && diff.y < diff.z)
+        {
+            // y = 0
+            return { diff.x, diff.z };
+        }
+        // z = 0
+        return { diff.x, diff.y };
+    }
+
+    inline TexCoords resolveTexCoords(const OrientedBox3& obb, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    {
+        const Vec3f extent = obb.halfSize * 2.0f;
+        const Normal3f normal = Vec3f(
+            dot(obb.axes[0], hit.normal),
+            dot(obb.axes[1], hit.normal),
+            dot(obb.axes[2], hit.normal)
+        ).normalized();
+        const Vec3f p = hit.point - obb.min();
+        const Point3f hitPoint(
+            dot(obb.axes[0], p),
+            dot(obb.axes[1], p),
+            dot(obb.axes[2], p)
+        );
+        Point3f base = Point3f::origin() - obb.halfSize;
+        if (normal.x > 0.5f)
+        {
+            base.x += extent.x;
+        }
+        else if (normal.y > 0.5f)
+        {
+            base.y += extent.y;
+        }
+        else if (normal.z > 0.5f)
+        {
+            base.z += extent.z;
+        }
+
+        const Vec3f diff = (hitPoint - base) / extent;
         if (diff.x < diff.y && diff.x < diff.z)
         {
             // x = 0
