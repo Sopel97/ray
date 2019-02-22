@@ -244,7 +244,7 @@ namespace ray
     struct SceneObjectArray<CsgShape> : HomogeneousSceneObjectCollection
     {
         using ShapeStorageType = std::vector<SceneObject<CsgShape>>;
-        using ShapeType = SceneObject<CsgShape>::PolymorphicSceneObjectBase;
+        using ShapeType = SceneObject<CsgShape>::CsgPrimitiveBase;
         using ShapePtrType = const ShapeType*;
 
         SceneObjectArray()

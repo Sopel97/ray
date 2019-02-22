@@ -284,5 +284,8 @@
     <ClInclude Include="src\ray\math\RotationMatrix3.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\shape\ShapeTags.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

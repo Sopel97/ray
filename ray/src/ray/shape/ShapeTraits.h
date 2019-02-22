@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ShapeTags.h"
+
 namespace ray
 {
     struct Box3;
@@ -11,11 +13,6 @@ namespace ray
     struct Cylinder;
     struct OrientedBox3;
     struct ClosedTriangleMeshFace;
-    struct BoundedUniqueAnyShape;
-    struct BoundedSharedAnyShape;
-    struct UnboundedUniqueAnyShape;
-    struct UnboundedSharedAnyShape;
-    struct CsgShape;
 
     template <typename ShapeT>
     struct ShapeTraits;
@@ -126,6 +123,7 @@ namespace ray
         static constexpr bool hasVolume = true;
         // TODO: think if it can be somehow made semi-locally continuable
         //       the raytracer and storage would have to know that it's a mesh and know all its faces
+        //       Specialize SceneObjectArray?
         static constexpr bool isLocallyContinuable = false;
         static constexpr bool isBounded = true;
     };

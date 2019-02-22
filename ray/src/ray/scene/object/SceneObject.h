@@ -13,6 +13,7 @@
 #include <ray/scene/SceneRaycastHit.h>
 
 #include <ray/shape/Box3.h>
+#include <ray/shape/ShapeTags.h>
 #include <ray/shape/ShapeTraits.h>
 
 #include <array>
@@ -24,15 +25,6 @@ namespace ray
 {
     template <typename ShapeT>
     using MaterialArrayType = std::array<const Material*, ShapeTraits<ShapeT>::numMaterialsPerShape>;
-
-    struct Ray;
-    struct ResolvableRaycastHit;
-
-    struct BoundedUniqueAnyShape;
-    struct BoundedSharedAnyShape;
-    struct UnboundedUniqueAnyShape;
-    struct UnboundedSharedAnyShape;
-    struct CsgShape;
 
     namespace detail
     {
@@ -109,28 +101,35 @@ namespace ray
     // Stores a tree of polymorphic volumetric shapes with boolean operations
     // Supports shape packs as single shapes
     // A copy is shallow, ie. all data is shared.
-    // TODO: Working on full intervals is costly.
-    //       Could benefit from a local BVH, we already have a nice tree structure.
     template <>
     struct SceneObject<CsgShape>
     {
-        struct PolymorphicSceneObjectBase;
+    public:
+        struct CsgPrimitiveBase;
 
-        struct Data
+    private:
+        struct CsgIntervalData
         {
-            const PolymorphicSceneObjectBase* shape;
+            const CsgPrimitiveBase* shape;
             bool invert;
         };
 
-        using HitIntervals = IntervalSet<Data>;
-        using HitIntervalsIter = std::vector<IntervalSet<Data>>::iterator;
+        using CsgHitIntervals = IntervalSet<CsgIntervalData>;
+        using CsgHitIntervalsStack = std::vector<IntervalSet<CsgIntervalData>>;
+        using CsgHitIntervalsStackIter = typename CsgHitIntervalsStack::iterator;
 
-        struct PolymorphicSceneObjectBase
+        struct CsgNode
+        {
+            virtual bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const = 0;
+            virtual Box3 aabb() const = 0;
+            virtual int depth() const = 0;
+        };
+
+    public:
+        struct CsgPrimitiveBase : CsgNode
         {
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            virtual bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, bool invert = false) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
-            virtual Box3 aabb() const = 0;
             virtual const Material& material(int materialNo) const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
@@ -138,7 +137,7 @@ namespace ray
 
     private:
         template <typename ShapeT>
-        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
+        struct CsgPrimitiveImpl : CsgPrimitiveBase
         {
             static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
             static constexpr bool isPack = numShapesInPack > 1;
@@ -153,7 +152,7 @@ namespace ray
             static_assert(isLocallyContinuable, "Must be locally continuable.");
 
             template <typename... ArgsTs>
-            PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
+            CsgPrimitiveImpl(const MaterialStorageType& materials, ArgsTs&&... args) :
                 m_shape(std::forward<ArgsTs>(args)...),
                 m_materials(materials),
                 m_id(detail::gNextSceneObjectId.fetch_add(1))
@@ -168,9 +167,10 @@ namespace ray
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
-                return ray::raycastIntervals<Data>(ray, m_shape, hitIntervals, { this, invert });
+                hitIntervals.clear();
+                return ray::raycastIntervals(ray, m_shape, hitIntervals, CsgIntervalData{ this, invert });
             }
             TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
@@ -193,49 +193,20 @@ namespace ray
                 return m_id;
             }
 
-        private:
-            ShapeT m_shape;
-            MaterialStorageType m_materials;
-            SceneObjectId m_id;
-        };
-
-        struct CsgOperation
-        {
-            virtual bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const = 0;
-            virtual Box3 aabb() const = 0;
-            virtual int depth() const = 0;
-        };
-
-        struct CsgIdentity : CsgOperation
-        {
-            CsgIdentity(std::shared_ptr<PolymorphicSceneObjectBase>&& obj) :
-                m_obj(std::move(obj))
-            {
-            }
-
-            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
-            {
-                hitIntervals.clear();
-                return m_obj->raycastIntervals(ray, hitIntervals, invert);
-            }
-
-            Box3 aabb() const override
-            {
-                return m_obj->aabb();
-            }
-
             int depth() const override
             {
                 return 1;
             }
 
         private:
-            std::shared_ptr<PolymorphicSceneObjectBase> m_obj;
+            ShapeT m_shape;
+            MaterialStorageType m_materials;
+            SceneObjectId m_id;
         };
 
-        struct CsgBinaryOperation : CsgOperation
+        struct CsgBinaryOperation : CsgNode
         {
-            CsgBinaryOperation(std::shared_ptr<CsgOperation> lhs, std::shared_ptr<CsgOperation> rhs) :
+            CsgBinaryOperation(std::shared_ptr<CsgNode> lhs, std::shared_ptr<CsgNode> rhs) :
                 m_lhs(std::move(lhs)),
                 m_rhs(std::move(rhs)),
                 m_aabb(aabb()),
@@ -256,8 +227,8 @@ namespace ray
             }
 
         protected:
-            std::shared_ptr<CsgOperation> m_lhs;
-            std::shared_ptr<CsgOperation> m_rhs;
+            std::shared_ptr<CsgNode> m_lhs;
+            std::shared_ptr<CsgNode> m_rhs;
             Box3 m_aabb;
             int m_depth;
         };
@@ -266,7 +237,7 @@ namespace ray
         {
             using CsgBinaryOperation::CsgBinaryOperation;
 
-            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
                 RaycastBvHit bvHit;
                 if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
@@ -290,7 +261,7 @@ namespace ray
         {
             using CsgBinaryOperation::CsgBinaryOperation;
 
-            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
                 RaycastBvHit bvHit;
                 if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
@@ -317,7 +288,7 @@ namespace ray
         {
             using CsgBinaryOperation::CsgBinaryOperation;
 
-            bool raycastIntervals(const Ray& ray, HitIntervals& hitIntervals, HitIntervalsIter scratchHitIntervals, bool invert = false) const override
+            bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
                 RaycastBvHit bvHit;
                 if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
@@ -337,7 +308,7 @@ namespace ray
             }
         };
 
-        SceneObject(std::shared_ptr<CsgOperation> op) :
+        SceneObject(std::shared_ptr<CsgNode> op) :
             m_obj(op),
             m_id(detail::gNextSceneObjectId.fetch_add(1))
         {
@@ -349,15 +320,15 @@ namespace ray
 
         template <typename ShapeT>
         SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
-            m_obj(std::make_shared<CsgIdentity>(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))),
+            m_obj(std::make_shared<CsgPrimitiveImpl<ShapeT>>(materials, shape)),
             m_id(detail::gNextSceneObjectId.fetch_add(1))
         {
 
         }
 
-        const PolymorphicSceneObjectBase* raycast(const Ray& ray, RaycastHit& hit) const
+        const CsgPrimitiveBase* raycast(const Ray& ray, RaycastHit& hit) const
         {
-            thread_local std::vector<IntervalSet<Data>> allHitIntervals;
+            thread_local CsgHitIntervalsStack allHitIntervals;
 
             const int depth = m_obj->depth();
             if (allHitIntervals.size() < depth)
@@ -384,12 +355,12 @@ namespace ray
                 if (interval.max > 0.0f)
                 {
                     constexpr float padding = 0.001f;
-                    const Data& data = interval.min > 0.0f ? interval.minData : interval.maxData;
+                    const CsgIntervalData& data = interval.min > 0.0f ? interval.minData : interval.maxData;
                     // apply padding because we are raycasting it again, we don't want to miss it
                     const float dist = (interval.min > 0.0f ? interval.min : interval.max) - padding;
 
                     const Ray offsetRay = ray.translated(ray.direction() * dist);
-                    const PolymorphicSceneObjectBase* shape = nullptr;
+                    const CsgPrimitiveBase* shape = nullptr;
                     hit.dist -= dist;
                     if (data.shape->raycast(offsetRay, hit))
                     {
@@ -456,7 +427,7 @@ namespace ray
         }
 
     private:
-        std::shared_ptr<CsgOperation> m_obj;
+        std::shared_ptr<CsgNode> m_obj;
         SceneObjectId m_id;
     };
 
