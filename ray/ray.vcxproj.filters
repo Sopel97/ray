@@ -281,5 +281,8 @@
     <ClInclude Include="src\ray\scene\bvh\StaticBvhObjectMeanPartitioner.h">
       <Filter>Header Files\src\scene\bvh</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\math\RotationMatrix3.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

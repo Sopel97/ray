@@ -2,6 +2,7 @@
 
 #include "Box3.h"
 
+#include <ray/math/RotationMatrix3.h>
 #include <ray/math/Vec3.h>
 
 #include <array>
@@ -12,7 +13,7 @@ namespace ray
     {
         Point3f origin;
         Vec3f halfSize;
-        Normal3f axes[3];
+        RotationMatrix3f worldToLocalRot;
 
         const Point3f& center() const
         {
@@ -21,28 +22,27 @@ namespace ray
 
         Point3f min() const
         {
-            return origin - halfSize.x * axes[0] - halfSize.y * axes[1] - halfSize.z * axes[2];
+            return origin - (worldToLocalRot.inverse() * halfSize);
         }
 
         Vec3f extent() const
         {
-            const Point3f min = origin - halfSize.x * axes[0] - halfSize.y * axes[1] - halfSize.z * axes[2];
-            const Point3f max = origin + halfSize.x * axes[0] + halfSize.y * axes[1] + halfSize.z * axes[2];
-            return max - min;
+            return 2.0f * (worldToLocalRot.inverse() * halfSize);
         }
 
         std::array<Point3f, 8> vertices() const
         {
             std::array<Point3f, 8> v;
+            const auto localToWorld = worldToLocalRot.inverse();
 
-            v[0] = origin + halfSize.x * axes[0] + halfSize.y * axes[1] + halfSize.z * axes[2];
-            v[1] = origin + halfSize.x * axes[0] + halfSize.y * axes[1] - halfSize.z * axes[2];
-            v[2] = origin + halfSize.x * axes[0] - halfSize.y * axes[1] + halfSize.z * axes[2];
-            v[3] = origin + halfSize.x * axes[0] - halfSize.y * axes[1] - halfSize.z * axes[2];
-            v[4] = origin - halfSize.x * axes[0] + halfSize.y * axes[1] + halfSize.z * axes[2];
-            v[5] = origin - halfSize.x * axes[0] + halfSize.y * axes[1] - halfSize.z * axes[2];
-            v[6] = origin - halfSize.x * axes[0] - halfSize.y * axes[1] + halfSize.z * axes[2];
-            v[7] = origin - halfSize.x * axes[0] - halfSize.y * axes[1] - halfSize.z * axes[2];
+            v[0] = origin + localToWorld * Vec3f(halfSize.x, halfSize.y, halfSize.z);
+            v[1] = origin + localToWorld * Vec3f(halfSize.x, halfSize.y, -halfSize.z);
+            v[2] = origin + localToWorld * Vec3f(halfSize.x, -halfSize.y, halfSize.z);
+            v[3] = origin + localToWorld * Vec3f(halfSize.x, -halfSize.y, -halfSize.z);
+            v[4] = origin + localToWorld * Vec3f(-halfSize.x, halfSize.y, halfSize.z);
+            v[5] = origin + localToWorld * Vec3f(-halfSize.x, halfSize.y, -halfSize.z);
+            v[6] = origin + localToWorld * Vec3f(-halfSize.x, -halfSize.y, halfSize.z);
+            v[7] = origin + localToWorld * Vec3f(-halfSize.x, -halfSize.y, -halfSize.z);
 
             return v;
         }

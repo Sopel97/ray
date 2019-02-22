@@ -93,17 +93,9 @@ namespace ray
     inline TexCoords resolveTexCoords(const OrientedBox3& obb, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         const Vec3f extent = obb.halfSize * 2.0f;
-        const Normal3f normal = Vec3f(
-            dot(obb.axes[0], hit.normal),
-            dot(obb.axes[1], hit.normal),
-            dot(obb.axes[2], hit.normal)
-        ).normalized();
-        const Vec3f p = hit.point - obb.min();
-        const Point3f hitPoint(
-            dot(obb.axes[0], p),
-            dot(obb.axes[1], p),
-            dot(obb.axes[2], p)
-        );
+        const Normal3f normal = obb.worldToLocalRot * hit.normal;
+        const Point3f p = Point3f::origin() + (hit.point - obb.min());
+        const Point3f hitPoint = obb.worldToLocalRot * p;
         Point3f base = Point3f::origin() - obb.halfSize;
         if (normal.x > 0.5f)
         {

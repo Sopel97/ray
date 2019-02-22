@@ -7,6 +7,13 @@ namespace ray
 {
     namespace detail
     {
+        inline __m128 undefined_ps()
+        {
+            // msvc lacks _mm_undefined_ps
+            // maybe there is a better way?
+            return _mm_set1_ps(0.0f);
+        }
+
         inline float hadd(__m128 a)
         {
             __m128 shuf = _mm_movehdup_ps(a); // broadcast elements 3,1 to 2,0
@@ -137,6 +144,12 @@ namespace ray
             __m128 b_yzx = _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 0, 2, 1));
             __m128 c = _mm_sub_ps(_mm_mul_ps(a, b_yzx), _mm_mul_ps(a_yzx, b));
             return _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1));
+        }
+
+        inline void transpose3(__m128& r0, __m128& r1, __m128& r2)
+        {
+            __m128 r3 = undefined_ps();
+            _MM_TRANSPOSE4_PS(r0, r1, r2, r3);
         }
 
         inline __m128 min(__m128 a, __m128 b)
