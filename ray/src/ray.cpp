@@ -261,6 +261,16 @@ int main()
     tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 17 - 10, -10), Point3f(20, 17 - 10, -10), Point3f(10, 17 - 10, -20)), { &m11 }));
     tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 18 - 10, -10), Point3f(20, 18 - 10, -10), Point3f(10, 18 - 10, -20)), { &m11 }));
     */
+
+    Normal3f n1(-1.0f, 0.5f, 0.0f);
+    Normal3f n2(1.0f, 2.0f, 1.0f);
+    auto obb = OrientedBox3{
+        Point3f(0, 0, -7),
+        Vec3f(1, 2, 3),
+        {n1, n2, cross(n1, n2).normalized()}
+        };
+    //obbs.emplace_back(SceneObject<OrientedBox3>(obb, { &m11 }));
+
     auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { &m7 });
     auto sumPart2 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -7), 3.5), { &m7 });
     auto subPart3 = SceneObject<CsgShape>(Box3(Point3f(-1.5, -2, -7), Point3f(1.5, 2, -3.5)), { &m7 });
@@ -276,25 +286,35 @@ int main()
     auto subPart11 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -3.5), 0.5), { &m7 });
     auto subPart12 = SceneObject<CsgShape>(Sphere(Point3f(1.8, -0.9, -4.1), 0.8), { &m7 });
     auto subPart13 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -3.5), 0.5), { &m7 });
-    csgs.emplace_back(((((sumPart1 | sumPart2) - (subPart3 - subPart4)) & mulPart5) | (sumPart6 | sumPart7) | (subPart8 - subPart9)) - (subPart10 | subPart11 | subPart12 | subPart13));
+
+    auto diffPart14 = SceneObject<CsgShape>(obb, { &m11 });
+    csgs.emplace_back(
+        (
+            (
+                (
+                    (
+                        (sumPart1 | sumPart2) 
+                        - (subPart3 - subPart4)
+                    ) 
+                    & mulPart5
+                ) 
+                | (sumPart6 | sumPart7)
+                | (subPart8 - subPart9)
+            )
+            - (subPart10 | subPart11 | subPart12 | subPart13)
+        ) 
+        - diffPart14
+    );
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
-
-    Normal3f n1(-1.0f, 0.5f, 0.0f);
-    Normal3f n2(1.0f, 2.0f, 1.0f);
-    obbs.emplace_back(SceneObject<OrientedBox3>(OrientedBox3{
-        Point3f(0, 0, -7),
-        Vec3f(1, 2, 3),
-        {n1, n2, cross(n1, n2).normalized()}
-        }, { &m11 }));
 
     using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3>;
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
-    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/
 
     /*

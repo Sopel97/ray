@@ -770,4 +770,40 @@ namespace ray
 
         return false;
     }
+
+    template <typename DataT>
+    inline bool raycastIntervals(const Ray& ray, const OrientedBox3& obb, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    {
+        const Vec3f p = obb.origin - ray.origin();
+
+        const Normal3f& X = obb.axes[0];
+        const Normal3f& Y = obb.axes[1];
+        const Normal3f& Z = obb.axes[2];
+
+        const Vec3f f(
+            dot(X, ray.direction()),
+            dot(Y, ray.direction()),
+            dot(Z, ray.direction())
+        );
+
+        const Vec3f e(
+            dot(X, p),
+            dot(Y, p),
+            dot(Z, p)
+        );
+
+        const Vec3f t0 = (e - obb.halfSize) / f;
+        const Vec3f t1 = (e + obb.halfSize) / f;
+        const float tmax = max(t0, t1).min();
+        if (tmax < 0.0f) return false;
+        const float tmin = min(t0, t1).max();
+
+        if (tmin < tmax)
+        {
+            hitIntervals.pushBack(Interval<DataT>{tmin, tmax, data, data});
+            return true;
+        }
+
+        return false;
+    }
 }
