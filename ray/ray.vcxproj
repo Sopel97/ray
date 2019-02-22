@@ -66,6 +66,7 @@
     <ClInclude Include="src\ray\scene\bvh\BvhObject.h" />
     <ClInclude Include="src\ray\scene\bvh\BvhParams.h" />
     <ClInclude Include="src\ray\scene\bvh\StaticBvh.h" />
+    <ClInclude Include="src\ray\scene\bvh\StaticBvhObjectMeanPartitioner.h" />
     <ClInclude Include="src\ray\scene\bvh\StaticBvhObjectMedianPartitioner.h" />
     <ClInclude Include="src\ray\scene\bvh\StaticBvhObjectPartitioner.h" />
     <ClInclude Include="src\ray\scene\LightHandle.h" />

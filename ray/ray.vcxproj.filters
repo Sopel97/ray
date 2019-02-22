@@ -278,5 +278,8 @@
     <ClInclude Include="src\ray\shape\OrientedBox3.h">
       <Filter>Header Files\src\shape</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\scene\bvh\StaticBvhObjectMeanPartitioner.h">
+      <Filter>Header Files\src\scene\bvh</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

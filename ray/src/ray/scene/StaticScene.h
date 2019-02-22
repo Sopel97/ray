@@ -20,9 +20,9 @@ namespace ray
         // TODO: think how to do a move from RawSceneObjectBlob.
         //       problematic since we first have to populate storage
         //       and later get lights
-        template <typename... ShapeTs>
-        StaticScene(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection) :
-            m_storage(collection)
+        template <typename... ShapeTs, typename... ArgTs>
+        StaticScene(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection, ArgTs&&... args) :
+            m_storage(collection, std::forward<ArgTs>(args)...)
         {
             rememberLights(collection);
         }

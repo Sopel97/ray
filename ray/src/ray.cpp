@@ -16,6 +16,7 @@
 #include <ray/scene/StaticScene.h>
 #include <ray/scene/bvh/StaticBvh.h>
 #include <ray/scene/bvh/StaticBvhObjectMedianPartitioner.h>
+#include <ray/scene/bvh/StaticBvhObjectMeanPartitioner.h>
 #include <ray/scene/object/SceneObject.h>
 #include <ray/scene/object/SceneObjectBlob.h>
 
@@ -310,11 +311,11 @@ int main()
     //csgs.emplace_back(lensPart1 | lensPart2);
 
     using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3>;
-    using PartitionerType = StaticBvhObjectMedianPartitioner;
+    using PartitionerType = StaticBvhObjectMeanPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
-    //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes, 3);
+    //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/
 
     /*

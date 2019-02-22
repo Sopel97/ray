@@ -13,7 +13,7 @@
 
 namespace ray
 {
-    struct StaticBvhObjectMedianPartitioner
+    struct StaticBvhObjectMeanPartitioner
     {
         template <typename...>
         struct For;
@@ -31,14 +31,14 @@ namespace ray
 
             using Point3fMemberPtr = float(Point3f::*);
 
-            For(int order) :
+            For(int order = 1) :
                 m_numParts(1 << order)
             {
 
             }
 
-            
             // must include last
+            // can assume that distance(first, last) > 1
             std::vector<BoundedBvhObjectVectorIterator> partition(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
                 return partition(first, last, m_numParts);
@@ -69,7 +69,6 @@ namespace ray
             int m_numParts;
 
             // must include last
-            // can assume that distance(first, last) > 1
             std::vector<BoundedBvhObjectVectorIterator> partition(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int p) const
             {
                 auto flp2 = [](int x) {
@@ -106,12 +105,13 @@ namespace ray
                 const int size = static_cast<int>(std::distance(first, last));
                 const auto mid = std::next(first, size / 2);
 
-                // TODO: partition instead of sort
-                std::sort(first, last, [cmpAxis](const auto& lhs, const auto& rhs) {
-                    return lhs->center().*cmpAxis < rhs->center().*cmpAxis;
-                    });
+                const float partitionPoint = std::accumulate(first, last, 0.0f, [cmpAxis](float acc, const auto& lhs) {
+                    return lhs->center().*cmpAxis + acc;
+                    }) / size;
 
-                return mid;
+                return std::partition(first, last, [partitionPoint, cmpAxis](const auto& em) {
+                        return em->center().*cmpAxis < partitionPoint;
+                    });
             }
         };
     };
