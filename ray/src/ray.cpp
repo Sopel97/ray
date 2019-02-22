@@ -276,7 +276,7 @@ int main()
     auto subPart11 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -3.5), 0.5), { &m7 });
     auto subPart12 = SceneObject<CsgShape>(Sphere(Point3f(1.8, -0.9, -4.1), 0.8), { &m7 });
     auto subPart13 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -3.5), 0.5), { &m7 });
-    //csgs.emplace_back(((((sumPart1 | sumPart2) - (subPart3 - subPart4)) & mulPart5) | (sumPart6 | sumPart7) | (subPart8 - subPart9)) - (subPart10 | subPart11 | subPart12 | subPart13));
+    csgs.emplace_back(((((sumPart1 | sumPart2) - (subPart3 - subPart4)) & mulPart5) | (sumPart6 | sumPart7) | (subPart8 - subPart9)) - (subPart10 | subPart11 | subPart12 | subPart13));
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
@@ -293,8 +293,8 @@ int main()
     using PartitionerType = StaticBvhObjectMedianPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
-    //StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
-    StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
+    StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes);
+    //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/
 
     /*

@@ -94,8 +94,9 @@ namespace ray
         const Vec3f invDir = ray.invDirection();
         const Vec3f t0 = (box.min - ray.origin()) * invDir;
         const Vec3f t1 = (box.max - ray.origin()) * invDir;
-        const float tmin = min(t0, t1).max();
         const float tmax = max(t0, t1).min();
+        if (tmax < 0.0f) return false;
+        const float tmin = min(t0, t1).max();
 
         if (tmin <= tmax && tmin < tNearest)
         {
@@ -745,6 +746,8 @@ namespace ray
         if (r < 0.0f) return false;
         const float t_hc = std::sqrt(r);
 
+        if (t_ca + t_hc < 0.0f) return false;
+
         hitIntervals.pushBack(Interval<DataT>{t_ca - t_hc, t_ca + t_hc, data, data});
         return true;
     }
@@ -755,8 +758,9 @@ namespace ray
         const Vec3f invDir = ray.invDirection();
         const Vec3f t0 = (box.min - ray.origin()) * invDir;
         const Vec3f t1 = (box.max - ray.origin()) * invDir;
-        const float tmin = min(t0, t1).max();
         const float tmax = max(t0, t1).min();
+        if (tmax < 0.0f) return false;
+        const float tmin = min(t0, t1).max();
 
         if (tmin < tmax)
         {
