@@ -241,9 +241,9 @@ int main()
     */
 
     /*
-    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), 1.0f), { &m4, &m4 }));
-    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 7, -10), Point3f(20, 9 - 7, -13), 1.0f), { &m4, &m4 }));
-    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 4, -10), Point3f(20, 9 - 4, -16), 1.0f), { &m4, &m4 }));
+    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), 1.0f), { &m7, &m4 }));
+    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 7, -10), Point3f(20, 9 - 7, -13), 1.0f), { &m7, &m4 }));
+    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 4, -10), Point3f(20, 9 - 4, -16), 1.0f), { &m7, &m4 }));
     */
 
     capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), 1.0f), { &m7, &m4 }));

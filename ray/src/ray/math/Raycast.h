@@ -373,11 +373,10 @@ namespace ray
         const Point3f& P = ray.origin();
         const Normal3f& d = ray.direction();
         const Point3f& A = cyl.begin;
-        const Point3f& B = cyl.end;
+        const Normal3f& v = cyl.axis;
         const float r = cyl.radius;
 
         // infinite cylinder
-        const Normal3f v = (B - A).normalized();
         const Vec3f dP = P - A;
 
         const float dv = dot(d, v);
@@ -412,12 +411,12 @@ namespace ray
 
             const Point3f point = P + d * t;
             const float pl = dot(point - A, v);
-            const Point3f pointL = A + pl * v;
 
-            if (pl > 0.0f && pl < distance(A, B))
+            if (pl > 0.0f && pl < cyl.length)
             {
                 // we hit the shaft
-                const Normal3f normal = (point - pointL).normalized();
+                const Point3f pointL = A + pl * v;
+                const Normal3f normal = ((point - pointL) / r).assumeNormalized();
 
                 hit.dist = t;
                 hit.point = point;
@@ -433,7 +432,7 @@ namespace ray
         // parallel or we didn't hit the shaft in the proper range
         // we may hit the caps
         const Disc3 d0(A, -v, cyl.radius);
-        const Disc3 d1(B, v, cyl.radius);
+        const Disc3 d1(A + v * cyl.length, v, cyl.radius);
         if (raycast(ray, d0, hit) || raycast(ray, d1, hit))
         {
             hit.materialNo = 1;
@@ -449,11 +448,10 @@ namespace ray
         const Point3f& P = ray.origin();
         const Normal3f& d = ray.direction();
         const Point3f& A = cyl.begin;
-        const Point3f& B = cyl.end;
+        const Normal3f& v = cyl.axis;
         const float r = cyl.radius;
 
         // infinite cylinder
-        const Normal3f v = (B - A).normalized();
         const Vec3f dP = P - A;
 
         const float dv = dot(d, v);
@@ -488,12 +486,12 @@ namespace ray
 
             const Point3f point = P + d * t;
             const float pl = dot(point - A, v);
-            const Point3f pointL = A + pl * v;
 
-            if (pl > 0.0f && pl < distance(A, B))
+            if (pl > 0.0f && pl < cyl.length)
             {
                 // we hit the shaft
-                const Normal3f normal = (point - pointL).normalized();
+                const Point3f pointL = A + pl * v;
+                const Normal3f normal = ((point - pointL) / r).assumeNormalized();
 
                 hit.dist = t;
                 hit.point = point;
@@ -509,7 +507,7 @@ namespace ray
         // parallel or we didn't hit the shaft in the proper range
         // we may hit the caps
         const HalfSphere d0(A, -v, cyl.radius);
-        const HalfSphere d1(B, v, cyl.radius);
+        const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
         if (raycast(ray, d0, hit) || raycast(ray, d1, hit))
         {
             hit.materialNo = 1;
