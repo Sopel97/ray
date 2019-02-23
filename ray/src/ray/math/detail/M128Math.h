@@ -162,6 +162,11 @@ namespace ray
             return _mm_max_ps(a, b);
         }
 
+        inline __m128 sqrt(__m128 a)
+        {
+            return _mm_sqrt_ps(a);
+        }
+
         inline __m128 clamp(__m128 a, float minv, float maxv)
         {
             return max(min(a, _mm_set1_ps(maxv)), _mm_set1_ps(minv));

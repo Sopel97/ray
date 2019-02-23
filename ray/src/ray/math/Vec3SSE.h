@@ -563,6 +563,12 @@ namespace ray
     }
 
 
+    inline Vec3<float> sqrt(const Vec3<float>& lhs)
+    {
+        return Vec3<float>(detail::sqrt(lhs.xmm));
+    }
+
+
     inline Normal3<float> operator-(const Normal3<float>& vec)
     {
         return Normal3<float>(AssumeNormalized{}, detail::neg(vec.xmm));

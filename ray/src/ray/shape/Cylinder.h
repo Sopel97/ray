@@ -1,8 +1,9 @@
 #pragma once
 
-#include <ray/math/Vec3.h>
+#include "Box3.h"
+#include "Disc3.h"
 
-#include <ray/shape/Box3.h>
+#include <ray/math/Vec3.h>
 
 namespace ray
 {
@@ -26,12 +27,13 @@ namespace ray
             return begin + (end - begin) * 0.5f;
         }
 
-        // TODO: better fit
         Box3 aabb() const
         {
-            const Vec3f halfExtent(radius, radius, radius);
-            Box3 bb(begin - halfExtent, begin + halfExtent);
-            bb.extend(Box3(end - halfExtent, end + halfExtent));
+            const Normal3f n = (end - begin).normalized();
+            Disc3 dBegin(begin, n, radius);
+            Disc3 dEnd(end, n, radius);
+            Box3 bb = dBegin.aabb();
+            bb.extend(dEnd.aabb());
             return bb;
         }
 

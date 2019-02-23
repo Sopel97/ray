@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ray/math/Vec3.h>
+#include "Box3.h"
 
-#include <ray/shape/Box3.h>
+#include <ray/math/Vec3.h>
 
 namespace ray
 {
@@ -39,8 +39,7 @@ namespace ray
         Box3 aabb() const
         {
             Vec3f halfExtent(radius, radius, radius);
-            // NOTE: not sure if this is right
-            // halfExtent *= Vec3f::broadcast(1.0f) - abs(Vec3f(normal));
+            halfExtent *= sqrt(Vec3f::broadcast(1.0f) - Vec3f(normal) * Vec3f(normal));
             return Box3(origin - halfExtent, origin + halfExtent);
         }
     };

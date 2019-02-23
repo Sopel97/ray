@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ray/math/Vec3.h>
+#include "Box3.h"
 
-#include <ray/shape/Box3.h>
+#include <ray/math/Vec3.h>
 
 namespace ray
 {
@@ -26,7 +26,6 @@ namespace ray
             return begin + (end - begin) * 0.5f;
         }
 
-        // TODO: better fit
         Box3 aabb() const
         {
             const Vec3f halfExtent(radius, radius, radius);
