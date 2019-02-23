@@ -25,6 +25,11 @@ namespace ray
             return origin - (worldToLocalRot.inverse() * halfSize);
         }
 
+        Point3f max() const
+        {
+            return origin + (worldToLocalRot.inverse() * halfSize);
+        }
+
         Vec3f extent() const
         {
             return 2.0f * (worldToLocalRot.inverse() * halfSize);

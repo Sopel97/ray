@@ -289,6 +289,10 @@ int main()
     auto subPart13 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -3.5), 0.5), { &m7 });
 
     auto diffPart14 = SceneObject<CsgShape>(obb, { &m11 });
+
+    //auto diffPart15 = SceneObject<CsgShape>(Cylinder(obb.min(), obb.max(), 2.0f), { &m7, &m4 });
+    auto diffPart15 = SceneObject<CsgShape>(Capsule(obb.min(), obb.max(), 2.0f), { &m7, &m4 });
+
     csgs.emplace_back(
         (
             (
@@ -304,7 +308,8 @@ int main()
             )
             - (subPart10 | subPart11 | subPart12 | subPart13)
         ) 
-        - diffPart14
+         - diffPart14
+        // - diffPart15
     );
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });

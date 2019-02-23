@@ -781,4 +781,309 @@ namespace ray
 
         return false;
     }
+
+    inline bool raycastDist(const Ray& ray, const Disc3& disc, float& t)
+    {
+        const float nd = dot(ray.direction(), disc.normal);
+        const float pn = dot(Vec3f(ray.origin()), disc.normal);
+        t = (disc.distance - pn) / nd;
+
+        const Point3f point = ray.origin() + ray.direction() * t;
+        if (distanceSqr(disc.origin, point) > disc.radius * disc.radius)
+            return false;
+
+        return true;
+    }
+
+    // should return smallest distance (ie. smallest in absolute value)
+    inline bool raycastDist(const Ray& ray, const HalfSphere& sphere, float& t)
+    {
+        const Point3f O = ray.origin();
+        const Normal3f D = ray.direction();
+        const Point3f C = sphere.center();
+        const float R = sphere.radius();
+
+        const Vec3f L = C - O;
+        const float t_ca = dot(L, D);
+        //if (t_ca < 0.0f) return false; // we need to handle cases where ray origin is past the sphere center
+
+        const float d2 = dot(L, L) - t_ca * t_ca;
+        if (d2 > R * R) return false;
+        const float r = R * R - d2;
+        const float t_hc = std::sqrt(r);
+
+        float tmin = t_ca - t_hc;
+        float tmax = t_ca + t_hc;
+
+        if (std::abs(tmax) < std::abs(tmin)) std::swap(tmin, tmax);
+
+        Point3f hitPointMin = O + tmin * D;
+        Point3f hitPointMax = O + tmax * D;
+        if (dot(hitPointMin - C, sphere.normal()) > 0.0f)
+        {
+            t = tmin;
+            return true;
+        }
+        else if (dot(hitPointMax - C, sphere.normal()) > 0.0f)
+        {
+            t = tmax;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    template <typename DataT>
+    inline bool raycastIntervals(const Ray& ray, const Cylinder& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    {
+        // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
+        const Point3f& P = ray.origin();
+        const Normal3f& d = ray.direction();
+        const Point3f& A = cyl.begin;
+        const Normal3f& v = cyl.axis;
+        const float r = cyl.radius;
+
+        // infinite cylinder
+        const Vec3f dP = P - A;
+
+        const float dv = dot(d, v);
+        if (!(std::abs(dv) < 0.00001f))
+        {
+            // not parallel
+            const float dPv = dot(dP, v);
+            const Vec3f dvv = Vec3f(d) - dv * v;
+            const Vec3f dPvv = Vec3f(dP) - dPv * v;
+
+            const float a = dot(dvv, dvv);
+            const float b = 2.0f * dot(dvv, dPvv);
+            const float c = dot(dPvv, dPvv) - (cyl.radius * cyl.radius);
+
+            const float delta = b * b - 4.0f*a*c;
+            if (delta < 0.0f)
+                return false;
+
+            const float sqrtDelta = std::sqrt(delta);
+
+            float t0 = (-b - sqrtDelta) / (2.0f * a);
+            float t1 = (-b + sqrtDelta) / (2.0f * a);
+            if (t1 < 0.0f) return false;
+
+            {
+                const Point3f point1 = P + d * t1;
+                const float p1l = dot(point1 - A, v);
+
+                if (p1l < 0.0f)
+                {
+                    // we are before A
+                    const Disc3 d0(A, -v, cyl.radius);
+                    float dist;
+                    if (raycastDist(ray, d0, dist))
+                    {
+                        t1 = dist;
+                        if (dist < 0.0f) return false;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (p1l > cyl.length)
+                {
+                    // we are after B
+                    const Disc3 d1(A + v * cyl.length, v, cyl.radius);
+                    float dist;
+                    if (raycastDist(ray, d1, dist))
+                    {
+                        t1 = dist;
+                        if (dist < 0.0f) return false;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            {
+                const Point3f point0 = P + d * t0;
+                const float p0l = dot(point0 - A, v);
+
+                if (p0l < 0.0f)
+                {
+                    // we are before A
+                    const Disc3 d0(A, -v, cyl.radius);
+                    float dist;
+                    if (raycastDist(ray, d0, dist))
+                    {
+                        t0 = dist;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (p0l > cyl.length)
+                {
+                    // we are after B
+                    const Disc3 d1(A + v * cyl.length, v, cyl.radius);
+                    float dist;
+                    if (raycastDist(ray, d1, dist))
+                    {
+                        t0 = dist;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
+
+            return true;
+        }
+        else
+        {
+            const Disc3 d0(A, -v, cyl.radius);
+            const Disc3 d1(A + v * cyl.length, v, cyl.radius);
+            float t0, t1;
+            if (raycastDist(ray, d0, t0) && raycastDist(ray, d1, t1))
+            {
+                if (t1 < t0) std::swap(t0, t1);
+                if (t1 < 0.0f) return false;
+                hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    template <typename DataT>
+    inline bool raycastIntervals(const Ray& ray, const Capsule& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    {
+        // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
+        const Point3f& P = ray.origin();
+        const Normal3f& d = ray.direction();
+        const Point3f& A = cyl.begin;
+        const Normal3f& v = cyl.axis;
+        const float r = cyl.radius;
+
+        // infinite cylinder
+        const Vec3f dP = P - A;
+
+        const float dv = dot(d, v);
+        if (!(std::abs(dv) < 0.00001f))
+        {
+            // not parallel
+            const float dPv = dot(dP, v);
+            const Vec3f dvv = Vec3f(d) - dv * v;
+            const Vec3f dPvv = Vec3f(dP) - dPv * v;
+
+            const float a = dot(dvv, dvv);
+            const float b = 2.0f * dot(dvv, dPvv);
+            const float c = dot(dPvv, dPvv) - (cyl.radius * cyl.radius);
+
+            const float delta = b * b - 4.0f*a*c;
+            if (delta < 0.0f)
+                return false;
+
+            const float sqrtDelta = std::sqrt(delta);
+
+            float t0 = (-b - sqrtDelta) / (2.0f * a);
+            float t1 = (-b + sqrtDelta) / (2.0f * a);
+            if (t1 < 0.0f) return false;
+
+            {
+                const Point3f point1 = P + d * t1;
+                const float p1l = dot(point1 - A, v);
+
+                if (p1l < 0.0f)
+                {
+                    // we are before A
+                    const HalfSphere d0(A, -v, cyl.radius);
+                    float dist;
+                    if (raycastDist(ray, d0, dist))
+                    {
+                        t1 = dist;
+                        if (dist < 0.0f) return false;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (p1l > cyl.length)
+                {
+                    // we are after B
+                    const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
+                    float dist;
+                    if (raycastDist(ray, d1, dist))
+                    {
+                        t1 = dist;
+                        if (dist < 0.0f) return false;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            {
+                const Point3f point0 = P + d * t0;
+                const float p0l = dot(point0 - A, v);
+
+                if (p0l < 0.0f)
+                {
+                    // we are before A
+                    const HalfSphere d0(A, -v, cyl.radius);
+                    float dist;
+                    if (raycastDist(ray, d0, dist))
+                    {
+                        t0 = dist;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (p0l > cyl.length)
+                {
+                    // we are after B
+                    const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
+                    float dist;
+                    if (raycastDist(ray, d1, dist))
+                    {
+                        t0 = dist;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
+
+            return true;
+        }
+        else
+        {
+            const HalfSphere d0(A, -v, cyl.radius);
+            const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
+            float t0, t1;
+            if (raycastDist(ray, d0, t0) && raycastDist(ray, d1, t1))
+            {
+                if (t1 < t0) std::swap(t0, t1);
+                if (t1 < 0.0f) return false;
+                hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
