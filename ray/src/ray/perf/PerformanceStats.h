@@ -9,9 +9,15 @@
 
 namespace ray 
 {
-    struct Sphere;
-    struct Plane;
     struct Box3;
+    struct Capsule;
+    struct ClosedTriangleMeshFace;
+    struct Cylinder;
+    struct Disc3;
+    struct HalfSphere;
+    struct OrientedBox3;
+    struct Plane;
+    struct Sphere;
     struct Triangle3;
 
     namespace perf
@@ -43,6 +49,20 @@ namespace ray
 
             template <typename BvShapeT>
             struct BvRaycastStats
+            {
+                std::atomic<std::uint64_t> all;
+                std::atomic<std::uint64_t> hits;
+            };
+
+            template <typename ShapeT>
+            struct IntervalRaycastStats
+            {
+                std::atomic<std::uint64_t> all;
+                std::atomic<std::uint64_t> hits;
+            };
+
+            template <typename ShapeT>
+            struct DistRaycastStats
             {
                 std::atomic<std::uint64_t> all;
                 std::atomic<std::uint64_t> hits;
@@ -109,6 +129,30 @@ namespace ray
                 bvRaycasts<BvShapeT>().hits += count;
             }
 
+            template <typename ShapeT>
+            void addIntervalRaycast(std::uint64_t count = 1)
+            {
+                intervalRaycasts<ShapeT>().all += count;
+            }
+
+            template <typename ShapeT>
+            void addIntervalRaycastHit(std::uint64_t count = 1)
+            {
+                intervalRaycasts<ShapeT>().hits += count;
+            }
+
+            template <typename ShapeT>
+            void addDistRaycast(std::uint64_t count = 1)
+            {
+                distRaycasts<ShapeT>().all += count;
+            }
+
+            template <typename ShapeT>
+            void addDistRaycastHit(std::uint64_t count = 1)
+            {
+                distRaycasts<ShapeT>().hits += count;
+            }
+
             void addTraceTime(std::chrono::nanoseconds dur)
             {
                 m_traceDuration.add(dur);
@@ -161,17 +205,49 @@ namespace ray
                 }
                 out += "Rays/s: " + std::to_string(totalTraces.all / traceTimeSeconds) + "\n";
 
-                out += "Intersection test stats:\n";
-                out += "Sphere tests:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Sphere>().hits.load(), objectRaycasts<Sphere>().all.load()) + "\n";
-                out += "Plane tests:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Plane>().hits.load(), objectRaycasts<Plane>().all.load()) + "\n";
-                out += "Box tests:\n";
+                out += "Raycasts:\n";
+                out += "Box3:\n";
                 out += "   hits/all: " + entry2(objectRaycasts<Box3>().hits.load(), objectRaycasts<Box3>().all.load()) + "\n";
-                out += "MTTriangle tests:\n";
+                out += "Capsule:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Capsule>().hits.load(), objectRaycasts<Capsule>().all.load()) + "\n";
+                out += "ClosedTriangleMeshFace:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<ClosedTriangleMeshFace>().hits.load(), objectRaycasts<ClosedTriangleMeshFace>().all.load()) + "\n";
+                out += "Cylinder:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Cylinder>().hits.load(), objectRaycasts<Cylinder>().all.load()) + "\n";
+                out += "Disc3:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Disc3>().hits.load(), objectRaycasts<Disc3>().all.load()) + "\n";
+                out += "HalfSphere:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<HalfSphere>().hits.load(), objectRaycasts<HalfSphere>().all.load()) + "\n";
+                out += "OrientedBox3:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<OrientedBox3>().hits.load(), objectRaycasts<OrientedBox3>().all.load()) + "\n";
+                out += "Plane:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Plane>().hits.load(), objectRaycasts<Plane>().all.load()) + "\n";
+                out += "Sphere:\n";
+                out += "   hits/all: " + entry2(objectRaycasts<Sphere>().hits.load(), objectRaycasts<Sphere>().all.load()) + "\n";
+                out += "Triangle3:\n";
                 out += "   hits/all: " + entry2(objectRaycasts<Triangle3>().hits.load(), objectRaycasts<Triangle3>().all.load()) + "\n";
-                out += "Box BV tests:\n";
+                out += "\n";
+                out += "BV Raycasts:\n";
+                out += "Box3:\n";
                 out += "   hits/all: " + entry2(bvRaycasts<Box3>().hits.load(), bvRaycasts<Box3>().all.load()) + "\n";
+                out += "\n";
+                out += "Interval Raycasts:\n";
+                out += "Box3:\n";
+                out += "   hits/all: " + entry2(intervalRaycasts<Box3>().hits.load(), intervalRaycasts<Box3>().all.load()) + "\n";
+                out += "Capsule:\n";
+                out += "   hits/all: " + entry2(intervalRaycasts<Capsule>().hits.load(), intervalRaycasts<Capsule>().all.load()) + "\n";
+                out += "Cylinder:\n";
+                out += "   hits/all: " + entry2(intervalRaycasts<Cylinder>().hits.load(), intervalRaycasts<Cylinder>().all.load()) + "\n";
+                out += "OrientedBox3:\n";
+                out += "   hits/all: " + entry2(intervalRaycasts<OrientedBox3>().hits.load(), intervalRaycasts<OrientedBox3>().all.load()) + "\n";
+                out += "Sphere:\n";
+                out += "   hits/all: " + entry2(intervalRaycasts<Sphere>().hits.load(), intervalRaycasts<Sphere>().all.load()) + "\n";
+                out += "\n";
+                out += "Dist Raycasts:\n";
+                out += "Disc3:\n";
+                out += "   hits/all: " + entry2(distRaycasts<Disc3>().hits.load(), distRaycasts<Disc3>().all.load()) + "\n";
+                out += "HalfSphere:\n";
+                out += "   hits/all: " + entry2(distRaycasts<HalfSphere>().hits.load(), distRaycasts<HalfSphere>().all.load()) + "\n";
 
                 return out;
             }
@@ -188,14 +264,42 @@ namespace ray
                 return std::get<BvRaycastStats<BvShapeT>>(m_raycasts);
             }
 
+            template <typename ShapeT>
+            decltype(auto) intervalRaycasts() const
+            {
+                return std::get<IntervalRaycastStats<ShapeT>>(m_raycasts);
+            }
+
+            template <typename ShapeT>
+            decltype(auto) distRaycasts() const
+            {
+                return std::get<DistRaycastStats<ShapeT>>(m_raycasts);
+            }
+
         private:
             std::vector<TraceStats> m_tracesByDepth;
             std::tuple<
-                ObjectRaycastStats<Sphere>,
-                ObjectRaycastStats<Plane>,
                 ObjectRaycastStats<Box3>,
+                ObjectRaycastStats<Capsule>,
+                ObjectRaycastStats<ClosedTriangleMeshFace>,
+                ObjectRaycastStats<Cylinder>,
+                ObjectRaycastStats<Disc3>,
+                ObjectRaycastStats<HalfSphere>,
+                ObjectRaycastStats<OrientedBox3>,
+                ObjectRaycastStats<Plane>,
+                ObjectRaycastStats<Sphere>,
                 ObjectRaycastStats<Triangle3>,
-                BvRaycastStats<Box3>
+
+                BvRaycastStats<Box3>,
+
+                IntervalRaycastStats<Box3>,
+                IntervalRaycastStats<Capsule>,
+                IntervalRaycastStats<Cylinder>,
+                IntervalRaycastStats<OrientedBox3>,
+                IntervalRaycastStats<Sphere>,
+
+                DistRaycastStats<Disc3>,
+                DistRaycastStats<HalfSphere>
             > m_raycasts;
             TimeStats m_traceDuration;
             TimeStats m_constructionDuration;
@@ -210,6 +314,18 @@ namespace ray
             decltype(auto) bvRaycasts()
             {
                 return std::get<BvRaycastStats<BvShapeT>>(m_raycasts);
+            }
+
+            template <typename ShapeT>
+            decltype(auto) intervalRaycasts()
+            {
+                return std::get<IntervalRaycastStats<ShapeT>>(m_raycasts);
+            }
+
+            template <typename ShapeT>
+            decltype(auto) distRaycasts()
+            {
+                return std::get<DistRaycastStats<ShapeT>>(m_raycasts);
             }
         };
 
