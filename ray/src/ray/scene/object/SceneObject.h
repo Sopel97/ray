@@ -3,6 +3,7 @@
 #include "SceneObjectId.h"
 
 #include <ray/material/Material.h>
+#include <ray/material/MaterialPtrStorage.h>
 #include <ray/material/TexCoords.h>
 
 #include <ray/math/BoundingVolume.h>
@@ -25,7 +26,20 @@
 namespace ray
 {
     template <typename ShapeT>
-    using MaterialArrayType = std::array<const Material*, ShapeTraits<ShapeT>::numMaterialsPerShape>;
+    using MaterialPtrStorageType = MaterialPtrStorage<
+        ShapeTraits<ShapeT>::numSurfaceMaterialsPerShape,
+        ShapeTraits<ShapeT>::numMediumMaterialsPerShape
+    >;
+
+    template <int N, int M>
+    bool isEmissive(const MaterialPtrStorage<N, M>& mats)
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            if (mats.surfaceMaterial(i).emissionColor.total() > 0.0001f) return true;
+        }
+        return false;
+    }
 
     namespace detail
     {
@@ -39,10 +53,9 @@ namespace ray
         using ShapeType = ShapeT;
         using ShapeTraits = ShapeTraits<ShapeType>;
         using BaseShapeType = typename ShapeTraits::BaseShapeType;
-        static constexpr int numShapesInPack = ShapeTraits::numShapes;
-        static constexpr bool isPack = numShapesInPack > 1;
-        static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
-        using MaterialStorageType = MaterialArrayType<ShapeType>;
+        static constexpr bool isPack = ShapeTraits::numShapes > 1;
+        using MaterialStorageType = MaterialPtrStorageType<ShapeType>;
+        using MaterialStorageViewType = MaterialPtrStorageView;
 
         static_assert(!isPack, "A single scene object must not be a pack. Use SceneObjectArray.");
 
@@ -69,23 +82,19 @@ namespace ray
             return m_materials;
         }
 
+        MaterialStorageViewType materialsView() const
+        {
+            return m_materials.view();
+        }
+
         const ShapeType& shape() const
         {
             return m_shape;
         }
 
-        const Material& material(int i) const
-        {
-            return *(m_materials[i]);
-        }
-
         bool isLight() const
         {
-            for (const auto& mat : m_materials)
-            {
-                if (mat->emissionColor.total() > 0.0001f) return true;
-            }
-            return false;
+            return isEmissive(m_materials);
         }
 
         SceneObjectId id() const
@@ -129,9 +138,11 @@ namespace ray
     public:
         struct CsgPrimitiveBase : CsgNode
         {
+            using MaterialStorageViewType = MaterialPtrStorageView;
+
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
-            virtual const Material& material(int materialNo) const = 0;
+            virtual MaterialStorageViewType materials() const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
         };
@@ -142,11 +153,11 @@ namespace ray
         {
             static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
             static constexpr bool isPack = numShapesInPack > 1;
-            static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
             static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
             static constexpr bool hasVolume = ShapeTraits<ShapeT>::hasVolume;
             static constexpr bool isLocallyContinuable = ShapeTraits<ShapeT>::isLocallyContinuable;
-            using MaterialStorageType = MaterialArrayType<ShapeT>;
+            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
+            using MaterialStorageViewType = MaterialPtrStorageView;
 
             static_assert(isBounded, "Must be bounded.");
             static_assert(hasVolume, "Must have volume.");
@@ -177,17 +188,13 @@ namespace ray
             {
                 return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
-            const Material& material(int materialNo) const override
+            MaterialStorageViewType materials() const override
             {
-                return *(m_materials[materialNo]);
+                return m_materials.view();
             }
             bool isLight() const override
             {
-                for (const auto& mat : m_materials)
-                {
-                    if (mat->emissionColor.total() > 0.0001f) return true;
-                }
-                return false;
+                return isEmissive(m_materials);
             }
             SceneObjectId id() const override
             {
@@ -320,7 +327,7 @@ namespace ray
         using ShapeType = CsgShape;
 
         template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
             m_obj(std::make_shared<CsgPrimitiveImpl<ShapeT>>(materials, shape)),
             m_id(detail::gNextSceneObjectId.fetch_add(1))
         {
@@ -443,6 +450,8 @@ namespace ray
     private:
         struct PolymorphicSceneObjectBase
         {
+            using MaterialStorageViewType = MaterialPtrStorageView;
+
             virtual Point3f center() const = 0;
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
@@ -450,7 +459,7 @@ namespace ray
             virtual bool hasVolume() const = 0;
             virtual bool isLocallyContinuable() const = 0;
             virtual Box3 aabb() const = 0;
-            virtual const Material& material(int materialNo) const = 0;
+            virtual MaterialStorageViewType materials() const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
         };
@@ -462,9 +471,10 @@ namespace ray
             static constexpr bool isPack = numShapesInPack > 1;
             static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
             static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
-            using MaterialStorageType = MaterialArrayType<ShapeT>;
             static_assert(!isPack, "Only a single object can be made polymorphic.");
             static_assert(isBounded, "Must be bounded.");
+            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
+            using MaterialStorageViewType = MaterialPtrStorageView;
 
             template <typename... ArgsTs>
             PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
@@ -503,17 +513,13 @@ namespace ray
             {
                 return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
-            const Material& material(int materialNo) const override
+            MaterialStorageViewType material() const override
             {
-                return *(m_materials[materialNo]);
+                return m_materials.view();
             }
             bool isLight() const override
             {
-                for (const auto& mat : m_materials)
-                {
-                    if (mat->emissionColor.total() > 0.0001f) return true;
-                }
-                return false;
+                return isEmissive(m_materials);
             }
             SceneObjectId id() const override
             {
@@ -530,7 +536,7 @@ namespace ray
         using ShapeType = BoundedUniqueAnyShape;
 
         template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
             m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(materials, shape))
         {
 
@@ -576,9 +582,9 @@ namespace ray
             return m_obj->isLocallyContinuable();
         }
 
-        const Material& material(int materialNo) const
+        MaterialPtrStorageView materialsView() const
         {
-            return m_obj->material(materialNo);
+            return m_obj->materials();
         }
 
         bool isLight() const
@@ -599,13 +605,15 @@ namespace ray
     private:
         struct PolymorphicSceneObjectBase
         {
+            using MaterialStorageViewType = MaterialPtrStorageView;
+
             virtual Point3f center() const = 0;
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
             virtual bool isLocallyContinuable() const = 0;
             virtual Box3 aabb() const = 0;
-            virtual const Material& material(int materialNo) const = 0;
+            virtual MaterialStorageViewType materials() const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
         };
@@ -617,9 +625,10 @@ namespace ray
             static constexpr bool isPack = numShapesInPack > 1;
             static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
             static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
-            using MaterialStorageType = MaterialArrayType<ShapeT>;
             static_assert(!isPack, "Only a single object can be made polymorphic.");
             static_assert(isBounded, "Must be bounded.");
+            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
+            using MaterialStorageViewType = MaterialPtrStorageView;
 
             template <typename... ArgsTs>
             PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
@@ -654,17 +663,13 @@ namespace ray
             {
                 return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
-            const Material& material(int materialNo) const override
+            MaterialStorageViewType materials() const override
             {
-                return *(m_materials[materialNo]);
+                return m_materials.view();
             }
             bool isLight() const override
             {
-                for (const auto& mat : m_materials)
-                {
-                    if (mat->emissionColor.total() > 0.0001f) return true;
-                }
-                return false;
+                return isEmissive(m_materials);
             }
             SceneObjectId id() const override
             {
@@ -681,7 +686,7 @@ namespace ray
         using ShapeType = BoundedSharedAnyShape;
 
         template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
             m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
         {
 
@@ -722,9 +727,9 @@ namespace ray
             return m_obj->isLocallyContinuable();
         }
 
-        const Material& material(int materialNo) const
+        MaterialPtrStorageView materialsView() const
         {
-            return m_obj->material(materialNo);
+            return m_obj->materials();
         }
 
         bool isLight() const
@@ -746,12 +751,14 @@ namespace ray
     private:
         struct PolymorphicSceneObjectBase
         {
+            using MaterialStorageViewType = MaterialPtrStorageView;
+
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
             virtual bool isLocallyContinuable() const = 0;
-            virtual const Material& material(int materialNo) const = 0;
+            virtual MaterialStorageViewType materials() const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
         };
@@ -763,9 +770,10 @@ namespace ray
             static constexpr bool isPack = numShapesInPack > 1;
             static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
             static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
-            using MaterialStorageType = MaterialArrayType<ShapeT>;
             static_assert(!isPack, "Only a single object can be made polymorphic.");
             static_assert(!isBounded, "Must not be bounded.");
+            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
+            using MaterialStorageViewType = MaterialPtrStorageView;
 
             template <typename... ArgsTs>
             PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
@@ -795,17 +803,13 @@ namespace ray
             {
                 return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
-            const Material& material(int materialNo) const override
+            MaterialStorageViewType material() const override
             {
-                return *(m_materials[materialNo]);
+                return m_materials.view();
             }
             bool isLight() const override
             {
-                for (const auto& mat : m_materials)
-                {
-                    if (mat->emissionColor.total() > 0.0001f) return true;
-                }
-                return false;
+                return isEmissive(m_materials);
             }
             SceneObjectId id() const override
             {
@@ -822,7 +826,7 @@ namespace ray
         using ShapeType = UnboundedUniqueAnyShape;
 
         template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
             m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(materials, shape))
         {
 
@@ -859,9 +863,9 @@ namespace ray
             return m_obj->isLocallyContinuable();
         }
 
-        const Material& material(int materialNo) const
+        MaterialPtrStorageView materialsView() const
         {
-            return m_obj->material(materialNo);
+            return m_obj->materials();
         }
 
         bool isLight() const
@@ -882,11 +886,13 @@ namespace ray
     private:
         struct PolymorphicSceneObjectBase
         {
+            using MaterialStorageViewType = MaterialPtrStorageView;
+
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
             virtual bool hasVolume() const = 0;
             virtual bool isLocallyContinuable() const = 0;
-            virtual const Material& material(int materialNo) const = 0;
+            virtual MaterialStorageViewType materials() const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
         };
@@ -898,9 +904,10 @@ namespace ray
             static constexpr bool isPack = numShapesInPack > 1;
             static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
             static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
-            using MaterialStorageType = MaterialArrayType<ShapeT>;
             static_assert(!isPack, "Only a single object can be made polymorphic.");
             static_assert(!isBounded, "Must not be bounded.");
+            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
+            using MaterialStorageViewType = MaterialPtrStorageView;
 
             template <typename... ArgsTs>
             PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
@@ -926,17 +933,13 @@ namespace ray
             {
                 return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
-            const Material& material(int materialNo) const override
+            MaterialStorageViewType materials() const override
             {
-                return *(m_materials[materialNo]);
+                return m_materials.view();
             }
             bool isLight() const override
             {
-                for (const auto& mat : m_materials)
-                {
-                    if (mat->emissionColor.total() > 0.0001f) return true;
-                }
-                return false;
+                return isEmissive(m_materials);
             }
             SceneObjectId id() const override
             {
@@ -953,7 +956,7 @@ namespace ray
         using ShapeType = UnboundedSharedAnyShape;
 
         template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialArrayType<ShapeT>& materials) :
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
             m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
         {
 
@@ -984,9 +987,9 @@ namespace ray
             return m_obj->isLocallyContinuable();
         }
 
-        const Material& material(int materialNo) const
+        MaterialPtrStorageView materialsView() const
         {
-            return m_obj->material(materialNo);
+            return m_obj->materials();
         }
 
         bool isLight() const

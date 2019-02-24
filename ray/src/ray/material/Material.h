@@ -4,109 +4,36 @@
 #include "TexCoords.h"
 #include "Texture.h"
 
+#include "MediumMaterial.h"
+#include "SurfaceMaterial.h"
+
 namespace ray
 {
-    struct Material
+    struct MaterialIndex
     {
-        ColorRGBf surfaceColor;
-        ColorRGBf emissionColor;
-        float transparency;
-        float refractiveIndex;
-        float reflectivity;
-        float diffuse;
-        ColorRGBf absorbtion;
-        const Texture* texture;
+        static constexpr int none = -1;
 
-        Material() :
-            surfaceColor{},
-            emissionColor{},
-            transparency{},
-            refractiveIndex(1.0f),
-            reflectivity{},
-            diffuse{},
-            absorbtion{},
-            texture(nullptr)
+        MaterialIndex() = default;
+
+        explicit MaterialIndex(int s, int m = none) :
+            m_surfaceMaterialNo(s),
+            m_mediumMaterialNo(m)
         {
+
         }
 
-        Material(
-            const ColorRGBf& surfaceColor,
-            const ColorRGBf& emissionColor,
-            float transparency,
-            float refractiveIndex,
-            float reflectivity,
-            float diffuse,
-            const ColorRGBf& absorbtion,
-            const Texture* texture = nullptr
-        ) :
-            surfaceColor(surfaceColor),
-            emissionColor(emissionColor),
-            transparency(transparency),
-            refractiveIndex(refractiveIndex),
-            reflectivity(reflectivity),
-            diffuse(diffuse),
-            absorbtion(absorbtion),
-            texture(texture)
+        int surfaceMaterialNo() const
         {
+            return m_surfaceMaterialNo;
         }
 
-        Material(const Material&) = default;
-        Material(Material&&) = default;
-        Material& operator=(const Material&) = default;
-        Material& operator=(Material&&) = default;
-
-        Material& withSurfaceColor(const ColorRGBf& color)
+        int mediumMaterialNo() const
         {
-            surfaceColor = color;
-            return *this;
+            return m_mediumMaterialNo;
         }
 
-        Material& withEmissionColor(const ColorRGBf& color)
-        {
-            emissionColor = color;
-            return *this;
-        }
-
-        Material& withTransparency(float f)
-        {
-            transparency = f;
-            return *this;
-        }
-
-        Material& withRefractiveIndex(float f)
-        {
-            refractiveIndex = f;
-            return *this;
-        }
-
-        Material& withReflectivity(float f)
-        {
-            reflectivity = f;
-            return *this;
-        }
-
-        Material& withDiffuse(float f)
-        {
-            diffuse = f;
-            return *this;
-        }
-
-        Material& withAbsorbtion(const ColorRGBf& color)
-        {
-            absorbtion = color;
-            return *this;
-        }
-
-        Material& withTexture(const Texture& tex)
-        {
-            texture = &tex;
-        }
-
-        ColorRGBf sampleTexture(const TexCoords& coords) const
-        {
-            if (!texture) return ColorRGBf(1.0f, 1.0f, 1.0f);
-
-            return texture->sample(coords);
-        }
+    private:
+        int m_surfaceMaterialNo;
+        int m_mediumMaterialNo;
     };
 }

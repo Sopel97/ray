@@ -44,9 +44,9 @@ namespace ray
                 m_objects.emplace_back(std::move(so));
             }
 
-            const Material& material(int shapeNo, int materialNo) const
+            MaterialPtrStorageView materials(int shapeNo) const
             {
-                return m_objects[shapeNo].material(materialNo);
+                return m_objects[shapeNo].materialsView();
             }
 
             SceneObjectId id(int shapeNo) const
@@ -59,7 +59,7 @@ namespace ray
                 return static_cast<int>(m_objects.size());
             }
 
-           bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
+            bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
             {
                 const int size = static_cast<int>(m_objects.size());
                 bool anyHit = false;
@@ -95,9 +95,9 @@ namespace ray
             ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
             {
                 const auto& obj = m_objects[hit.shapeNo];
-                const Material& mat = material(hit.shapeNo, hit.materialNo);
-                const TexCoords texCoords = mat.texture ? m_objects[hit.shapeNo].resolveTexCoords(hit, 0) : TexCoords{ 0.0f, 0.0f };
-                return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, obj.hasVolume(), obj.isLocallyContinuable());
+                auto[surface, medium] = materials(hit.shapeNo).material(hit.materialIndex);
+                const TexCoords texCoords = surface->texture ? m_objects[hit.shapeNo].resolveTexCoords(hit, 0) : TexCoords{ 0.0f, 0.0f };
+                return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, obj.hasVolume(), obj.isLocallyContinuable());
             }
 
         private:
@@ -116,11 +116,10 @@ namespace ray
         using BaseShapeType = typename ShapeTraits::BaseShapeType;
         static constexpr int numShapesInPack = ShapeTraits::numShapes;
         static constexpr bool isPack = numShapesInPack > 1;
-        static constexpr int numMaterialsPerShape = ShapeTraits::numMaterialsPerShape;
         static constexpr bool hasVolume = ShapeTraits::hasVolume;
         static constexpr bool isLocallyContinuable = ShapeTraits::isLocallyContinuable;
         using ShapeStorageType = std::vector<ShapePackType>;
-        using MaterialStorageType = std::vector<MaterialArrayType<BaseShapeType>>;
+        using MaterialStorageType = std::vector<MaterialPtrStorageType<BaseShapeType>>;
         using IdStorageType = std::vector<SceneObjectId>;
 
         SceneObjectArray() :
@@ -162,9 +161,9 @@ namespace ray
             }
         }
 
-        const Material& material(int shapeNo, int materialNo) const
+        MaterialPtrStorageView materials(int shapeNo) const
         {
-            return *(m_materials[shapeNo][materialNo]);
+            return m_materials[shapeNo].view();
         }
 
         SceneObjectId id(int shapeNo) const
@@ -218,9 +217,9 @@ namespace ray
         {
             const int packNo = hit.shapeNo / numShapesInPack;
             const int shapeInPackNo = hit.shapeNo % numShapesInPack;
-            const Material& mat = material(hit.shapeNo, hit.materialNo);
-            const TexCoords texCoords = mat.texture ? resolveTexCoords(m_shapePacks[packNo], hit, shapeInPackNo) : TexCoords{ 0.0f, 0.0f };
-            return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, hasVolume, isLocallyContinuable);
+            auto[surface, medium] = materials(hit.shapeNo).material(hit.materialIndex);
+            const TexCoords texCoords = surface->texture ? resolveTexCoords(m_shapePacks[packNo], hit, shapeInPackNo) : TexCoords{ 0.0f, 0.0f };
+            return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, hasVolume, isLocallyContinuable);
         }
 
     private:
@@ -310,9 +309,9 @@ namespace ray
         ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
             ShapePtrType obj = static_cast<ShapePtrType>(hit.additionalData);
-            const Material& mat = obj->material(hit.materialNo);
-            const TexCoords texCoords = mat.texture ? obj->resolveTexCoords(hit, 0) : TexCoords{ 0.0f, 0.0f };
-            return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, mat, *this, hit.isInside, 
+            auto [surface, medium] = obj->materials().material(hit.materialIndex);
+            const TexCoords texCoords = surface->texture ? obj->resolveTexCoords(hit, 0) : TexCoords{ 0.0f, 0.0f };
+            return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, 
                 true, // hasVolume
                 true); // isLocallyContinuable
         }

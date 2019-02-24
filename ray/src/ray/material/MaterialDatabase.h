@@ -19,17 +19,28 @@ namespace ray
         MaterialDatabase& operator=(MaterialDatabase&&) = default;
 
         template <typename... ArgsTs>
-        const Material& emplace(std::string name, ArgsTs&&... args)
+        const SurfaceMaterial& emplaceSurface(std::string name, ArgsTs&&... args)
         {
-            return *(m_textures.try_emplace(std::move(name), std::make_unique<Material>(std::forward<ArgsTs>(args)...)).first->second);
+            return *(m_surfaces.try_emplace(std::move(name), std::make_unique<SurfaceMaterial>(std::forward<ArgsTs>(args)...)).first->second);
+        }
+        template <typename... ArgsTs>
+        const MediumMaterial& emplaceMedium(std::string name, ArgsTs&&... args)
+        {
+            return *(m_mediums.try_emplace(std::move(name), std::make_unique<MediumMaterial>(std::forward<ArgsTs>(args)...)).first->second);
         }
 
-        const Material& get(std::string_view name) const
+        const SurfaceMaterial& getSurface(std::string_view name) const
         {
-            return *(m_textures.find(name)->second);
+            return *(m_surfaces.find(name)->second);
+        }
+
+        const MediumMaterial& get(std::string_view name) const
+        {
+            return *(m_mediums.find(name)->second);
         }
 
     private:
-        std::map<std::string, std::unique_ptr<Material>, std::less<>> m_textures;
+        std::map<std::string, std::unique_ptr<SurfaceMaterial>, std::less<>> m_surfaces;
+        std::map<std::string, std::unique_ptr<MediumMaterial>, std::less<>> m_mediums;
     };
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ray/material/Material.h>
+
 namespace ray
 {
     // for bounding volumes we don't need that much information
@@ -14,7 +16,7 @@ namespace ray
         Point3f point;
         Normal3f normal;
         int shapeInPackNo;
-        int materialNo;
+        MaterialIndex materialIndex;
         bool isInside;
     };
 }

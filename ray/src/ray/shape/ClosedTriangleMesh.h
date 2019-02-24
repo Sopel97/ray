@@ -4,6 +4,7 @@
 #include "Triangle3.h"
 
 #include <ray/material/Material.h>
+#include <ray/material/MaterialPtrStorage.h>
 #include <ray/material/TexCoords.h>
 
 #include <ray/math/BarycentricCoords.h>
@@ -76,7 +77,13 @@ namespace ray
     //       If that becomes a problem then change do std::deque
     struct ClosedTriangleMesh
     {
+        using MaterialStorageType = MaterialPtrStorage<1, 1>;
+
     public:
+        explicit ClosedTriangleMesh(const MediumMaterial* medium = nullptr) :
+            m_mediumMaterial(medium)
+        {
+        }
 
         int addVertex(const ClosedTriangleMeshVertex& vertex)
         {
@@ -85,11 +92,11 @@ namespace ray
             return idx;
         }
 
-        int addFace(int a, int b, int c, const Material* material)
+        int addFace(int a, int b, int c, const SurfaceMaterial* material)
         {
             int idx = static_cast<int>(m_faces.size());
             m_faces.emplace_back(*this, a, b, c);
-            m_materials.emplace_back(material);
+            m_materials.emplace_back(MaterialStorageType({ material }, { m_mediumMaterial }));
             return idx;
         }
 
@@ -103,9 +110,9 @@ namespace ray
             return m_faces[i];
         }
 
-        const Material* material(int i) const
+        MaterialPtrStorageView material(int i) const
         {
-            return m_materials[i];
+            return m_materials[i].view();
         }
 
         // loses volume
@@ -128,6 +135,7 @@ namespace ray
     private:
         std::vector<ClosedTriangleMeshVertex> m_vertexPool;
         std::vector<ClosedTriangleMeshFace> m_faces;
-        std::vector<const Material*> m_materials;
+        std::vector<MaterialStorageType> m_materials;
+        const MediumMaterial* m_mediumMaterial;
     };
 }

@@ -37,7 +37,10 @@
     <ClInclude Include="src\ray\material\Color.h" />
     <ClInclude Include="src\ray\material\Material.h" />
     <ClInclude Include="src\ray\material\MaterialDatabase.h" />
+    <ClInclude Include="src\ray\material\MaterialPtrStorage.h" />
+    <ClInclude Include="src\ray\material\MediumMaterial.h" />
     <ClInclude Include="src\ray\material\Patterns.h" />
+    <ClInclude Include="src\ray\material\SurfaceMaterial.h" />
     <ClInclude Include="src\ray\material\TexCoords.h" />
     <ClInclude Include="src\ray\material\Texture.h" />
     <ClInclude Include="src\ray\material\TextureDatabase.h" />

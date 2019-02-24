@@ -23,7 +23,8 @@ namespace ray
         using ShapePackType = Box3;
         using BaseShapeType = Box3; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 1;
+        static constexpr int numSurfaceMaterialsPerShape = 1;
+        static constexpr int numMediumMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
         static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;
@@ -35,7 +36,8 @@ namespace ray
         using ShapePackType = Plane;
         using BaseShapeType = Plane; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 1;
+        static constexpr int numSurfaceMaterialsPerShape = 1;
+        static constexpr int numMediumMaterialsPerShape = 0;
         static constexpr bool hasVolume = false;
         static constexpr bool isLocallyContinuable = false;
         static constexpr bool isBounded = false;
@@ -47,7 +49,8 @@ namespace ray
         using ShapePackType = Sphere;
         using BaseShapeType = Sphere; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 1;
+        static constexpr int numSurfaceMaterialsPerShape = 1;
+        static constexpr int numMediumMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
         static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;
@@ -59,7 +62,8 @@ namespace ray
         using ShapePackType = Cylinder;
         using BaseShapeType = Cylinder; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 2;
+        static constexpr int numSurfaceMaterialsPerShape = 2;
+        static constexpr int numMediumMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
         static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;
@@ -71,7 +75,8 @@ namespace ray
         using ShapePackType = Capsule;
         using BaseShapeType = Capsule; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 2;
+        static constexpr int numSurfaceMaterialsPerShape = 2;
+        static constexpr int numMediumMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
         static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;
@@ -83,7 +88,8 @@ namespace ray
         using ShapePackType = OrientedBox3;
         using BaseShapeType = OrientedBox3; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 1;
+        static constexpr int numSurfaceMaterialsPerShape = 1;
+        static constexpr int numMediumMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
         static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;
@@ -95,7 +101,8 @@ namespace ray
         using ShapePackType = Triangle3;
         using BaseShapeType = Triangle3; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 1;
+        static constexpr int numSurfaceMaterialsPerShape = 1;
+        static constexpr int numMediumMaterialsPerShape = 0;
         static constexpr bool hasVolume = false;
         static constexpr bool isLocallyContinuable = false;
         static constexpr bool isBounded = true;
@@ -107,7 +114,8 @@ namespace ray
         using ShapePackType = Disc3;
         using BaseShapeType = Disc3; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 1;
+        static constexpr int numSurfaceMaterialsPerShape = 1;
+        static constexpr int numMediumMaterialsPerShape = 0;
         static constexpr bool hasVolume = false;
         static constexpr bool isLocallyContinuable = false;
         static constexpr bool isBounded = true;
@@ -119,7 +127,8 @@ namespace ray
         using ShapePackType = ClosedTriangleMeshFace;
         using BaseShapeType = ClosedTriangleMeshFace; // for a pack it should be an underlying shape
         static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
-        static constexpr int numMaterialsPerShape = 1;
+        static constexpr int numSurfaceMaterialsPerShape = 1;
+        static constexpr int numMediumMaterialsPerShape = 1;
         static constexpr bool hasVolume = true;
         // TODO: think if it can be somehow made semi-locally continuable
         //       the raytracer and storage would have to know that it's a mesh and know all its faces

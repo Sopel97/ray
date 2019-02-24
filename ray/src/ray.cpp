@@ -5,6 +5,8 @@
 #include <ray/perf/PerformanceStats.h>
 #endif
 
+#include <ray/material/Material.h>
+#include <ray/material/MaterialPtrStorage.h>
 #include <ray/material/MaterialDatabase.h>
 #include <ray/material/Patterns.h>
 #include <ray/material/TextureDatabase.h>
@@ -118,11 +120,11 @@ RawTriangleMesh createRawIcosahedron(const Vec3f& offset, float radius)
     return mesh;
 }
 
-ClosedTriangleMesh createIcosahedron(const Vec3f& offset, float radius, const Material* material)
+ClosedTriangleMesh createIcosahedron(const Vec3f& offset, float radius, const SurfaceMaterial* surface, const MediumMaterial* medium)
 {
     RawTriangleMesh basicMesh = createRawIcosahedron(offset, radius);
 
-    ClosedTriangleMesh mesh;
+    ClosedTriangleMesh mesh(medium);
 
     for (const Index3& face : basicMesh.faces)
     {
@@ -135,17 +137,17 @@ ClosedTriangleMesh createIcosahedron(const Vec3f& offset, float radius, const Ma
 
     for (int i = 0; i < basicMesh.faces.size(); ++i)
     {
-        mesh.addFace(3*i, 3*i+1, 3*i+2, material);
+        mesh.addFace(3*i, 3*i+1, 3*i+2, surface);
     }
 
     return mesh;
 }
 
-ClosedTriangleMesh createSmoothIcosahedron(const Vec3f& offset, float radius, const Material* material)
+ClosedTriangleMesh createSmoothIcosahedron(const Vec3f& offset, float radius, const SurfaceMaterial* surface, const MediumMaterial* medium)
 {
     RawTriangleMesh basicMesh = createRawIcosahedron(offset, radius);
 
-    ClosedTriangleMesh mesh;
+    ClosedTriangleMesh mesh(medium);
 
     for (const Point3f& vertex : basicMesh.vertices)
     {
@@ -155,7 +157,7 @@ ClosedTriangleMesh createSmoothIcosahedron(const Vec3f& offset, float radius, co
 
     for (const Index3& face : basicMesh.faces)
     {
-        mesh.addFace(face.i, face.j, face.k, material);
+        mesh.addFace(face.i, face.j, face.k, surface);
     }
 
     return mesh;
@@ -175,18 +177,31 @@ int main()
     auto& pat2 = texDb.get("square-pattern2");
 
     MaterialDatabase matDb;
-    auto& m1 = matDb.emplace("mat1", ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.3f, 0.4f, ColorRGBf(0, 0, 0), &pat);
-    auto& m11 = matDb.emplace("mat11", ColorRGBf(0.6, 0.6, 0.6), ColorRGBf(0, 0, 0), 0.0f, 1.1f, 0.1f, 0.7f, ColorRGBf(0, 0, 0), &pat2);
-    auto& m2 = matDb.emplace("mat2", ColorRGBf(1.00, 0.32, 0.36), ColorRGBf(0, 0, 0), 0.5f, 1.1f, 0.4f, 0.0f, ColorRGBf(0, 0, 0));
-    auto& m3 = matDb.emplace("mat3", ColorRGBf(0.90, 0.76, 0.46), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f, ColorRGBf(0, 0, 0));
-    auto& m4 = matDb.emplace("mat4", ColorRGBf(0.65, 0.77, 0.97), ColorRGBf(0, 0, 0), 0.1f, 1.1f, 0.8f, 0.0f, ColorRGBf(0, 0, 0));
-    auto& m5 = matDb.emplace("mat5", ColorRGBf(0.90, 0.90, 0.90), ColorRGBf(0, 0, 0), 0.9f, 1.1f, 0.1f, 0.0f, ColorRGBf(0, 0, 0));
-    auto& m6 = matDb.emplace("mat6", ColorRGBf(0.00, 0.00, 0.00), ColorRGBf(3, 3, 3), 0.0f, 1.1f, 0.0f, 0.0f, ColorRGBf(0, 0, 0));
-    auto& m7 = matDb.emplace("mat7", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 1.13f, 0.05f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
-    auto& m7a = matDb.emplace("mat7a", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 1.0f, 1.0f, 0.0f, 0.0f, ColorRGBf(0.5f, 0.5f, 0.2f));
-    auto& m8 = matDb.emplace("mat8", ColorRGBf(0.9f, 0.9f, 0.9f), ColorRGBf(0, 0, 0), 0.0f, 1.13f, 1.0f, 0.0f, ColorRGBf(0, 0, 0));
-    auto& m9 = matDb.emplace("mat9", ColorRGBf(1.00, 0.00, 0.00), ColorRGBf(0, 0, 0), 0.33f, 1.0f, 0.0f, 0.0f, ColorRGBf(0, 0, 0));
-    auto& m10 = matDb.emplace("mat10", ColorRGBf(0.00, 1.00, 0.00), ColorRGBf(0, 0, 0), 0.33f, 1.0f, 0.0f, 0.0f, ColorRGBf(0, 0, 0));
+    auto& m1s = matDb.emplaceSurface("mat1", ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 0.3f, 0.4f, &pat);
+    auto& m11s = matDb.emplaceSurface("mat11", ColorRGBf(0.6, 0.6, 0.6), ColorRGBf(0, 0, 0), 0.0f, 0.1f, 0.7f, &pat2);
+    auto& m2s = matDb.emplaceSurface("mat2", ColorRGBf(1.00, 0.32, 0.36), ColorRGBf(0, 0, 0), 0.5f, 0.4f, 0.0f);
+    auto& m3s = matDb.emplaceSurface("mat3", ColorRGBf(0.90, 0.76, 0.46), ColorRGBf(0, 0, 0), 0.9f, 0.1f, 0.0f);
+    auto& m4s = matDb.emplaceSurface("mat4", ColorRGBf(0.65, 0.77, 0.97), ColorRGBf(0, 0, 0), 0.1f, 0.8f, 0.0f);
+    auto& m5s = matDb.emplaceSurface("mat5", ColorRGBf(0.90, 0.90, 0.90), ColorRGBf(0, 0, 0), 0.9f, 0.1f, 0.0f);
+    auto& m6s = matDb.emplaceSurface("mat6", ColorRGBf(0.00, 0.00, 0.00), ColorRGBf(3, 3, 3), 0.0f, 0.0f, 0.0f);
+    auto& m7s = matDb.emplaceSurface("mat7", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 0.95f, 0.05f, 0.0f);
+    auto& m7as = matDb.emplaceSurface("mat7a", ColorRGBf(1, 1, 1), ColorRGBf(0, 0, 0), 1.0f, 0.0f, 0.0f);
+    auto& m8s = matDb.emplaceSurface("mat8", ColorRGBf(0.9f, 0.9f, 0.9f), ColorRGBf(0, 0, 0), 0.0f, 1.0f, 0.0f);
+    auto& m9s = matDb.emplaceSurface("mat9", ColorRGBf(1.00, 0.00, 0.00), ColorRGBf(0, 0, 0), 0.33f, 0.0f, 0.0f);
+    auto& m10s = matDb.emplaceSurface("mat10", ColorRGBf(0.00, 1.00, 0.00), ColorRGBf(0, 0, 0), 0.33f, 0.0f, 0.0f);
+
+    auto& m1m = matDb.emplaceMedium("mat1", ColorRGBf(0, 0, 0), 1.1f);
+    auto& m11m = matDb.emplaceMedium("mat11", ColorRGBf(0, 0, 0), 1.1f);
+    auto& m2m = matDb.emplaceMedium("mat2", ColorRGBf(0, 0, 0), 1.1f);
+    auto& m3m = matDb.emplaceMedium("mat3", ColorRGBf(0, 0, 0), 1.1f);
+    auto& m4m = matDb.emplaceMedium("mat4", ColorRGBf(0, 0, 0), 1.1f);
+    auto& m5m = matDb.emplaceMedium("mat5", ColorRGBf(0, 0, 0), 1.1f);
+    auto& m6m = matDb.emplaceMedium("mat6", ColorRGBf(0, 0, 0), 1.1f);
+    auto& m7m = matDb.emplaceMedium("mat7", ColorRGBf(0.5f, 0.5f, 0.2f), 1.13f);
+    auto& m7am = matDb.emplaceMedium("mat7a", ColorRGBf(0.5f, 0.5f, 0.2f), 1.0f);
+    auto& m8m = matDb.emplaceMedium("mat8", ColorRGBf(0, 0, 0), 1.13f);
+    auto& m9m = matDb.emplaceMedium("mat9", ColorRGBf(0, 0, 0), 1.0f);
+    auto& m10m = matDb.emplaceMedium("mat10", ColorRGBf(0, 0, 0), 1.0f);
 
     //*
     using ShapeT = Sphere;
@@ -202,16 +217,16 @@ int main()
     std::vector<SceneObject<OrientedBox3>> obbs;
 
     //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
-    ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f / 2.0f, &m7);
+    ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f / 2.0f, &m7s, &m7m);
 
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     //planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
-    discs.emplace_back(SceneObject<Disc3>(Disc3(Point3f(0, -4, 0), Normal3f(0.0, -1.0, 0.0), 100), { &m1 }));
-    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -20), 3.5), { &m2 }));
-    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, -1, -15), 2), { &m3 })); // this sphere looks weird, is it right?
-    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, 0, -25), 3), { &m4 }));
-    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-5.5, 0, -15), 3), { &m5 })); // this sphere looks weird, is it right?
-    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 20, -30), 3), { &m6 }));
+    discs.emplace_back(SceneObject<Disc3>(Disc3(Point3f(0, -4, 0), Normal3f(0.0, -1.0, 0.0), 100), { { &m1s } }));
+    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -20), 3.5), { { &m2s }, { &m2m } }));
+    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, -1, -15), 2), { { &m3s }, { &m3m } })); // this sphere looks weird, is it right?
+    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, 0, -25), 3), { { &m4s }, { &m4m } }));
+    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-5.5, 0, -15), 3), { { &m5s }, { &m5m } })); // this sphere looks weird, is it right?
+    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 20, -30), 3), { { &m6s }, { &m6m } }));
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
     for (int i = 0; i < mesh.numFaces(); ++i)
     {
@@ -224,7 +239,7 @@ int main()
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -7), 1.5), { &m1 }));
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-3.0, 0, -7), 1.5), { &m1 }));
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(3.0, 0, -7), 1.5), { &m1 }));
-    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-30, 20, -20), 20), { &m8 }));
+    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-30, 20, -20), 20), { { &m8s }, { &m8m } }));
     //boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -2, -20), Point3f(20, 8, -10)), { &m11 }));
 
     /*
@@ -246,9 +261,9 @@ int main()
     cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 4, -10), Point3f(20, 9 - 4, -16), 1.0f), { &m7, &m4 }));
     */
 
-    capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), 1.0f), { &m7, &m4 }));
-    capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 7, -10), Point3f(20, 9 - 7, -13), 1.0f), { &m7, &m4 }));
-    capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 4, -10), Point3f(20, 9 - 4, -16), 1.0f), { &m7, &m4 }));
+    capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), 1.0f), { { &m7s, &m4s }, { &m7m } }));
+    capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 7, -10), Point3f(20, 9 - 7, -13), 1.0f), { { &m7s, &m4s }, { &m7m } }));
+    capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 4, -10), Point3f(20, 9 - 4, -16), 1.0f), { { &m7s, &m4s }, { &m7m } }));
 
     /*
     tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), Point3f(10, 9 - 10, -20)), { &m11 }));
@@ -272,26 +287,26 @@ int main()
         };
     //obbs.emplace_back(SceneObject<OrientedBox3>(obb, { &m11 }));
 
-    auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { &m7 });
-    auto sumPart2 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -7), 3.5), { &m7 });
-    auto subPart3 = SceneObject<CsgShape>(Box3(Point3f(-1.5, -2, -7), Point3f(1.5, 2, -3.5)), { &m7 });
-    auto subPart4 = SceneObject<CsgShape>(Box3(Point3f(-0.5, -1, -7), Point3f(0.5, 1, -5)), { &m11 });
-    auto mulPart5 = SceneObject<CsgShape>(Sphere(Point3f(0, -7.5, -7), 8.5), { &m7 });
-    auto sumPart6 = SceneObject<CsgShape>(Sphere(Point3f(-2, 0, -7), 1.5), { &m4 });
-    auto sumPart7 = SceneObject<CsgShape>(Sphere(Point3f(2, 0, -7), 1.5), { &m4 });
+    auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { { &m7s }, { &m7m } });
+    auto sumPart2 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -7), 3.5), { { &m7s }, { &m7m } });
+    auto subPart3 = SceneObject<CsgShape>(Box3(Point3f(-1.5, -2, -7), Point3f(1.5, 2, -3.5)), { { &m7s }, { &m7m } });
+    auto subPart4 = SceneObject<CsgShape>(Box3(Point3f(-0.5, -1, -7), Point3f(0.5, 1, -5)), { { &m11s }, { &m11m } });
+    auto mulPart5 = SceneObject<CsgShape>(Sphere(Point3f(0, -7.5, -7), 8.5), { { &m7s }, { &m7m } });
+    auto sumPart6 = SceneObject<CsgShape>(Sphere(Point3f(-2, 0, -7), 1.5), { { &m4s }, { &m4m } });
+    auto sumPart7 = SceneObject<CsgShape>(Sphere(Point3f(2, 0, -7), 1.5), { { &m4s }, { &m4m } });
 
-    auto subPart8 = SceneObject<CsgShape>(Sphere(Point3f(0, 2.4, -7), 2.5), { &m7 });
-    auto subPart9 = SceneObject<CsgShape>(Sphere(Point3f(0, 2.4, -7), 2.4), { &m7 });
+    auto subPart8 = SceneObject<CsgShape>(Sphere(Point3f(0, 2.4, -7), 2.5), { { &m7s }, { &m7m } });
+    auto subPart9 = SceneObject<CsgShape>(Sphere(Point3f(0, 2.4, -7), 2.4), { { &m7s }, { &m7m } });
 
-    auto subPart10 = SceneObject<CsgShape>(Sphere(Point3f(-1.8, -0.9, -4.1), 0.8), { &m7 });
-    auto subPart11 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -3.5), 0.5), { &m7 });
-    auto subPart12 = SceneObject<CsgShape>(Sphere(Point3f(1.8, -0.9, -4.1), 0.8), { &m7 });
-    auto subPart13 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -3.5), 0.5), { &m7 });
+    auto subPart10 = SceneObject<CsgShape>(Sphere(Point3f(-1.8, -0.9, -4.1), 0.8), { { &m7s }, { &m7m } });
+    auto subPart11 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -3.5), 0.5), { { &m7s }, { &m7m } });
+    auto subPart12 = SceneObject<CsgShape>(Sphere(Point3f(1.8, -0.9, -4.1), 0.8), { { &m7s }, { &m7m } });
+    auto subPart13 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -3.5), 0.5), { { &m7s }, { &m7m } });
 
-    auto diffPart14 = SceneObject<CsgShape>(obb, { &m11 });
+    auto diffPart14 = SceneObject<CsgShape>(obb, { { &m11s }, { &m11m } });
 
     //auto diffPart15 = SceneObject<CsgShape>(Cylinder(obb.min(), obb.max(), 2.0f), { &m7, &m4 });
-    auto diffPart15 = SceneObject<CsgShape>(Capsule(obb.min(), obb.max(), 2.0f), { &m7, &m4 });
+    auto diffPart15 = SceneObject<CsgShape>(Capsule(obb.min(), obb.max(), 2.0f), { { &m7s, &m4s }, { &m7m } });
 
     csgs.emplace_back(
         (

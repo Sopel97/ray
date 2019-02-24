@@ -287,5 +287,14 @@
     <ClInclude Include="src\ray\shape\ShapeTags.h">
       <Filter>Header Files\src\shape</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\material\SurfaceMaterial.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\MediumMaterial.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\MaterialPtrStorage.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -16,7 +16,8 @@ namespace ray
 {
     struct HomogeneousSceneObjectCollection;
     struct ResolvedRaycastHit;
-    struct Material;
+    struct SurfaceMaterial;
+    struct MediumMaterial;
 
     struct ResolvableRaycastHit : RaycastHit
     {
@@ -37,7 +38,8 @@ namespace ray
             const Normal3f& normal,
             const TexCoords& texCoords,
             int shapeNo,
-            const Material& material,
+            const SurfaceMaterial* surfaceMaterial,
+            const MediumMaterial* mediumMaterial,
             const HomogeneousSceneObjectCollection& owner,
             bool isInside,
             bool hasVolume,
@@ -48,7 +50,8 @@ namespace ray
             normal(normal),
             texCoords(texCoords),
             shapeNo(shapeNo),
-            material(&material),
+            surfaceMaterial(surfaceMaterial),
+            mediumMaterial(mediumMaterial),
             owner(&owner),
             isInside(isInside),
             hasVolume(hasVolume),
@@ -62,7 +65,8 @@ namespace ray
         Normal3f normal;
         TexCoords texCoords;
         int shapeNo;
-        const Material* material;
+        const SurfaceMaterial* surfaceMaterial;
+        const MediumMaterial* mediumMaterial;
         const HomogeneousSceneObjectCollection* owner;
         bool isInside;
         bool hasVolume;

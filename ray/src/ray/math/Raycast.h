@@ -9,6 +9,8 @@
 #include "RaycastHit.h"
 #include "Vec3.h"
 
+#include <ray/material/Material.h>
+
 #include <ray/shape/Box3.h>
 #include <ray/shape/ClosedTriangleMesh.h>
 #include <ray/shape/Capsule.h>
@@ -224,7 +226,7 @@ namespace ray
         hit.point = hitPoint;
         hit.normal = normal;
         hit.shapeInPackNo = 0;
-        hit.materialNo = 0;
+        hit.materialIndex = MaterialIndex(0, 0);
         hit.isInside = isInside;
         return true;
     }
@@ -266,7 +268,7 @@ namespace ray
         hit.point = ray.origin() + ray.direction() * tmin;
         hit.normal = obb.worldToLocalRot.inverse() * normal;
         hit.shapeInPackNo = 0;
-        hit.materialNo = 0;
+        hit.materialIndex = MaterialIndex(0, 0);
         hit.isInside = isInside;
 
         return true;
@@ -309,7 +311,7 @@ namespace ray
             hit.point = hitPointMin;
             hit.normal = normal;
             hit.shapeInPackNo = 0;
-            hit.materialNo = 0;
+            hit.materialIndex = MaterialIndex(0, 0);
             hit.isInside = false;
             return true;
         }
@@ -325,7 +327,7 @@ namespace ray
             hit.point = hitPointMax;
             hit.normal = -normal;
             hit.shapeInPackNo = 0;
-            hit.materialNo = 0;
+            hit.materialIndex = MaterialIndex(0, 0);
             hit.isInside = true;
             return true;
         }
@@ -357,7 +359,7 @@ namespace ray
             hit.point = point;
             hit.normal = (nd < 0.0f) ? plane.normal : -plane.normal;
             hit.shapeInPackNo = 0;
-            hit.materialNo = 0;
+            hit.materialIndex = MaterialIndex(0);
             hit.isInside = false;
 
             return true;
@@ -391,7 +393,7 @@ namespace ray
             hit.point = point;
             hit.normal = (nd < 0.0f) ? disc.normal : -disc.normal;
             hit.shapeInPackNo = 0;
-            hit.materialNo = 0;
+            hit.materialIndex = MaterialIndex(0);
             hit.isInside = false;
 
             return true;
@@ -463,7 +465,7 @@ namespace ray
                 hit.point = point;
                 hit.normal = isInside ? -normal : normal;
                 hit.shapeInPackNo = 0;
-                hit.materialNo = 0;
+                hit.materialIndex = MaterialIndex(0, 0);
                 hit.isInside = isInside;
 
                 return true;
@@ -480,7 +482,7 @@ namespace ray
             perf::gPerfStats.addObjectRaycastHit<Cylinder>();
 #endif
 
-            hit.materialNo = 1;
+            hit.materialIndex = MaterialIndex(1, 0);
             return true;
         }
 
@@ -550,7 +552,7 @@ namespace ray
                 hit.point = point;
                 hit.normal = isInside ? -normal : normal;
                 hit.shapeInPackNo = 0;
-                hit.materialNo = 0;
+                hit.materialIndex = MaterialIndex(0, 0);
                 hit.isInside = isInside;
 
                 return true;
@@ -567,7 +569,7 @@ namespace ray
             perf::gPerfStats.addObjectRaycastHit<Capsule>();
 #endif
 
-            hit.materialNo = 1;
+            hit.materialIndex = MaterialIndex(1, 0);
             return true;
         }
 
@@ -611,7 +613,7 @@ namespace ray
         hit.point = point;
         hit.normal = normal;
         hit.shapeInPackNo = 0;
-        hit.materialNo = 0;
+        hit.materialIndex = MaterialIndex(0, 0);
         hit.isInside = isInside;
 
         return true;
@@ -716,7 +718,7 @@ namespace ray
         hit.normal = (tri.normal(0) * u + tri.normal(1) * v + tri.normal(2) * w).normalized();
         if (det < 0.0f) hit.normal = -hit.normal;
         hit.shapeInPackNo = 0;
-        hit.materialNo = 0;
+        hit.materialIndex = MaterialIndex(0);
         hit.isInside = false;
 
         return true;
@@ -764,7 +766,7 @@ namespace ray
         hit.normal = (tri.vertex(0).normal * u + tri.vertex(1).normal * v + tri.vertex(2).normal * w).normalized();
         if(isInside) hit.normal = -hit.normal;
         hit.shapeInPackNo = 0;
-        hit.materialNo = 0;
+        hit.materialIndex = MaterialIndex(0);
         hit.isInside = isInside;
 
         return true;

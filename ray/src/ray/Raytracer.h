@@ -134,11 +134,11 @@ namespace ray
             const ResolvedRaycastHit hit = rhit.resolve();
 
             const float reflectionContribution = fresnelReflectAmount(ray, hit);
-            const float refractionContribution = ((1.0f - reflectionContribution) * hit.material->transparency);
+            const float refractionContribution = ((1.0f - reflectionContribution) * hit.surfaceMaterial->transparency);
 
             const ColorRGBf unabsorbed = 
-                (isInside && prevHit) 
-                ? exp(-hit.material->absorbtion * hit.dist) 
+                (isInside && prevHit && hit.mediumMaterial) // medium material should always be present though, not check should be needed 
+                ? exp(-hit.mediumMaterial->absorbtion * hit.dist) 
                 : ColorRGBf(1.0f, 1.0f, 1.0f);
 
             const ColorRGBf refractionColor = computeRefractionColor(ray, contribution * unabsorbed * refractionContribution, prevHit, hit, depth);
@@ -162,12 +162,12 @@ namespace ray
             const ColorRGBf& diffusionColor
         ) const
         {
-            const ColorRGBf textureColor = hit.material->sampleTexture(hit.texCoords);
+            const ColorRGBf textureColor = hit.surfaceMaterial->sampleTexture(hit.texCoords);
 
-            return hit.material->surfaceColor * textureColor * (
+            return hit.surfaceMaterial->surfaceColor * textureColor * (
                 reflectionColor
                 + refractionColor
-                + diffusionColor) + hit.material->emissionColor;
+                + diffusionColor) + hit.surfaceMaterial->emissionColor;
         }
         
         float fresnelReflectAmount(const Ray& ray, const ResolvedRaycastHit& hit) const
@@ -175,7 +175,7 @@ namespace ray
             auto sqr = [](float f) {return f * f; };
 
             float n1 = m_options.airRefractiveIndex;
-            float n2 = hit.material->refractiveIndex;
+            float n2 = hit.mediumMaterial ? hit.mediumMaterial->refractiveIndex : n1;
             if (hit.isInside) std::swap(n1, n2);
 
             // Schlick aproximation
@@ -198,14 +198,14 @@ namespace ray
             const float ret = r0 + (1.0f - r0)*x*x*x*x*x;
 
             // adjust reflect multiplier for object reflectivity
-            const float reflectivity = hit.material->reflectivity;
+            const float reflectivity = hit.surfaceMaterial->reflectivity;
             return (reflectivity + (1.0f - reflectivity) * ret);
         }
 
         ColorRGBf computeDiffusionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
             // TODO: handle transparency?
-            if (!isDiffusive(*hit.material) && !hit.isInside) // if inside we could potentially do it wrong
+            if (!isDiffusive(*hit.surfaceMaterial) && !hit.isInside) // if inside we could potentially do it wrong
                 return {};
 
             if (contribution.max() < m_options.contributionThreshold) return {};
@@ -236,15 +236,15 @@ namespace ray
 #endif
 
                 auto lightHit = rhit.resolve();
-                color += lightHit.material->emissionColor * std::max(0.0f, dot(hit.normal, ray.direction()));
+                color += lightHit.surfaceMaterial->emissionColor * std::max(0.0f, dot(hit.normal, ray.direction()));
             }
 
-            return color * hit.material->diffuse;
+            return color * hit.surfaceMaterial->diffuse;
         }
 
         ColorRGBf computeReflectionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
-            if (!isReflective(*hit.material) || depth > m_options.maxRayDepth)
+            if (!isReflective(*hit.surfaceMaterial) || depth > m_options.maxRayDepth)
                 return {};
 
             if (contribution.max() < m_options.contributionThreshold) return {};
@@ -256,37 +256,46 @@ namespace ray
 
         ColorRGBf computeRefractionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
-            if (!isTransparent(*hit.material) || depth > m_options.maxRayDepth)
+            if (!isTransparent(*hit.surfaceMaterial) || depth > m_options.maxRayDepth)
                 return {};
 
             if (contribution.max() < m_options.contributionThreshold) return {};
 
             // outside->inside
-            float eta = m_options.airRefractiveIndex / hit.material->refractiveIndex;
-            if (hit.isInside) eta = 1.0f / eta;
+            if (hit.mediumMaterial)
+            {
+                float eta = m_options.airRefractiveIndex / hit.mediumMaterial->refractiveIndex;
+                if (hit.isInside) eta = 1.0f / eta;
 
-            // do outside->inside refraction
-            const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
-            const Ray nextRay(hit.point + refractionDirection * m_options.paddingDistance, refractionDirection);
-            return trace(nextRay, contribution, depth + 1, &hit, hit.hasVolume ? !hit.isInside : hit.isInside);
+                // do outside->inside refraction
+                const Normal3f refractionDirection = refraction(ray.direction(), hit.normal, eta);
+                const Ray nextRay(hit.point + refractionDirection * m_options.paddingDistance, refractionDirection);
+                return trace(nextRay, contribution, depth + 1, &hit, hit.hasVolume ? !hit.isInside : hit.isInside);
+            }
+            else
+            {
+                // if the shape doesn't have volume we don't have to bother with refracting the ray
+                const Ray nextRay = ray.translated(ray.direction() * m_options.paddingDistance);
+                return trace(nextRay, contribution, depth + 1, &hit, hit.isInside);
+            }
         }
 
         ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const
         {
-            return ColorRGBi(hit.material->surfaceColor);
+            return ColorRGBi(hit.surfaceMaterial->surfaceColor);
         }
 
-        bool isTransparent(const Material& material) const
+        bool isTransparent(const SurfaceMaterial& material) const
         {
             return material.transparency >= m_options.transparencyThreshold;
         }
 
-        bool isReflective(const Material& material) const
+        bool isReflective(const SurfaceMaterial& material) const
         {
             return material.reflectivity >= m_options.reflectivityThreshold;
         }
 
-        bool isDiffusive(const Material& material) const
+        bool isDiffusive(const SurfaceMaterial& material) const
         {
             return material.diffuse >= m_options.diffuseThreshold;
         }
