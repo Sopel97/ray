@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstdint>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <vector>
 
@@ -22,6 +23,15 @@ namespace ray
 
     namespace perf
     {
+        static constexpr std::size_t cacheLineSize = std::hardware_destructive_interference_size;
+        struct alignas(cacheLineSize) AtomicCount : std::atomic<std::uint64_t>
+        {
+            void operator+=(std::uint64_t d)
+            {
+                std::atomic<std::uint64_t>::fetch_add(d, std::memory_order_relaxed);
+            }
+        };
+
         struct PerformanceStats
         {
             constexpr static int maxDepth = 32;
@@ -35,37 +45,37 @@ namespace ray
 
             struct TraceStats
             {
-                std::atomic<std::uint64_t> all;
-                std::atomic<std::uint64_t> hits;
-                std::atomic<std::uint64_t> resolved;
+                AtomicCount all;
+                AtomicCount hits;
+                AtomicCount resolved;
             };
 
             template <typename ShapeT>
             struct ObjectRaycastStats
             {
-                std::atomic<std::uint64_t> all;
-                std::atomic<std::uint64_t> hits;
+                AtomicCount all;
+                AtomicCount hits;
             };
 
             template <typename BvShapeT>
             struct BvRaycastStats
             {
-                std::atomic<std::uint64_t> all;
-                std::atomic<std::uint64_t> hits;
+                AtomicCount all;
+                AtomicCount hits;
             };
 
             template <typename ShapeT>
             struct IntervalRaycastStats
             {
-                std::atomic<std::uint64_t> all;
-                std::atomic<std::uint64_t> hits;
+                AtomicCount all;
+                AtomicCount hits;
             };
 
             template <typename ShapeT>
             struct DistRaycastStats
             {
-                std::atomic<std::uint64_t> all;
-                std::atomic<std::uint64_t> hits;
+                AtomicCount all;
+                AtomicCount hits;
             };
 
             struct TimeStats
@@ -328,7 +338,6 @@ namespace ray
                 return std::get<DistRaycastStats<ShapeT>>(m_raycasts);
             }
         };
-
 
         inline PerformanceStats gPerfStats;
     }
