@@ -73,15 +73,6 @@ namespace ray
             return m_v0 + (m_e01 + m_e02) * 0.33333333333333f;
         }
 
-        Box3 aabb() const
-        {
-            const Point3f v1 = m_v0 + m_e01;
-            const Point3f v2 = m_v0 + m_e02;
-            const Point3f bmin = min(min(m_v0, v1), v2);
-            const Point3f bmax = max(max(m_v0, v1), v2);
-            return Box3(bmin, bmax);
-        }
-
         const Point3f& v0() const
         {
             return m_v0;

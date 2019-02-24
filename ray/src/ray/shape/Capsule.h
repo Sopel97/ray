@@ -28,15 +28,6 @@ namespace ray
             return begin + axis * (0.5f * length);
         }
 
-        Box3 aabb() const
-        {
-            const Vec3f halfExtent(radius, radius, radius);
-            const Point3f end = begin + axis * length;
-            Box3 bb(begin - halfExtent, begin + halfExtent);
-            bb.extend(Box3(end - halfExtent, end + halfExtent));
-            return bb;
-        }
-
         Vec3f extent() const
         {
             return axis * length;

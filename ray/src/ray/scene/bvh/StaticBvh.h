@@ -101,7 +101,7 @@ namespace ray
             SpecificBvhObject(const SceneObject<ShapeT>& obj) :
                 m_object(&obj),
                 m_boundingVolume(ray::boundingVolume<BvShapeT>(obj)),
-                m_aabb(obj.aabb()),
+                m_aabb(ray::boundingVolume<Box3>(obj)),
                 m_center(obj.center())
             {
 

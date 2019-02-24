@@ -35,12 +35,5 @@ namespace ray
         {
             return origin;
         }
-
-        Box3 aabb() const
-        {
-            Vec3f halfExtent(radius, radius, radius);
-            halfExtent *= sqrt(Vec3f::broadcast(1.0f) - Vec3f(normal) * Vec3f(normal));
-            return Box3(origin - halfExtent, origin + halfExtent);
-        }
     };
 }

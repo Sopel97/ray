@@ -51,15 +51,5 @@ namespace ray
 
             return v;
         }
-
-        Box3 aabb() const
-        {
-            Box3 bb(origin, origin);
-            for (const auto& p : vertices())
-            {
-                bb.extend(p);
-            }
-            return bb;
-        }
     };
 }

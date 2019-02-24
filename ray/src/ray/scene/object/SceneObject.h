@@ -5,6 +5,7 @@
 #include <ray/material/Material.h>
 #include <ray/material/TexCoords.h>
 
+#include <ray/math/BoundingVolume.h>
 #include <ray/math/Interval.h>
 #include <ray/math/Raycast.h>
 #include <ray/math/RaycastHit.h>
@@ -60,7 +61,7 @@ namespace ray
 
         decltype(auto) aabb() const
         {
-            return m_shape.aabb();
+            return boundingVolume<Box3>(m_shape);
         }
 
         const MaterialStorageType& materials() const
@@ -161,7 +162,7 @@ namespace ray
             }
             Box3 aabb() const override
             {
-                return m_shape.aabb();
+                return boundingVolume<Box3>(m_shape);
             }
             bool raycast(const Ray& ray, RaycastHit& hit) const override
             {

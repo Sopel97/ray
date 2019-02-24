@@ -29,15 +29,6 @@ namespace ray
             return begin + axis * (0.5f * length);
         }
 
-        Box3 aabb() const
-        {
-            Disc3 dBegin(begin, axis, radius);
-            Disc3 dEnd(begin + axis * length, axis, radius);
-            Box3 bb = dBegin.aabb();
-            bb.extend(dEnd.aabb());
-            return bb;
-        }
-
         Vec3f extent() const
         {
             return axis * length;

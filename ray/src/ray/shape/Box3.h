@@ -30,11 +30,6 @@ namespace ray
             return max - min;
         }
 
-        const Box3& aabb() const
-        {
-            return *this;
-        }
-
         void extend(const Point3f& point)
         {
             if (point.x < min.x) min.x = point.x;
