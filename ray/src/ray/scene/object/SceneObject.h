@@ -481,7 +481,7 @@ namespace ray
             }
             Box3 aabb() const override
             {
-                return m_shape.aabb();
+                return boundingVolume<Box3>(m_shape);
             }
             bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
@@ -636,7 +636,7 @@ namespace ray
             }
             Box3 aabb() const override
             {
-                return m_shape.aabb();
+                return boundingVolume<Box3>(m_shape);
             }
             bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
