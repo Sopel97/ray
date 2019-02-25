@@ -11,6 +11,8 @@ Global
 		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		Release-OMAX|x64 = Release-OMAX|x64
+		Release-OMAX|x86 = Release-OMAX|x86
 		Release-stats|x64 = Release-stats|x64
 		Release-stats|x86 = Release-stats|x86
 	EndGlobalSection
@@ -23,6 +25,10 @@ Global
 		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release|x64.Build.0 = Release|x64
 		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release|x86.ActiveCfg = Release|Win32
 		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release|x86.Build.0 = Release|Win32
+		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release-OMAX|x64.ActiveCfg = Release-OMAX|x64
+		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release-OMAX|x64.Build.0 = Release-OMAX|x64
+		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release-OMAX|x86.ActiveCfg = Release-OMAX|Win32
+		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release-OMAX|x86.Build.0 = Release-OMAX|Win32
 		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release-stats|x64.ActiveCfg = Release-stats|x64
 		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release-stats|x64.Build.0 = Release-stats|x64
 		{C6CCBF1A-9D57-49CB-9093-692379BEED76}.Release-stats|x86.ActiveCfg = Release-stats|Win32

@@ -148,7 +148,15 @@ namespace ray
 
         inline void transpose3(__m128& r0, __m128& r1, __m128& r2)
         {
-            __m128 r3 = undefined_ps();
+            __m128 t0 = _mm_shuffle_ps(r0, r1, _MM_SHUFFLE(1, 0, 1, 0));
+            __m128 t1 = _mm_shuffle_ps(r0, r1, _MM_SHUFFLE(2, 2, 2, 2));
+            r0 = _mm_shuffle_ps(t0, r2, _MM_SHUFFLE(0, 0, 2, 0));
+            r1 = _mm_shuffle_ps(t0, r2, _MM_SHUFFLE(0, 1, 3, 1));
+            r2 = _mm_shuffle_ps(t1, r2, _MM_SHUFFLE(0, 2, 2, 0));
+        }
+
+        inline void transpose(__m128& r0, __m128& r1, __m128& r2, __m128& r3)
+        {
             _MM_TRANSPOSE4_PS(r0, r1, r2, r3);
         }
 

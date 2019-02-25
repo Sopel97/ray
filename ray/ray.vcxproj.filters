@@ -296,5 +296,8 @@
     <ClInclude Include="src\ray\material\MaterialPtrStorage.h">
       <Filter>Header Files\src\material</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\math\AffineTransformationMatrix3.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

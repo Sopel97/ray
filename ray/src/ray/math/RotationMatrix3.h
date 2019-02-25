@@ -12,6 +12,10 @@ namespace ray
     template <>
     struct alignas(alignof(__m128)) RotationMatrix3<float>
     {
+        // X0 X1 X2
+        // Y0 Y1 Y2
+        // Z0 Z1 Z2
+
         RotationMatrix3(
             const Normal3f& X,
             const Normal3f& Y,
