@@ -4,6 +4,7 @@
 #include <ray/perf/PerformanceStats.h>
 #endif
 
+#include "BoundingVolume.h"
 #include "Interval.h"
 #include "Ray.h"
 #include "RaycastHit.h"
@@ -274,6 +275,7 @@ namespace ray
         return true;
     }
 
+    // half sphere is only surface
     inline bool raycast(const Ray& ray, const HalfSphere& sphere, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
@@ -311,7 +313,7 @@ namespace ray
             hit.point = hitPointMin;
             hit.normal = normal;
             hit.shapeInPackNo = 0;
-            hit.materialIndex = MaterialIndex(0, 0);
+            hit.materialIndex = MaterialIndex(0);
             hit.isInside = false;
             return true;
         }
@@ -327,7 +329,7 @@ namespace ray
             hit.point = hitPointMax;
             hit.normal = -normal;
             hit.shapeInPackNo = 0;
-            hit.materialIndex = MaterialIndex(0, 0);
+            hit.materialIndex = MaterialIndex(0);
             hit.isInside = true;
             return true;
         }
@@ -400,6 +402,49 @@ namespace ray
         }
 
         return false;
+    }
+
+    inline bool raycast(const Ray& ray, const Box3& box, RaycastHit& hit)
+    {
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gThreadLocalPerfStats.addObjectRaycast<Box3>();
+#endif
+
+        const Point3f origin = ray.origin();
+        const Vec3f invDir = ray.invDirection();
+
+        const Vec3f t0 = (box.min - ray.origin()) * invDir;
+        const Vec3f t1 = (box.max - ray.origin()) * invDir;
+
+        float tmax = max(t0, t1).min();
+        if (tmax < 0.0f) return false;
+        float tmin = min(t0, t1).max();
+        if (tmin > tmax) return false;
+
+        bool isInside = tmin < 0.0f;
+        if (isInside)
+        {
+            tmin = tmax;
+        }
+        if (tmin >= hit.dist) return false;
+
+        // TODO: make this fast but also reliable. Currently breaks on the edges (sets multiple components).
+        Normal3f normal(AssumeNormalized{}, Vec3f::blend(0.0f, -1.0f, (t0 == tmin) | (t1 == tmin)));
+        normal.negate(ray.signs());
+
+        const Point3f point = ray.origin() + ray.direction() * tmin;
+
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gThreadLocalPerfStats.addObjectRaycastHit<Box3>();
+#endif
+        hit.dist = tmin;
+        hit.point = point;
+        hit.normal = normal;
+        hit.shapeInPackNo = 0;
+        hit.materialIndex = MaterialIndex(0, 0);
+        hit.isInside = isInside;
+
+        return true;
     }
 
     inline bool raycast(const Ray& ray, const Cylinder& cyl, RaycastHit& hit)
@@ -574,49 +619,6 @@ namespace ray
         }
 
         return false;
-    }
-
-    inline bool raycast(const Ray& ray, const Box3& box, RaycastHit& hit)
-    {
-#if defined(RAY_GATHER_PERF_STATS)
-        perf::gThreadLocalPerfStats.addObjectRaycast<Box3>();
-#endif
-
-        const Point3f origin = ray.origin();
-        const Vec3f invDir = ray.invDirection();
-
-        const Vec3f t0 = (box.min - ray.origin()) * invDir;
-        const Vec3f t1 = (box.max - ray.origin()) * invDir;
-
-        float tmax = max(t0, t1).min();
-        if (tmax < 0.0f) return false;
-        float tmin = min(t0, t1).max();
-        if (tmin > tmax) return false;
-
-        bool isInside = tmin < 0.0f;
-        if (isInside)
-        {
-            tmin = tmax;
-        }
-        if (tmin >= hit.dist) return false;
-
-        // TODO: make this fast but also reliable. Currently breaks on the edges (sets multiple components).
-        Normal3f normal(AssumeNormalized{}, Vec3f::blend(0.0f, -1.0f, (t0 == tmin) | (t1 == tmin)));
-        normal.negate(ray.signs());
-        
-        const Point3f point = ray.origin() + ray.direction() * tmin;
-
-#if defined(RAY_GATHER_PERF_STATS)
-        perf::gThreadLocalPerfStats.addObjectRaycastHit<Box3>();
-#endif
-        hit.dist = tmin;
-        hit.point = point;
-        hit.normal = normal;
-        hit.shapeInPackNo = 0;
-        hit.materialIndex = MaterialIndex(0, 0);
-        hit.isInside = isInside;
-
-        return true;
     }
 
     /*

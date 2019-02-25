@@ -8,6 +8,7 @@ namespace ray
 {
     // All points P on sphere for which
     // dot(m_normal, P - m_center) > 0
+    // Sphere is solid, HalfSphere is hollow - just surface
     struct HalfSphere
     {
         HalfSphere() :

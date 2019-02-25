@@ -104,6 +104,10 @@ namespace ray
         {
             return Vec3<float>(detail::blend(a, b, mask.xmm));
         }
+        static Vec3<float> blend(const Vec3<float>& a, const Vec3<float>& b, const Vec3Mask<float>& mask)
+        {
+            return Vec3<float>(detail::blend(a.xmm, b.xmm, mask.xmm));
+        }
 
         Vec3() :
             xmm(_mm_set1_ps(0.0f))
@@ -438,6 +442,37 @@ namespace ray
     inline Vec3Mask<float> operator<(const Point3<float>& lhs, float rhs)
     {
         return Vec3Mask<float>{detail::cmplt(lhs.xmm, rhs)};
+    }
+
+
+    inline Vec3Mask<float> operator>(const Vec3<float> & lhs, const Vec3<float>& rhs)
+    {
+        return Vec3Mask<float>{detail::cmplt(rhs.xmm, lhs.xmm)};
+    }
+
+    inline Vec3Mask<float> operator>(const Normal3<float>& lhs, const Normal3<float>& rhs)
+    {
+        return Vec3Mask<float>{detail::cmplt(rhs.xmm, lhs.xmm)};
+    }
+
+    inline Vec3Mask<float> operator>(const Point3<float>& lhs, const Point3<float>& rhs)
+    {
+        return Vec3Mask<float>{detail::cmplt(rhs.xmm, lhs.xmm)};
+    }
+
+    inline Vec3Mask<float> operator>(const Vec3<float>& lhs, float rhs)
+    {
+        return Vec3Mask<float>{detail::cmplt(rhs, lhs.xmm)};
+    }
+
+    inline Vec3Mask<float> operator>(const Normal3<float>& lhs, float rhs)
+    {
+        return Vec3Mask<float>{detail::cmplt(rhs, lhs.xmm)};
+    }
+
+    inline Vec3Mask<float> operator>(const Point3<float>& lhs, float rhs)
+    {
+        return Vec3Mask<float>{detail::cmplt(rhs, lhs.xmm)};
     }
 
 
