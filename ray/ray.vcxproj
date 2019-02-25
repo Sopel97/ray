@@ -64,6 +64,7 @@
     <ClInclude Include="src\ray\math\Raycast.h" />
     <ClInclude Include="src\ray\math\RaycastHit.h" />
     <ClInclude Include="src\ray\math\RotationMatrix3.h" />
+    <ClInclude Include="src\ray\math\RotationTranslationMatrix3.h" />
     <ClInclude Include="src\ray\math\TextureCoordinateResolver.h" />
     <ClInclude Include="src\ray\math\Vec2.h" />
     <ClInclude Include="src\ray\math\Vec3SSE.h" />

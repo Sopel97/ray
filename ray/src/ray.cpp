@@ -14,6 +14,7 @@
 #include <ray/math/AffineTransformationMatrix3.h>
 #include <ray/math/Angle.h>
 #include <ray/math/Raycast.h>
+#include <ray/math/RotationTranslationMatrix3.h>
 #include <ray/math/Vec3.h>
 
 #include <ray/scene/StaticScene.h>
@@ -164,27 +165,10 @@ ClosedTriangleMesh createSmoothIcosahedron(const Vec3f& offset, float radius, co
     return mesh;
 }
 
-void print(const AffineTransformationMatrix3f& m)
-{
-    std::cout << m.toString() << '\n';
-}
-
 int main()
 {
     constexpr int width = 1920;
     constexpr int height = 1080;
-
-    Normal3f v1(-1.0f, 0.5f, 0.0f);
-    Normal3f v2(1.0f, 2.0f, 1.0f);
-    AffineTransformationMatrix3f m(
-        Vec3f(v1)*2,
-        Vec3f(v2)*-3,
-        cross(v1, v2)*0.5,
-        Vec3f(5, -3, 2)
-        );
-    print(m);
-    m.invert();
-    print(m);
 
     sf::RenderWindow window(sf::VideoMode(width, height), "ray");
 
