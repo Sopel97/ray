@@ -110,9 +110,9 @@ namespace ray
             return m_faces[i];
         }
 
-        MaterialPtrStorageView material(int i) const
+        const MaterialStorageType& material(int i) const
         {
-            return m_materials[i].view();
+            return m_materials[i];
         }
 
         // loses volume

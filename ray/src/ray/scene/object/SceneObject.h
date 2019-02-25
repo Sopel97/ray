@@ -142,7 +142,7 @@ namespace ray
 
             virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
-            virtual MaterialStorageViewType materials() const = 0;
+            virtual MaterialStorageViewType materialsView() const = 0;
             virtual bool isLight() const = 0;
             virtual SceneObjectId id() const = 0;
         };
@@ -188,7 +188,7 @@ namespace ray
             {
                 return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
-            MaterialStorageViewType materials() const override
+            MaterialStorageViewType materialsView() const override
             {
                 return m_materials.view();
             }

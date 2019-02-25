@@ -44,7 +44,7 @@ namespace ray
                 m_objects.emplace_back(std::move(so));
             }
 
-            MaterialPtrStorageView materials(int shapeNo) const
+            MaterialPtrStorageView materialsView(int shapeNo) const
             {
                 return m_objects[shapeNo].materialsView();
             }
@@ -95,7 +95,7 @@ namespace ray
             ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
             {
                 const auto& obj = m_objects[hit.shapeNo];
-                auto[surface, medium] = materials(hit.shapeNo).material(hit.materialIndex);
+                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
                 const TexCoords texCoords = surface->texture ? m_objects[hit.shapeNo].resolveTexCoords(hit, 0) : TexCoords{ 0.0f, 0.0f };
                 return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, obj.hasVolume(), obj.isLocallyContinuable());
             }
@@ -105,8 +105,8 @@ namespace ray
         };
     }
 
-    // Analogical to SceneObject but shapePacks and materials are not interleaved.
-    // So there are two separate arrays for shapePacks and materials
+    // Analogical to SceneObject but shapePacks and materialsView are not interleaved.
+    // So there are two separate arrays for shapePacks and materialsView
     // Handles packs by abstracting insertion and access to be done on with granularity of a single shape.
     template <typename ShapeT>
     struct SceneObjectArray : HomogeneousSceneObjectCollection
@@ -161,7 +161,7 @@ namespace ray
             }
         }
 
-        MaterialPtrStorageView materials(int shapeNo) const
+        MaterialPtrStorageView materialsView(int shapeNo) const
         {
             return m_materials[shapeNo].view();
         }
@@ -217,7 +217,7 @@ namespace ray
         {
             const int packNo = hit.shapeNo / numShapesInPack;
             const int shapeInPackNo = hit.shapeNo % numShapesInPack;
-            auto[surface, medium] = materials(hit.shapeNo).material(hit.materialIndex);
+            auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
             const TexCoords texCoords = surface->texture ? resolveTexCoords(m_shapePacks[packNo], hit, shapeInPackNo) : TexCoords{ 0.0f, 0.0f };
             return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, hasVolume, isLocallyContinuable);
         }
@@ -309,7 +309,7 @@ namespace ray
         ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
             ShapePtrType obj = static_cast<ShapePtrType>(hit.additionalData);
-            auto [surface, medium] = obj->materials().material(hit.materialIndex);
+            auto [surface, medium] = obj->materialsView().material(hit.materialIndex);
             const TexCoords texCoords = surface->texture ? obj->resolveTexCoords(hit, 0) : TexCoords{ 0.0f, 0.0f };
             return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, 
                 true, // hasVolume

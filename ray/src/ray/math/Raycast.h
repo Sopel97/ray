@@ -766,7 +766,7 @@ namespace ray
         hit.normal = (tri.vertex(0).normal * u + tri.vertex(1).normal * v + tri.vertex(2).normal * w).normalized();
         if(isInside) hit.normal = -hit.normal;
         hit.shapeInPackNo = 0;
-        hit.materialIndex = MaterialIndex(0);
+        hit.materialIndex = MaterialIndex(0, 0);
         hit.isInside = isInside;
 
         return true;

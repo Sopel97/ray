@@ -227,14 +227,10 @@ int main()
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, 0, -25), 3), { { &m4s }, { &m4m } }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-5.5, 0, -15), 3), { { &m5s }, { &m5m } })); // this sphere looks weird, is it right?
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 20, -30), 3), { { &m6s }, { &m6m } }));
-    //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -7), 3.5), { &m7 }));
+    //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -7), 3.5), { { &m7s }, { &m7m } }));
     for (int i = 0; i < mesh.numFaces(); ++i)
     {
-        //closedTris.emplace_back(SceneObject<ClosedTriangleMeshFace>(mesh.face(i), { mesh.material(i) }));
-    }
-    for (int i = 0; i < mesh.numFaces(); ++i)
-    {
-        //tris.emplace_back(SceneObject<Triangle3>(mesh.faceAsTriangle(i), { mesh.material(i) }));
+        //closedTris.emplace_back(SceneObject<ClosedTriangleMeshFace>(mesh.face(i), mesh.material(i)));
     }
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -7), 1.5), { &m1 }));
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-3.0, 0, -7), 1.5), { &m1 }));
@@ -255,12 +251,13 @@ int main()
     boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, 7+0.01f, -20), Point3f(20, 8, -10)), { &m11 }));
     */
 
-    /*
-    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), 1.0f), { &m7, &m4 }));
-    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 7, -10), Point3f(20, 9 - 7, -13), 1.0f), { &m7, &m4 }));
-    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 4, -10), Point3f(20, 9 - 4, -16), 1.0f), { &m7, &m4 }));
-    */
 
+    /*
+    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), 1.0f), { { &m7s, &m4s }, { &m7m } }));
+    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 7, -10), Point3f(20, 9 - 7, -13), 1.0f), { { &m7s, &m4s }, { &m7m } }));
+    cylinders.emplace_back(SceneObject<Cylinder>(Cylinder(Point3f(10, 9 - 4, -10), Point3f(20, 9 - 4, -16), 1.0f), { { &m7s, &m4s }, { &m7m } }));
+    */
+    
     capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 10, -10), Point3f(20, 9 - 10, -10), 1.0f), { { &m7s, &m4s }, { &m7m } }));
     capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 7, -10), Point3f(20, 9 - 7, -13), 1.0f), { { &m7s, &m4s }, { &m7m } }));
     capsules.emplace_back(SceneObject<Capsule>(Capsule(Point3f(10, 9 - 4, -10), Point3f(20, 9 - 4, -16), 1.0f), { { &m7s, &m4s }, { &m7m } }));
@@ -308,6 +305,7 @@ int main()
     //auto diffPart15 = SceneObject<CsgShape>(Cylinder(obb.min(), obb.max(), 2.0f), { &m7, &m4 });
     auto diffPart15 = SceneObject<CsgShape>(Capsule(obb.min(), obb.max(), 2.0f), { { &m7s, &m4s }, { &m7m } });
 
+    
     csgs.emplace_back(
         (
             (
@@ -326,6 +324,7 @@ int main()
          - diffPart14
         // - diffPart15
     );
+    
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
