@@ -1,11 +1,16 @@
 #pragma once
 
+#include <ray/utility/Util.h>
+
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <tuple>
+#include <typeinfo>
 #include <vector>
 
 namespace ray 
@@ -24,7 +29,8 @@ namespace ray
     namespace perf
     {
         static constexpr std::size_t cacheLineSize = std::hardware_destructive_interference_size;
-        struct alignas(cacheLineSize) AtomicCount : std::atomic<std::uint64_t>
+
+        struct AtomicCount : std::atomic<std::uint64_t>
         {
             void operator+=(std::uint64_t d)
             {
@@ -32,9 +38,23 @@ namespace ray
             }
         };
 
-        struct PerformanceStats
+        struct AtomicDuration : std::atomic<std::chrono::nanoseconds>
         {
-            constexpr static int maxDepth = 32;
+            using Base = std::atomic<std::chrono::nanoseconds>;
+
+            void operator+=(std::chrono::nanoseconds c)
+            {
+                std::chrono::nanoseconds s = Base::load();
+                std::chrono::nanoseconds new_s;
+                do {
+                    new_s = s + c;
+                } while (!Base::compare_exchange_strong(s, new_s));
+            }
+        };
+
+        struct alignas(cacheLineSize) PerformanceStats
+        {
+            constexpr static int maxDepth = 16;
 
             struct TraceStatsTotal
             {
@@ -80,24 +100,42 @@ namespace ray
 
             struct TimeStats
             {
-                void add(std::chrono::nanoseconds c)
-                {
-                    std::chrono::nanoseconds s = time.load();
-                    std::chrono::nanoseconds new_s;
-                    do {
-                        new_s = s + c;
-                    } while (!time.compare_exchange_strong(s, new_s));
-                }
-
-                std::atomic<std::chrono::nanoseconds> time;
+                AtomicDuration time;
             };
 
-            PerformanceStats() :
-                m_tracesByDepth(maxDepth + 1),
+            explicit PerformanceStats(PerformanceStats* parent = nullptr) :
+                m_tracesByDepth{},
                 m_raycasts{},
                 m_traceDuration{},
-                m_constructionDuration{}
+                m_constructionDuration{},
+                m_parent(parent)
             {
+                if (m_parent)
+                {
+                    m_parent->registerChild(*this);
+                }
+            }
+
+            PerformanceStats(const PerformanceStats&) = delete;
+            PerformanceStats(PerformanceStats&&) = delete;
+            PerformanceStats& operator=(const PerformanceStats&) = delete;
+            PerformanceStats& operator=(PerformanceStats&&) = delete;
+
+            ~PerformanceStats()
+            {
+                if (m_parent)
+                {
+                    m_parent->collectRemove(*this);
+                }
+            }
+
+            void collect()
+            {
+                std::lock_guard<std::mutex> lock(m_childrenMutex);
+                for (PerformanceStats* child : m_children)
+                {
+                    collect(*child);
+                }
             }
 
             void addTrace(int depth, std::uint64_t count = 1)
@@ -165,26 +203,12 @@ namespace ray
 
             void addTraceTime(std::chrono::nanoseconds dur)
             {
-                m_traceDuration.add(dur);
+                m_traceDuration.time += dur;
             }
 
             void addConstructionTime(std::chrono::nanoseconds dur)
             {
-                m_constructionDuration.add(dur);
-            }
-
-            TraceStatsTotal total(const std::vector<TraceStats>& stats) const
-            {
-                TraceStatsTotal tot{};
-
-                for (const auto& s : stats)
-                {
-                    tot.all += s.all.load();
-                    tot.hits += s.hits.load();
-                    tot.resolved += s.resolved.load();
-                }
-
-                return tot;
+                m_constructionDuration.time += dur;
             }
             
             std::string summary() const
@@ -215,49 +239,11 @@ namespace ray
                 }
                 out += "Rays/s: " + std::to_string(totalTraces.all / traceTimeSeconds) + "\n";
 
-                out += "Raycasts:\n";
-                out += "Box3:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Box3>().hits.load(), objectRaycasts<Box3>().all.load()) + "\n";
-                out += "Capsule:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Capsule>().hits.load(), objectRaycasts<Capsule>().all.load()) + "\n";
-                out += "ClosedTriangleMeshFace:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<ClosedTriangleMeshFace>().hits.load(), objectRaycasts<ClosedTriangleMeshFace>().all.load()) + "\n";
-                out += "Cylinder:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Cylinder>().hits.load(), objectRaycasts<Cylinder>().all.load()) + "\n";
-                out += "Disc3:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Disc3>().hits.load(), objectRaycasts<Disc3>().all.load()) + "\n";
-                out += "HalfSphere:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<HalfSphere>().hits.load(), objectRaycasts<HalfSphere>().all.load()) + "\n";
-                out += "OrientedBox3:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<OrientedBox3>().hits.load(), objectRaycasts<OrientedBox3>().all.load()) + "\n";
-                out += "Plane:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Plane>().hits.load(), objectRaycasts<Plane>().all.load()) + "\n";
-                out += "Sphere:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Sphere>().hits.load(), objectRaycasts<Sphere>().all.load()) + "\n";
-                out += "Triangle3:\n";
-                out += "   hits/all: " + entry2(objectRaycasts<Triangle3>().hits.load(), objectRaycasts<Triangle3>().all.load()) + "\n";
-                out += "\n";
-                out += "BV Raycasts:\n";
-                out += "Box3:\n";
-                out += "   hits/all: " + entry2(bvRaycasts<Box3>().hits.load(), bvRaycasts<Box3>().all.load()) + "\n";
-                out += "\n";
-                out += "Interval Raycasts:\n";
-                out += "Box3:\n";
-                out += "   hits/all: " + entry2(intervalRaycasts<Box3>().hits.load(), intervalRaycasts<Box3>().all.load()) + "\n";
-                out += "Capsule:\n";
-                out += "   hits/all: " + entry2(intervalRaycasts<Capsule>().hits.load(), intervalRaycasts<Capsule>().all.load()) + "\n";
-                out += "Cylinder:\n";
-                out += "   hits/all: " + entry2(intervalRaycasts<Cylinder>().hits.load(), intervalRaycasts<Cylinder>().all.load()) + "\n";
-                out += "OrientedBox3:\n";
-                out += "   hits/all: " + entry2(intervalRaycasts<OrientedBox3>().hits.load(), intervalRaycasts<OrientedBox3>().all.load()) + "\n";
-                out += "Sphere:\n";
-                out += "   hits/all: " + entry2(intervalRaycasts<Sphere>().hits.load(), intervalRaycasts<Sphere>().all.load()) + "\n";
-                out += "\n";
-                out += "Dist Raycasts:\n";
-                out += "Disc3:\n";
-                out += "   hits/all: " + entry2(distRaycasts<Disc3>().hits.load(), distRaycasts<Disc3>().all.load()) + "\n";
-                out += "HalfSphere:\n";
-                out += "   hits/all: " + entry2(distRaycasts<HalfSphere>().hits.load(), distRaycasts<HalfSphere>().all.load()) + "\n";
+                for_each(m_raycasts, [&](const auto& c) {
+                    using T = remove_cvref_t<decltype(c)>;
+                    out += std::string(typeid(T).name()) + "\n";
+                    out += "   hits/all: " + entry2(c.hits.load(), c.all.load()) + "\n";
+                });
 
                 return out;
             }
@@ -287,7 +273,7 @@ namespace ray
             }
 
         private:
-            std::vector<TraceStats> m_tracesByDepth;
+            std::array<TraceStats, maxDepth + 1> m_tracesByDepth;
             std::tuple<
                 ObjectRaycastStats<Box3>,
                 ObjectRaycastStats<Capsule>,
@@ -313,6 +299,9 @@ namespace ray
             > m_raycasts;
             TimeStats m_traceDuration;
             TimeStats m_constructionDuration;
+            PerformanceStats* m_parent;
+            std::vector<PerformanceStats*> m_children;
+            std::mutex m_childrenMutex;
 
             template <typename ShapeT>
             decltype(auto) objectRaycasts()
@@ -337,8 +326,61 @@ namespace ray
             {
                 return std::get<DistRaycastStats<ShapeT>>(m_raycasts);
             }
+
+
+            TraceStatsTotal total(const std::array<TraceStats, maxDepth + 1>& stats) const
+            {
+                TraceStatsTotal tot{};
+
+                for (const auto& s : stats)
+                {
+                    tot.all += s.all.load();
+                    tot.hits += s.hits.load();
+                    tot.resolved += s.resolved.load();
+                }
+
+                return tot;
+            }
+
+
+            void registerChild(PerformanceStats& child)
+            {
+                std::lock_guard<std::mutex> lock(m_childrenMutex);
+                m_children.emplace_back(&child);
+            }
+
+            void collectRemove(PerformanceStats& perf)
+            {
+                std::lock_guard<std::mutex> lock(m_childrenMutex);
+                collect(perf);
+                auto it = std::find(m_children.begin(), m_children.end(), &perf);
+                if (it != m_children.end())
+                {
+                    m_children.erase(it);
+                }
+            }
+
+            void collect(PerformanceStats& perf)
+            {
+                for (int i = 0; i <= maxDepth; ++i)
+                {
+                    m_tracesByDepth[i].all += perf.m_tracesByDepth[i].all.exchange(0);
+                    m_tracesByDepth[i].hits += perf.m_tracesByDepth[i].hits.exchange(0);
+                    m_tracesByDepth[i].resolved += perf.m_tracesByDepth[i].resolved.exchange(0);
+                }
+
+                for_each(m_raycasts, [&perf](auto& c) {
+                    using T = remove_cvref_t<decltype(c)>;
+                    c.all += std::get<T>(perf.m_raycasts).all.exchange(0);
+                    c.hits += std::get<T>(perf.m_raycasts).hits.exchange(0);
+                });
+
+                m_traceDuration.time += perf.m_traceDuration.time.exchange(std::chrono::nanoseconds(0));
+                m_constructionDuration.time += perf.m_constructionDuration.time.exchange(std::chrono::nanoseconds(0));
+            }
         };
 
-        inline PerformanceStats gPerfStats;
+        inline PerformanceStats gGlobalPerfStats;
+        inline thread_local PerformanceStats gThreadLocalPerfStats(&gGlobalPerfStats);
     }
 }

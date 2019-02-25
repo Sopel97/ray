@@ -50,13 +50,13 @@ namespace ray
     inline bool raycastBv(const Ray& ray, const Box3& box, float tNearest, RaycastBvHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addBvRaycast<Box3>();
+        perf::gThreadLocalPerfStats.addBvRaycast<Box3>();
 #endif
 
         if (contains(box, ray.origin()))
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addBvRaycastHit<Box3>();
+            perf::gThreadLocalPerfStats.addBvRaycastHit<Box3>();
 #endif
             hit.dist = 0.0f;
             return true;
@@ -87,7 +87,7 @@ namespace ray
         if (tmin < 0.0f || tmin > tmax) return std::nullopt;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addBvRaycastHit<Box3>();
+        perf::gThreadLocalPerfStats.addBvRaycastHit<Box3>();
 #endif
 
         return RaycastBvHit{ tmin };
@@ -103,7 +103,7 @@ namespace ray
         if (tmin <= tmax && tmin < tNearest)
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addBvRaycastHit<Box3>();
+            perf::gThreadLocalPerfStats.addBvRaycastHit<Box3>();
 #endif
             hit.dist = tmin;
             return true;
@@ -116,7 +116,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const Sphere& sphere, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Sphere>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<Sphere>();
 #endif
         /*
             O -- ray origin
@@ -215,7 +215,7 @@ namespace ray
         if (t < 0.0f || t >= hit.dist) return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycastHit<Sphere>();
+        perf::gThreadLocalPerfStats.addObjectRaycastHit<Sphere>();
 #endif
 
         const Point3f hitPoint = O + t * D;
@@ -234,7 +234,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const OrientedBox3& obb, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<OrientedBox3>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<OrientedBox3>();
 #endif
 
         const Vec3f p = obb.origin - ray.origin();
@@ -258,7 +258,7 @@ namespace ray
         if (tmin >= hit.dist) return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycastHit<OrientedBox3>();
+        perf::gThreadLocalPerfStats.addObjectRaycastHit<OrientedBox3>();
 #endif
 
         Normal3f normal(AssumeNormalized{}, Vec3f::blend(0.0f, -1.0f, (t0 == tmin) | (t1 == tmin)));
@@ -277,7 +277,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const HalfSphere& sphere, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<HalfSphere>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<HalfSphere>();
 #endif
 
         const Point3f O = ray.origin();
@@ -302,7 +302,7 @@ namespace ray
         if (tmin > 0.0f && tmin < hit.dist && dot(hitPointMin - C, sphere.normal()) > 0.0f)
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addObjectRaycastHit<HalfSphere>();
+            perf::gThreadLocalPerfStats.addObjectRaycastHit<HalfSphere>();
 #endif
 
             Normal3f normal = ((hitPointMin - C) / R).assumeNormalized();
@@ -318,7 +318,7 @@ namespace ray
         else if (tmax > 0.0f && tmax < hit.dist && dot(hitPointMax - C, sphere.normal()) > 0.0f)
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addObjectRaycastHit<HalfSphere>();
+            perf::gThreadLocalPerfStats.addObjectRaycastHit<HalfSphere>();
 #endif
 
             Normal3f normal = ((hitPointMax - C) / R).assumeNormalized();
@@ -341,7 +341,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const Plane& plane, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Plane>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<Plane>();
 #endif
         const float nd = dot(ray.direction(), plane.normal);
         const float pn = dot(Vec3f(ray.origin()), plane.normal);
@@ -351,7 +351,7 @@ namespace ray
         if (t >= 0.0f && t < hit.dist)
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addObjectRaycastHit<Plane>();
+            perf::gThreadLocalPerfStats.addObjectRaycastHit<Plane>();
 #endif
             const Point3f point = ray.origin() + ray.direction() * t;
 
@@ -371,7 +371,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const Disc3& disc, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Disc3>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<Disc3>();
 #endif
 
         const float nd = dot(ray.direction(), disc.normal);
@@ -386,7 +386,7 @@ namespace ray
                 return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addObjectRaycastHit<Disc3>();
+            perf::gThreadLocalPerfStats.addObjectRaycastHit<Disc3>();
 #endif
 
             hit.dist = t;
@@ -405,7 +405,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const Cylinder& cyl, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Cylinder>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<Cylinder>();
 #endif
 
         // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
@@ -454,7 +454,7 @@ namespace ray
             if (pl > 0.0f && pl < cyl.length)
             {
 #if defined(RAY_GATHER_PERF_STATS)
-                perf::gPerfStats.addObjectRaycastHit<Cylinder>();
+                perf::gThreadLocalPerfStats.addObjectRaycastHit<Cylinder>();
 #endif
 
                 // we hit the shaft
@@ -479,7 +479,7 @@ namespace ray
         if (raycast(ray, d0, hit) || raycast(ray, d1, hit))
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addObjectRaycastHit<Cylinder>();
+            perf::gThreadLocalPerfStats.addObjectRaycastHit<Cylinder>();
 #endif
 
             hit.materialIndex = MaterialIndex(1, 0);
@@ -492,7 +492,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const Capsule& cyl, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Capsule>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<Capsule>();
 #endif
 
         // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
@@ -541,7 +541,7 @@ namespace ray
             if (pl > 0.0f && pl < cyl.length)
             {
 #if defined(RAY_GATHER_PERF_STATS)
-                perf::gPerfStats.addObjectRaycastHit<Capsule>();
+                perf::gThreadLocalPerfStats.addObjectRaycastHit<Capsule>();
 #endif
 
                 // we hit the shaft
@@ -566,7 +566,7 @@ namespace ray
         if (raycast(ray, d0, hit) || raycast(ray, d1, hit))
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addObjectRaycastHit<Capsule>();
+            perf::gThreadLocalPerfStats.addObjectRaycastHit<Capsule>();
 #endif
 
             hit.materialIndex = MaterialIndex(1, 0);
@@ -579,7 +579,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const Box3& box, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Box3>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<Box3>();
 #endif
 
         const Point3f origin = ray.origin();
@@ -607,7 +607,7 @@ namespace ray
         const Point3f point = ray.origin() + ray.direction() * tmin;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycastHit<Box3>();
+        perf::gThreadLocalPerfStats.addObjectRaycastHit<Box3>();
 #endif
         hit.dist = tmin;
         hit.point = point;
@@ -625,7 +625,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const Triangle3& tri, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Triangle3>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<Triangle3>();
 #endif
         
         const Point3f orig = ray.origin();
@@ -664,7 +664,7 @@ namespace ray
         const float w = 1.0f - (v + u);
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycastHit<Triangle3>();
+        perf::gThreadLocalPerfStats.addObjectRaycastHit<Triangle3>();
 #endif
 
         hit.dist = t;
@@ -682,7 +682,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const Triangle3& tri, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<Triangle3>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<Triangle3>();
 #endif
 
         const Vec3f pvec = cross(ray.direction(), tri.e02());
@@ -710,7 +710,7 @@ namespace ray
         if (t >= hit.dist) return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycastHit<Triangle3>();
+        perf::gThreadLocalPerfStats.addObjectRaycastHit<Triangle3>();
 #endif
 
         hit.dist = t;
@@ -727,7 +727,7 @@ namespace ray
     inline bool raycast(const Ray& ray, const ClosedTriangleMeshFace& tri, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycast<ClosedTriangleMeshFace>();
+        perf::gThreadLocalPerfStats.addObjectRaycast<ClosedTriangleMeshFace>();
 #endif
 
         const Point3f v0 = tri.vertex(0).point;
@@ -758,7 +758,7 @@ namespace ray
         if (t >= hit.dist) return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addObjectRaycastHit<ClosedTriangleMeshFace>();
+        perf::gThreadLocalPerfStats.addObjectRaycastHit<ClosedTriangleMeshFace>();
 #endif
         const bool isInside = det < 0.0f;
         hit.dist = t;
@@ -779,7 +779,7 @@ namespace ray
     inline bool raycastIntervals(const Ray& ray, const Sphere& sphere, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addIntervalRaycast<Sphere>();
+        perf::gThreadLocalPerfStats.addIntervalRaycast<Sphere>();
 #endif
 
         const Point3f O = ray.origin();
@@ -799,7 +799,7 @@ namespace ray
         if (t_ca + t_hc < 0.0f) return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addIntervalRaycastHit<Sphere>();
+        perf::gThreadLocalPerfStats.addIntervalRaycastHit<Sphere>();
 #endif
 
         hitIntervals.pushBack(Interval<DataT>{t_ca - t_hc, t_ca + t_hc, data, data});
@@ -810,7 +810,7 @@ namespace ray
     inline bool raycastIntervals(const Ray& ray, const Box3& box, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addIntervalRaycast<Box3>();
+        perf::gThreadLocalPerfStats.addIntervalRaycast<Box3>();
 #endif
 
         const Vec3f invDir = ray.invDirection();
@@ -823,7 +823,7 @@ namespace ray
         if (tmin < tmax)
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addIntervalRaycastHit<Box3>();
+            perf::gThreadLocalPerfStats.addIntervalRaycastHit<Box3>();
 #endif
 
             hitIntervals.pushBack(Interval<DataT>{tmin, tmax, data, data});
@@ -837,7 +837,7 @@ namespace ray
     inline bool raycastIntervals(const Ray& ray, const OrientedBox3& obb, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addIntervalRaycast<OrientedBox3>();
+        perf::gThreadLocalPerfStats.addIntervalRaycast<OrientedBox3>();
 #endif
 
         const Vec3f p = obb.origin - ray.origin();
@@ -856,7 +856,7 @@ namespace ray
         if (tmin < tmax)
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addIntervalRaycastHit<OrientedBox3>();
+            perf::gThreadLocalPerfStats.addIntervalRaycastHit<OrientedBox3>();
 #endif
 
             hitIntervals.pushBack(Interval<DataT>{tmin, tmax, data, data});
@@ -869,7 +869,7 @@ namespace ray
     inline bool raycastDist(const Ray& ray, const Disc3& disc, float& t)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addDistRaycast<Disc3>();
+        perf::gThreadLocalPerfStats.addDistRaycast<Disc3>();
 #endif
 
         const float nd = dot(ray.direction(), disc.normal);
@@ -881,7 +881,7 @@ namespace ray
             return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addDistRaycastHit<Disc3>();
+        perf::gThreadLocalPerfStats.addDistRaycastHit<Disc3>();
 #endif
 
         return true;
@@ -891,7 +891,7 @@ namespace ray
     inline bool raycastDist(const Ray& ray, const HalfSphere& sphere, float& t)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addDistRaycast<HalfSphere>();
+        perf::gThreadLocalPerfStats.addDistRaycast<HalfSphere>();
 #endif
 
         const Point3f O = ray.origin();
@@ -918,7 +918,7 @@ namespace ray
         if (dot(hitPointMin - C, sphere.normal()) > 0.0f)
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addDistRaycastHit<HalfSphere>();
+            perf::gThreadLocalPerfStats.addDistRaycastHit<HalfSphere>();
 #endif
             t = tmin;
             return true;
@@ -926,7 +926,7 @@ namespace ray
         else if (dot(hitPointMax - C, sphere.normal()) > 0.0f)
         {
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addDistRaycastHit<HalfSphere>();
+            perf::gThreadLocalPerfStats.addDistRaycastHit<HalfSphere>();
 #endif
             t = tmax;
             return true;
@@ -941,7 +941,7 @@ namespace ray
     inline bool raycastIntervals(const Ray& ray, const Cylinder& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addIntervalRaycast<Cylinder>();
+        perf::gThreadLocalPerfStats.addIntervalRaycast<Cylinder>();
 #endif
 
         // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
@@ -1047,7 +1047,7 @@ namespace ray
             }
 
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addIntervalRaycastHit<Cylinder>();
+            perf::gThreadLocalPerfStats.addIntervalRaycastHit<Cylinder>();
 #endif
 
             hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
@@ -1065,7 +1065,7 @@ namespace ray
                 if (t1 < 0.0f) return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-                perf::gPerfStats.addIntervalRaycastHit<Cylinder>();
+                perf::gThreadLocalPerfStats.addIntervalRaycastHit<Cylinder>();
 #endif
 
                 hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
@@ -1080,7 +1080,7 @@ namespace ray
     inline bool raycastIntervals(const Ray& ray, const Capsule& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
-        perf::gPerfStats.addIntervalRaycast<Capsule>();
+        perf::gThreadLocalPerfStats.addIntervalRaycast<Capsule>();
 #endif
 
         // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
@@ -1186,7 +1186,7 @@ namespace ray
             }
 
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addIntervalRaycastHit<Capsule>();
+            perf::gThreadLocalPerfStats.addIntervalRaycastHit<Capsule>();
 #endif
 
             hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
@@ -1204,7 +1204,7 @@ namespace ray
                 if (t1 < 0.0f) return false;
 
 #if defined(RAY_GATHER_PERF_STATS)
-                perf::gPerfStats.addIntervalRaycastHit<Capsule>();
+                perf::gThreadLocalPerfStats.addIntervalRaycastHit<Capsule>();
 #endif
 
                 hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});

@@ -86,7 +86,7 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
             auto t1 = std::chrono::high_resolution_clock().now();
             auto diff = t1 - t0;
-            perf::gPerfStats.addTraceTime(diff);
+            perf::gThreadLocalPerfStats.addTraceTime(diff);
 #endif
 
             return img;
@@ -100,7 +100,7 @@ namespace ray
         {
 
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addTrace(depth);
+            perf::gThreadLocalPerfStats.addTrace(depth);
 #endif
 
             ResolvableRaycastHit rhit;
@@ -127,8 +127,8 @@ namespace ray
             if (!anyHit) return m_scene->backgroundColor();
 
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addTraceHit(depth);
-            perf::gPerfStats.addTraceResolved(depth);
+            perf::gThreadLocalPerfStats.addTraceHit(depth);
+            perf::gThreadLocalPerfStats.addTraceResolved(depth);
 #endif
 
             const ResolvedRaycastHit hit = rhit.resolve();
@@ -214,7 +214,7 @@ namespace ray
             const Point3f point = hit.point + hit.normal * m_options.paddingDistance;
 
 #if defined(RAY_GATHER_PERF_STATS)
-            perf::gPerfStats.addTrace(depth, lights.size());
+            perf::gThreadLocalPerfStats.addTrace(depth, lights.size());
 #endif
 
             ColorRGBf color{};
@@ -226,13 +226,13 @@ namespace ray
                 if (!m_scene->queryNearest(ray, rhit)) continue;
 
 #if defined(RAY_GATHER_PERF_STATS)
-                perf::gPerfStats.addTraceHit(depth);
+                perf::gThreadLocalPerfStats.addTraceHit(depth);
 #endif
 
                 if (rhit.objectId() != light.id()) continue;
 
 #if defined(RAY_GATHER_PERF_STATS)
-                perf::gPerfStats.addTraceResolved(depth);
+                perf::gThreadLocalPerfStats.addTraceResolved(depth);
 #endif
 
                 auto lightHit = rhit.resolve();

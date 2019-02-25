@@ -396,7 +396,8 @@ int main()
     //Image img = raytracer.capture(camera);
 
 #if defined(RAY_GATHER_PERF_STATS)
-    std::cout << perf::gPerfStats.summary();
+    perf::gGlobalPerfStats.collect(); // threads are in a pool, may not have ended
+    std::cout << perf::gGlobalPerfStats.summary();
 #else
     auto t1 = std::chrono::high_resolution_clock().now();
     auto diff = t1 - t0;

@@ -62,7 +62,7 @@ namespace ray
 #if defined(RAY_GATHER_PERF_STATS)
             auto t1 = std::chrono::high_resolution_clock().now();
             auto diff = t1 - t0;
-            perf::gPerfStats.addConstructionTime(diff);
+            perf::gThreadLocalPerfStats.addConstructionTime(diff);
 #endif
         }
 
