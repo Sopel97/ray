@@ -53,13 +53,16 @@
     <ClInclude Include="src\ray\material\Texture.h" />
     <ClInclude Include="src\ray\material\TextureDatabase.h" />
     <ClInclude Include="src\ray\math\AffineTransformationMatrix3.h" />
-    <ClInclude Include="src\ray\math\Angle.h" />
+    <ClInclude Include="src\ray\math\Angle2.h" />
+    <ClInclude Include="src\ray\math\AxisAngle3f.h" />
     <ClInclude Include="src\ray\math\BarycentricCoords.h" />
     <ClInclude Include="src\ray\math\BoundingVolume.h" />
     <ClInclude Include="src\ray\math\detail\M128Math.h" />
     <ClInclude Include="src\ray\math\detail\VecDetail.h" />
+    <ClInclude Include="src\ray\math\EulerAngles2.h" />
     <ClInclude Include="src\ray\math\Interval.h" />
     <ClInclude Include="src\ray\math\MathConstants.h" />
+    <ClInclude Include="src\ray\math\Quat3.h" />
     <ClInclude Include="src\ray\math\Ray.h" />
     <ClInclude Include="src\ray\math\Raycast.h" />
     <ClInclude Include="src\ray\math\RaycastHit.h" />

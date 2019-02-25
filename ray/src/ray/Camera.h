@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ray/math/Angle.h>
+#include <ray/math/Angle2.h>
 #include <ray/math/Ray.h>
 #include <ray/math/Vec3.h>
 
@@ -18,7 +18,7 @@ namespace ray
     {
         constexpr static float viewportDistance = 1.0f;
 
-        Camera(const Point3f& position, const Normal3f& direction, const Normal3f& up, int width, int height, Angle fov) :
+        Camera(const Point3f& position, const Normal3f& direction, const Normal3f& up, int width, int height, Angle2f fov) :
             m_position(position),
             m_direction(direction),
             m_up(up),
@@ -112,6 +112,6 @@ namespace ray
         Normal3f m_up;
         int m_width;
         int m_height;
-        Angle m_fov;
+        Angle2f m_fov;
     };
 }

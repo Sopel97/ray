@@ -12,7 +12,7 @@
 #include <ray/material/TextureDatabase.h>
 
 #include <ray/math/AffineTransformationMatrix3.h>
-#include <ray/math/Angle.h>
+#include <ray/math/Angle2.h>
 #include <ray/math/Raycast.h>
 #include <ray/math/RotationTranslationMatrix3.h>
 #include <ray/math/Vec3.h>
@@ -386,7 +386,7 @@ int main()
     auto t0 = std::chrono::high_resolution_clock().now();
 #endif
     Raytracer raytracer(scene);
-    auto camera = Camera({ 0, 0.5f, 0 }, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle::degrees(45));
+    auto camera = Camera({ 0, 0.5f, 0 }, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle2f::degrees(45));
     //auto sampler = UniformGridMultisampler(1);
     //auto sampler = JitteredMultisampler(1, 256, 0.66f);
     //auto sampler = QuincunxMultisampler();
@@ -412,7 +412,7 @@ int main()
     sprite.setTexture(texture, true);
 
     /*
-    Camera camera(Image(7, 5), {}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), Angle::degrees(45));
+    Camera camera(Image(7, 5), {}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), Angle2f::degrees(45));
     camera.forEachPixelRay([](auto r) {std::cout << r.direction().x << '\n'; });
     */
 
