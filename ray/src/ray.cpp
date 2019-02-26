@@ -281,7 +281,7 @@ int main()
     auto obb = OrientedBox3{
         Point3f(0, 0, -7),
         Vec3f(1, 2, 3),
-        {n1, n2, cross(n1, n2).normalized()}
+        OrthonormalBasis3f(n1, n2, Handedness3::Right)
         };
     //obbs.emplace_back(SceneObject<OrientedBox3>(obb, { &m11 }));
 

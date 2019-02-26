@@ -4,6 +4,7 @@
 #include "detail/M128MatrixOperations.h"
 
 #include "Matrix4.h"
+#include "OrthonormalBasis3.h"
 #include "Vec3.h"
 
 #include <cstdint>
@@ -116,15 +117,11 @@ namespace ray
 
         }
 
-        AffineTransformation3(
-            Normal3f n0,
-            Normal3f n1,
-            Normal3f n2
-        ) :
+        AffineTransformation3(const OrthonormalBasis3<float>& basis) :
             Matrix4(
-                detail::truncate3(n0.xmm), 
-                detail::truncate3(n1.xmm),
-                detail::truncate3(n2.xmm)
+                detail::truncate3(basis.x().xmm), 
+                detail::truncate3(basis.y().xmm),
+                detail::truncate3(basis.z().xmm)
             )
         {
             transpose();
@@ -554,7 +551,14 @@ namespace ray
         }
     };
 
+    using Identity3f = AffineTransformation3<float, AffineTransformationComponentMask::None>;
     using Rotation3f = AffineTransformation3<float, AffineTransformationComponentMask::Rotation>;
+    using Scale3f = AffineTransformation3<float, AffineTransformationComponentMask::Scale>;
+    using Translation3f = AffineTransformation3<float, AffineTransformationComponentMask::Translation>;
+    using RotationScale3f = AffineTransformation3<float, AffineTransformationComponentMask::RotationScale>;
+    using RotationTranslation3f = AffineTransformation3<float, AffineTransformationComponentMask::RotationTranslation>;
+    using ScaleTranslation3f = AffineTransformation3<float, AffineTransformationComponentMask::ScaleTranslation>;
+    using AffineTransformation3f = AffineTransformation3<float, AffineTransformationComponentMask::All>;
 
     template <typename T, AffineTransformationComponentMask MaskLhsV, AffineTransformationComponentMask MaskRhsV>
     auto operator*(const AffineTransformation3<T, MaskLhsV>& lhs, const AffineTransformation3<T, MaskRhsV>& rhs)

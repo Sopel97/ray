@@ -311,5 +311,11 @@
     <ClInclude Include="src\ray\math\detail\M128MatrixOperations.h">
       <Filter>Header Files\src\math\detail</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\math\OrthonormalBasis3.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Handedness3.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
