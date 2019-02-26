@@ -2,7 +2,7 @@
 
 #include "Box3.h"
 
-#include <ray/math/RotationMatrix3.h>
+#include <ray/math/Transform3.h>
 #include <ray/math/Vec3.h>
 
 #include <array>
@@ -13,7 +13,7 @@ namespace ray
     {
         Point3f origin;
         Vec3f halfSize;
-        RotationMatrix3f worldToLocalRot;
+        Rotation3f worldToLocalRot;
 
         const Point3f& center() const
         {

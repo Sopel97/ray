@@ -74,6 +74,23 @@ namespace ray
             return rhs;
         }
 
+        void invert()
+        {
+            // nothing to do
+        }
+
+        SelfType inverse() const
+        {
+            SelfType c(*this);
+            c.invert();
+            return c;
+        }
+
+        void transpose()
+        {
+            // nothing to do
+        }
+
         // enable casting to more generic matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
         operator AffineTransformation3<float, OtherMaskV>() const
@@ -99,11 +116,30 @@ namespace ray
 
         }
 
+        AffineTransformation3(
+            Normal3f n0,
+            Normal3f n1,
+            Normal3f n2
+        ) :
+            Matrix4(
+                detail::truncate3(n0.xmm), 
+                detail::truncate3(n1.xmm),
+                detail::truncate3(n2.xmm)
+            )
+        {
+            transpose();
+        }
+
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
             detail::mulMat3Mat3(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
+        }
+
+        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        {
+            return Vec3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
         }
 
         friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -114,6 +150,24 @@ namespace ray
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+        }
+
+        void invert()
+        {
+            // property of the rotation matrix
+            detail::transpose3(m_columns);
+        }
+
+        SelfType inverse() const
+        {
+            SelfType c(*this);
+            c.invert();
+            return c;
+        }
+
+        void transpose()
+        {
+            detail::transpose3(m_columns);
         }
 
         // enable casting to more generic matrix type
@@ -143,8 +197,11 @@ namespace ray
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
+            // just multiply the diagonal
             SelfType ret{};
-            detail::mulMat3Mat3(lhs.m_columns, rhs.m_columns, ret.m_columns);
+            ret.m_values[0][0] = lhs.m_values[0][0] * rhs.m_values[0][0];
+            ret.m_values[1][1] = lhs.m_values[1][1] * rhs.m_values[1][1];
+            ret.m_values[2][2] = lhs.m_values[2][2] * rhs.m_values[2][2];
             return ret;
         }
 
@@ -156,6 +213,25 @@ namespace ray
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+        }
+
+        void invert()
+        {
+            m_values[0][0] = 1.0f / m_values[0][0];
+            m_values[1][1] = 1.0f / m_values[1][1];
+            m_values[2][2] = 1.0f / m_values[2][2];
+        }
+
+        SelfType inverse() const
+        {
+            SelfType c(*this);
+            c.invert();
+            return c;
+        }
+
+        void transpose()
+        {
+            // nothing to do
         }
 
         // enable casting to more generic matrix type
@@ -202,6 +278,23 @@ namespace ray
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return rhs + Vec3<float>(lhs.m_columns[3]);
+        }
+
+        void invert()
+        {
+            m_columns[3] = detail::neg(m_columns[3], detail::xyzMask());
+        }
+
+        SelfType inverse() const
+        {
+            SelfType c(*this);
+            c.invert();
+            return c;
+        }
+
+        void transpose()
+        {
+            // nothing to do
         }
 
         // enable casting to more generic matrix type
@@ -253,6 +346,23 @@ namespace ray
             return Point3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
+        void invert()
+        {
+            detail::invertMatAffineNoScale(m_columns);
+        }
+
+        SelfType inverse() const
+        {
+            SelfType c(*this);
+            c.invert();
+            return c;
+        }
+
+        void transpose()
+        {
+            detail::transpose(m_columns);
+        }
+
         // enable casting to more generic matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
         operator AffineTransformation3<float, OtherMaskV>() const
@@ -293,6 +403,23 @@ namespace ray
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+        }
+
+        void invert()
+        {
+            detail::invertMatAffineNoTrans(m_columns);
+        }
+
+        SelfType inverse() const
+        {
+            SelfType c(*this);
+            c.invert();
+            return c;
+        }
+
+        void transpose()
+        {
+            detail::transpose3(m_columns);
         }
 
         // enable casting to more generic matrix type
@@ -337,6 +464,24 @@ namespace ray
             return Point3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
+        void invert()
+        {
+            // could probably be done more efficiently, but it's not important
+            detail::invertMatAffine(m_columns);
+        }
+
+        SelfType inverse() const
+        {
+            SelfType c(*this);
+            c.invert();
+            return c;
+        }
+
+        void transpose()
+        {
+            detail::transpose(m_columns);
+        }
+
         // enable casting to more generic matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
         operator AffineTransformation3<float, OtherMaskV>() const
@@ -379,6 +524,23 @@ namespace ray
             return Point3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
+        void invert()
+        {
+            detail::invertMatAffine(m_columns);
+        }
+
+        SelfType inverse() const
+        {
+            SelfType c(*this);
+            c.invert();
+            return c;
+        }
+
+        void transpose()
+        {
+            detail::transpose(m_columns);
+        }
+
         // enable casting to more generic matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
         operator AffineTransformation3<float, OtherMaskV>() const
@@ -391,6 +553,8 @@ namespace ray
                 );
         }
     };
+
+    using Rotation3f = AffineTransformation3<float, AffineTransformationComponentMask::Rotation>;
 
     template <typename T, AffineTransformationComponentMask MaskLhsV, AffineTransformationComponentMask MaskRhsV>
     auto operator*(const AffineTransformation3<T, MaskLhsV>& lhs, const AffineTransformation3<T, MaskRhsV>& rhs)

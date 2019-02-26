@@ -278,9 +278,6 @@
     <ClInclude Include="src\ray\scene\bvh\StaticBvhObjectMeanPartitioner.h">
       <Filter>Header Files\src\scene\bvh</Filter>
     </ClInclude>
-    <ClInclude Include="src\ray\math\RotationMatrix3.h">
-      <Filter>Header Files\src\math</Filter>
-    </ClInclude>
     <ClInclude Include="src\ray\shape\ShapeTags.h">
       <Filter>Header Files\src\shape</Filter>
     </ClInclude>
@@ -292,9 +289,6 @@
     </ClInclude>
     <ClInclude Include="src\ray\material\MaterialPtrStorage.h">
       <Filter>Header Files\src\material</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ray\math\RotationTranslationMatrix3.h">
-      <Filter>Header Files\src\math</Filter>
     </ClInclude>
     <ClInclude Include="src\ray\math\Quat3.h">
       <Filter>Header Files\src\math</Filter>
@@ -309,9 +303,6 @@
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
     <ClInclude Include="src\ray\math\Matrix4.h">
-      <Filter>Header Files\src\math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ray\math\AffineTransformation3.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
     <ClInclude Include="src\ray\math\Transform3.h">

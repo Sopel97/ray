@@ -30,6 +30,11 @@ namespace ray
             return Point3<float>(detail::mulMat4Vec3(lhs.m_columns, rhs.xmm));
         }
 
+        void transpose()
+        {
+            detail::transpose(m_columns);
+        }
+
     protected:
         union
         {
@@ -40,6 +45,12 @@ namespace ray
 
         Matrix4(__m128 c0, __m128 c1, __m128 c2, __m128 c3) :
             m_columns{ c0, c1, c2, c3 }
+        {
+
+        }
+
+        Matrix4(__m128 c0, __m128 c1, __m128 c2) :
+            m_columns{ c0, c1, c2, _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f) }
         {
 
         }
