@@ -293,9 +293,6 @@
     <ClInclude Include="src\ray\material\MaterialPtrStorage.h">
       <Filter>Header Files\src\material</Filter>
     </ClInclude>
-    <ClInclude Include="src\ray\math\AffineTransformationMatrix3.h">
-      <Filter>Header Files\src\math</Filter>
-    </ClInclude>
     <ClInclude Include="src\ray\math\RotationTranslationMatrix3.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
@@ -310,6 +307,18 @@
     </ClInclude>
     <ClInclude Include="src\ray\math\EulerAngles2.h">
       <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Matrix4.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\AffineTransformation3.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Transform3.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\detail\M128MatrixOperations.h">
+      <Filter>Header Files\src\math\detail</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

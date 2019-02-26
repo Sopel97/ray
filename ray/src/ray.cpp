@@ -11,10 +11,11 @@
 #include <ray/material/Patterns.h>
 #include <ray/material/TextureDatabase.h>
 
-#include <ray/math/AffineTransformationMatrix3.h>
+#include <ray/math/AffineTransformation3.h>
 #include <ray/math/Angle2.h>
 #include <ray/math/Raycast.h>
 #include <ray/math/RotationTranslationMatrix3.h>
+#include <ray/math/Transform3.h>
 #include <ray/math/Vec3.h>
 
 #include <ray/scene/StaticScene.h>

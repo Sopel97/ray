@@ -7,6 +7,17 @@ namespace ray
 {
     namespace detail
     {
+        inline __m128 xyzMask()
+        {
+            return _mm_castsi128_ps(_mm_set_epi32(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF));
+        }
+
+        // for xyzw vector make it xyz0
+        inline __m128 truncate3(__m128 v)
+        {
+            return _mm_and_ps(v, xyzMask());
+        }
+
         inline __m128 undefined_ps()
         {
             // msvc lacks _mm_undefined_ps
