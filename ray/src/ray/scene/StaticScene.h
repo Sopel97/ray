@@ -6,6 +6,8 @@
 #include "object/RawSceneObjectBlob.h"
 #include "object/SceneObjectBlob.h"
 
+#include <ray/material/MediumMaterial.h>
+
 #include <tuple>
 #include <vector>
 
@@ -47,12 +49,34 @@ namespace ray
             m_backgroundColor = color;
         }
 
+        float backgroundDistance() const override
+        {
+            return m_backgroundDistance;
+        }
+
+        void setBackgroundDistance(float d)
+        {
+            m_backgroundDistance = d;
+        }
+
+        void setMediumMaterial(const MediumMaterial* mediumMaterial)
+        {
+            m_mediumMaterial = mediumMaterial;
+        }
+
+        const MediumMaterial* mediumMaterial() const override
+        {
+            return m_mediumMaterial;
+        }
+
     private:
         StaticSpacePartitionedStorageT m_storage;
 
         std::vector<LightHandle> m_lights;
 
         ColorRGBf m_backgroundColor;
+        float m_backgroundDistance;
+        const MediumMaterial* m_mediumMaterial;
 
         template <typename... ShapeTs>
         void rememberLights(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection)

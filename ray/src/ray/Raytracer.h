@@ -29,7 +29,6 @@ namespace ray
             // due to floating point inaccuracies
             float paddingDistance = 0.002f;
             int maxRayDepth = 5;
-            float airRefractiveIndex = 1.00027717f;
             
             // smallest transparenct that is not considered zero
             float transparencyThreshold = 0.01f;
@@ -124,7 +123,18 @@ namespace ray
             {
                 anyHit = m_scene->queryNearest(ray, rhit);
             }
-            if (!anyHit) return m_scene->backgroundColor();
+            if (!anyHit)
+            {
+                const MediumMaterial* medium = m_scene->mediumMaterial();
+                if (medium)
+                {
+                    return m_scene->backgroundColor() * exp(-medium->absorbtion * m_scene->backgroundDistance());
+                }
+                else
+                {
+                    return m_scene->backgroundColor();
+                }
+            }
 
 #if defined(RAY_GATHER_PERF_STATS)
             perf::gThreadLocalPerfStats.addTraceHit(depth);
@@ -136,10 +146,20 @@ namespace ray
             const float reflectionContribution = fresnelReflectAmount(ray, hit);
             const float refractionContribution = ((1.0f - reflectionContribution) * hit.surfaceMaterial->transparency);
 
-            const ColorRGBf unabsorbed = 
-                (isInside && prevHit && hit.mediumMaterial) // medium material should always be present though, not check should be needed 
-                ? exp(-hit.mediumMaterial->absorbtion * hit.dist) 
-                : ColorRGBf(1.0f, 1.0f, 1.0f);
+            ColorRGBf unabsorbed(1.0f, 1.0f, 1.0f);
+            if (isInside && prevHit && hit.mediumMaterial)
+            {
+                unabsorbed = exp(-hit.mediumMaterial->absorbtion * hit.dist);
+            }
+            else if (!isInside)
+            {
+                const MediumMaterial* airMedium = m_scene->mediumMaterial();
+                if (airMedium)
+                {
+                    // we're going through air
+                    unabsorbed = exp(-airMedium->absorbtion * hit.dist);
+                }
+            }
 
             const ColorRGBf refractionColor = computeRefractionColor(ray, contribution * unabsorbed * refractionContribution, prevHit, hit, depth);
             const ColorRGBf reflectionColor = computeReflectionColor(ray, contribution * unabsorbed * reflectionContribution, prevHit, hit, depth);
@@ -174,7 +194,8 @@ namespace ray
         {
             auto sqr = [](float f) {return f * f; };
 
-            float n1 = m_options.airRefractiveIndex;
+            const MediumMaterial* airMedium = m_scene->mediumMaterial();
+            float n1 = airMedium ? airMedium->refractiveIndex : 1.0f;
             float n2 = hit.mediumMaterial ? hit.mediumMaterial->refractiveIndex : n1;
             if (hit.isInside) std::swap(n1, n2);
 
@@ -220,6 +241,7 @@ namespace ray
             ColorRGBf color{};
             ResolvableRaycastHit rhit;
             rhit.dist = std::numeric_limits<float>::max();
+            const MediumMaterial* airMedium = m_scene->mediumMaterial();
             for (const auto& light : lights)
             {
                 const Ray ray = Ray::between(point, light.center());
@@ -235,8 +257,14 @@ namespace ray
                 perf::gThreadLocalPerfStats.addTraceResolved(depth);
 #endif
 
+                ColorRGBf unabsorbed(1.0f, 1.0f, 1.0f);
+                if (airMedium)
+                {
+                    // we're going through air
+                    unabsorbed = exp(-airMedium->absorbtion * hit.dist);
+                }
                 auto lightHit = rhit.resolve();
-                color += lightHit.surfaceMaterial->emissionColor * std::max(0.0f, dot(hit.normal, ray.direction()));
+                color += lightHit.surfaceMaterial->emissionColor * std::max(0.0f, dot(hit.normal, ray.direction())) * unabsorbed;
             }
 
             return color * hit.surfaceMaterial->diffuse;
@@ -264,7 +292,9 @@ namespace ray
             // outside->inside
             if (hit.mediumMaterial)
             {
-                float eta = m_options.airRefractiveIndex / hit.mediumMaterial->refractiveIndex;
+                const MediumMaterial* airMedium = m_scene->mediumMaterial();
+                const float n1 = airMedium ? airMedium->refractiveIndex : 1.0f;
+                float eta = n1 / hit.mediumMaterial->refractiveIndex;
                 if (hit.isInside) eta = 1.0f / eta;
 
                 // do outside->inside refraction

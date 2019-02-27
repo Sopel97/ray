@@ -202,6 +202,7 @@ namespace ray
             // R | T     1 | -T     R | -RT+T
             // -----  *  ------  =  ---------
             // 0 | 1     0 | 1      0 |   1
+
             const Vec3<float> t(detail::sub(origin.xmm, detail::mulMat3Vec3(m_columns, origin.xmm)));
             m_values[3][0] = t.x;
             m_values[3][1] = t.y;

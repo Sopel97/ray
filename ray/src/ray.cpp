@@ -203,6 +203,7 @@ int __cdecl main()
     auto& m8m = matDb.emplaceMedium("mat8", ColorRGBf(0, 0, 0), 1.13f);
     auto& m9m = matDb.emplaceMedium("mat9", ColorRGBf(0, 0, 0), 1.0f);
     auto& m10m = matDb.emplaceMedium("mat10", ColorRGBf(0, 0, 0), 1.0f);
+    auto& airMedium = matDb.emplaceMedium("air", ColorRGBf(0.0001f, 0.0001f, 0.0001f), 1.00027717f);
 
     //*
     using ShapeT = Sphere;
@@ -358,6 +359,8 @@ int __cdecl main()
     //*/
 
     scene.setBackgroundColor(ColorRGBf(0.57f, 0.88f, 0.98f));
+    scene.setBackgroundDistance(1000.0f);
+    scene.setMediumMaterial(&airMedium);
 
     /*
     BlobScene scene;
