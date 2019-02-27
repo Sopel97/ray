@@ -6,6 +6,7 @@
 #include "Basis3.h"
 #include "Matrix4.h"
 #include "OrthonormalBasis3.h"
+#include "Quat3.h"
 #include "Vec3.h"
 
 #include <cstdint>
@@ -58,7 +59,6 @@ namespace ray
         AffineTransformation3() :
             Matrix4()
         {
-
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
@@ -115,17 +115,16 @@ namespace ray
         AffineTransformation3() :
             Matrix4()
         {
-
         }
 
-        AffineTransformation3(const OrthonormalBasis3<float>& basis) :
-            Matrix4(
-                detail::truncate3(basis.x().xmm), 
-                detail::truncate3(basis.y().xmm),
-                detail::truncate3(basis.z().xmm)
-            )
+        explicit AffineTransformation3(const OrthonormalBasis3<float>& basis) :
+            Matrix4(basis)
         {
-            transpose();
+        }
+
+        explicit AffineTransformation3(const Quat3<float>& q) :
+            Matrix4(q.normalized())
+        {
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
@@ -190,7 +189,16 @@ namespace ray
         AffineTransformation3() :
             Matrix4()
         {
+        }
 
+        AffineTransformation3(float xs, float ys, float zs) :
+            Matrix4(xs, ys, zs)
+        {
+        }
+
+        explicit AffineTransformation3(const Vec3<float>& s) :
+            Matrix4(s.x, s.y, s.z)
+        {
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
@@ -254,7 +262,11 @@ namespace ray
         AffineTransformation3() :
             Matrix4()
         {
+        }
 
+        explicit AffineTransformation3(const Vec3<float>& t) :
+            Matrix4(t)
+        {
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
@@ -311,7 +323,6 @@ namespace ray
         AffineTransformation3(__m128 c0, __m128 c1, __m128 c2, __m128 c3) :
             Matrix4(c0, c1, c2, c3)
         {
-
         }
     };
 
@@ -324,7 +335,16 @@ namespace ray
         AffineTransformation3() :
             Matrix4()
         {
+        }
 
+        AffineTransformation3(const OrthonormalBasis3<float>& basis, const Vec3<float>& t) :
+            Matrix4(basis, t)
+        {
+        }
+
+        AffineTransformation3(const Quat3<float>& q, const Point3<float>& origin) :
+            Matrix4(q.normalized(), origin)
+        {
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
@@ -383,17 +403,11 @@ namespace ray
         AffineTransformation3() :
             Matrix4()
         {
-
         }
 
-        AffineTransformation3(const Basis3<float>& basis) :
-            Matrix4(
-                detail::truncate3(basis.x().xmm),
-                detail::truncate3(basis.y().xmm),
-                detail::truncate3(basis.z().xmm)
-            )
+        explicit AffineTransformation3(const Basis3<float>& basis) :
+            Matrix4(basis)
         {
-            transpose();
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
@@ -452,7 +466,16 @@ namespace ray
         AffineTransformation3() :
             Matrix4()
         {
+        }
 
+        AffineTransformation3(float xs, float ys, float zs, const Vec3<float>& t) :
+            Matrix4(xs, ys, zs, t)
+        {
+        }
+
+        AffineTransformation3(const Vec3<float>& s, const Vec3<float>& t) :
+            Matrix4(s.x, s.y, s.z, t)
+        {
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
@@ -512,7 +535,11 @@ namespace ray
         AffineTransformation3() :
             Matrix4()
         {
+        }
 
+        AffineTransformation3(const Basis3<float>& basis, const Vec3<float>& t) :
+            Matrix4(basis, t)
+        {
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)

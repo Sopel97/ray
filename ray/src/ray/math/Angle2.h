@@ -82,7 +82,7 @@ namespace ray
 
         friend Angle2<T> operator*(const Angle2<T>& a, float s)
         {
-            return Angle2<T>(a.radians * s);
+            return Angle2<T>(a.m_radians * s);
         }
 
     private:

@@ -48,7 +48,7 @@ namespace ray
 
         }
 
-        Quat3(EulerAngles3<float> a)
+        explicit Quat3(EulerAngles3<float> a)
         {
             a.pitch *= 0.5f;
             a.yaw *= 0.5f;
@@ -64,7 +64,7 @@ namespace ray
             w = cp * cy * cr + sp * sy * sr;
         }
 
-        Quat3(const AxisAngle3<float>& a)
+        explicit Quat3(const AxisAngle3<float>& a)
         {
             const Angle2<float> halfAngle = a.angle() * 0.5f;
 
@@ -151,7 +151,9 @@ namespace ray
 
         void invert()
         {
-            (*this) = conjugate() * invLength();
+            const float invLen = invLength();
+            (*this) = conjugate();
+            (*this) *= invLen; // conjugate doesn't change it but we don't need to have a dependency
         }
 
         Quat3<float> inverse() const
@@ -241,6 +243,12 @@ namespace ray
         return rhs.apply(lhs);
     }
 
+    template <typename T>
+    Point3<T> operator*(const Point3<T>& lhs, const Quat3<T>& rhs)
+    {
+        return Point3<T>(rhs.apply(Vec3<T>(lhs)));
+    }
+
     // e^q
     template <typename T>
     Quat3<T> exp(const Quat3<T>& q)
@@ -259,9 +267,9 @@ namespace ray
             const T c = cos(vlen);
             const T scale = s / vlen;
             return Quat3<T>(
-                scale * x,
-                scale * y,
-                scale * z,
+                scale * q.x,
+                scale * q.y,
+                scale * q.z,
                 c
                 );
         }
@@ -284,19 +292,19 @@ namespace ray
 
         if (vlen > eps)
         {
-            const T t = atan2(vlen, w) / vlen;
-            const T len = vlen * vlen + w * w;
-            return Quat3<T>(t * x, t * y, t * z, T(0.5) * log(len));
+            const T t = atan2(vlen, q.w) / vlen;
+            const T len = vlen * vlen + q.w * q.w;
+            return Quat3<T>(t * q.x, t * q.y, t * q.z, T(0.5) * log(len));
         }
         else
         {
-            if (w > T(0))
+            if (q.w > T(0))
             {
-                return Quat3<T>(T(0), T(0), T(0), log(w));
+                return Quat3<T>(T(0), T(0), T(0), log(q.w));
             }
-            else if (w < T(0))
+            else if (q.w < T(0))
             {
-                return Quat3<T>(static_cast<T>(pi), T(0), T(0), log(-w));
+                return Quat3<T>(static_cast<T>(pi), T(0), T(0), log(-q.w));
             }
             else
             {
