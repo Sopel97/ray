@@ -36,6 +36,18 @@ namespace ray
             detail::transpose(m_columns);
         }
 
+        void invert()
+        {
+            detail::invertMat4(m_columns);
+        }
+
+        Matrix4<float> inverse() const
+        {
+            Matrix4<float> c(*this);
+            c.invert();
+            return c;
+        }
+
     protected:
         union
         {

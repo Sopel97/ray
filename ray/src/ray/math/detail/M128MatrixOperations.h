@@ -472,5 +472,104 @@ namespace ray
             // multiply (R^-1) * T
             cols[3] = detail::neg(mulMat3Vec3(cols, cols[3]));
         }
+        
+        // column-major
+        // __m128 mapped to
+        // | A0  A2 |
+        // | A1  A3 |
+        inline __m128 mulMat2Mat2(__m128 a, __m128 b)
+        {
+            return _mm_add_ps(
+                _mm_mul_ps(a, perm_xxww(b)),
+                _mm_mul_ps(perm_zwxy(a), perm_yyzz(b))
+            );
+        }
+
+        // (A#)*B
+        inline __m128 mulMat2AdjMat2(__m128 a, __m128 b)
+        {
+            return _mm_sub_ps(
+                _mm_mul_ps(perm_wxwx(a), b),
+                _mm_mul_ps(perm_zyzy(a), perm_yxwz(b))
+            );
+        }
+
+        // A*(B#)
+        inline __m128 mulMat2Mat2Adj(__m128 a, __m128 b)
+        {
+            return _mm_sub_ps(
+                _mm_mul_ps(a, perm_wwxx(b)),
+                _mm_mul_ps(perm_zwxy(a), perm_yyzz(b))
+            );
+        }
+
+        // assumes that the matrix is in fact invertible
+        inline void invertMat4(__m128 cols[4])
+        {
+            // by Eric Zhang
+            // https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
+
+            // uses blockwise inversion
+            // https://en.wikipedia.org/wiki/Invertible_matrix#Blockwise_inversion
+            // sub matrices
+            __m128 A = shuffle_xyxy(cols[0], cols[1]);
+            __m128 C = shuffle_zwzw(cols[0], cols[1]);
+            __m128 B = shuffle_xyxy(cols[2], cols[3]);
+            __m128 D = shuffle_zwzw(cols[2], cols[3]);
+
+            // determinant as (|A| |C| |B| |D|)
+            __m128 detSub = _mm_sub_ps(
+                _mm_mul_ps(shuffle_xzxz(cols[0], cols[2]), shuffle_ywyw(cols[1], cols[3])),
+                _mm_mul_ps(shuffle_ywyw(cols[0], cols[2]), shuffle_xzxz(cols[1], cols[3]))
+            );
+
+            __m128 detA, detB, detC, detD;
+            spill(detSub, detA, detB, detC, detD);
+
+            // let iM = 1/|M| * | X  Y |
+            //                  | Z  W |
+
+            // D#C
+            __m128 D_C = mulMat2AdjMat2(D, C);
+            // A#B
+            __m128 A_B = mulMat2AdjMat2(A, B);
+            // X# = |D|A - B(D#C)
+            __m128 X_ = _mm_sub_ps(_mm_mul_ps(detD, A), mulMat2Mat2(B, D_C));
+            // W# = |A|D - C(A#B)
+            __m128 W_ = _mm_sub_ps(_mm_mul_ps(detA, D), mulMat2Mat2(C, A_B));
+
+            // |M| = |A|*|D| + ... (continue later)
+            __m128 detM = _mm_mul_ps(detA, detD);
+
+            // Y# = |B|C - D(A#B)#
+            __m128 Y_ = _mm_sub_ps(_mm_mul_ps(detB, C), mulMat2Mat2Adj(D, A_B));
+            // Z# = |C|B - A(D#C)#
+            __m128 Z_ = _mm_sub_ps(_mm_mul_ps(detC, B), mulMat2Mat2Adj(A, D_C));
+
+            // |M| = |A|*|D| + |B|*|C| ... (continue later)
+            detM = _mm_add_ps(detM, _mm_mul_ps(detB, detC));
+
+            // tr((A#B)(D#C))
+            __m128 tr = _mm_mul_ps(A_B, perm_xzyw(D_C));
+            tr = _mm_hadd_ps(tr, tr);
+            tr = _mm_hadd_ps(tr, tr);
+            // |M| = |A|*|D| + |B|*|C| - tr((A#B)(D#C))
+            detM = _mm_sub_ps(detM, tr);
+
+            __m128 adjSignMask = _mm_set_ps(1.f, -1.f, -1.f, 1.f);
+            // (1/|M|, -1/|M|, -1/|M|, 1/|M|)
+            __m128 rDetM = _mm_div_ps(adjSignMask, detM);
+
+            X_ = _mm_mul_ps(X_, rDetM);
+            Y_ = _mm_mul_ps(Y_, rDetM);
+            Z_ = _mm_mul_ps(Z_, rDetM);
+            W_ = _mm_mul_ps(W_, rDetM);
+
+            // apply adjugate and store, here we combine adjugate shuffle and store shuffle
+            cols[0] = shuffle_wywy(X_, Z_);
+            cols[1] = shuffle_zxzx(X_, Z_);
+            cols[2] = shuffle_wywy(Y_, W_);
+            cols[3] = shuffle_zxzx(Y_, W_);
+        }
     }
 }

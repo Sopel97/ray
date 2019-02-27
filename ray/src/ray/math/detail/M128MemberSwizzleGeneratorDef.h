@@ -1,6 +1,7 @@
 #include "M128Swizzle.h"
 
-#define RAY_GEN_MEMBER_SWIZZLE3(T, X, Y, Z) T X##Y##Z() const { return T(detail::perm<detail::m128::##X, detail::m128::##Y, detail::m128::##Z, 0>(xmm)); }
+// use Y for the last component, because will more often hit a more optimizable case
+#define RAY_GEN_MEMBER_SWIZZLE3(T, X, Y, Z) T X##Y##Z() const { return T(detail::perm<detail::m128::##X, detail::m128::##Y, detail::m128::##Z, detail::m128::##Y>(xmm)); }
 #define RAY_GEN_MEMBER_SWIZZLE3_ALL(T) \
 RAY_GEN_MEMBER_SWIZZLE3(T, x, x, x) \
 RAY_GEN_MEMBER_SWIZZLE3(T, x, x, y) \
