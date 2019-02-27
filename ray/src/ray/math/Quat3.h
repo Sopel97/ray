@@ -30,6 +30,12 @@ namespace ray
             return {};
         }
 
+        Quat3(__m128 xmm) noexcept :
+            xmm(xmm)
+        {
+
+        }
+
         Quat3() noexcept :
             x(0),
             y(0),
@@ -146,7 +152,7 @@ namespace ray
 
         Quat3<float> conjugate() const
         {
-            return Quat3<float>(w, -x, -y, -z);
+            return Quat3<float>(detail::neg(xmm, detail::mask128(true, true, true, false)));
         }
 
         void invert()
@@ -235,18 +241,6 @@ namespace ray
     {
         Quat3<T> result(lhs);
         return (result /= rhs);
-    }
-
-    template <typename T>
-    Vec3<T> operator*(const Vec3<T>& lhs, const Quat3<T>& rhs)
-    {
-        return rhs.apply(lhs);
-    }
-
-    template <typename T>
-    Point3<T> operator*(const Point3<T>& lhs, const Quat3<T>& rhs)
-    {
-        return Point3<T>(rhs.apply(Vec3<T>(lhs)));
     }
 
     // e^q
