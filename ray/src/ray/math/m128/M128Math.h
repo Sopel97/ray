@@ -1,13 +1,13 @@
 #pragma once
 
-#include "M128Swizzle.h"
+#include "M128Shuffle.h"
 
 #include <xmmintrin.h>
 #include <smmintrin.h>
 
 namespace ray
 {
-    namespace detail
+    namespace m128
     {
         inline void spill3(__m128 vec, __m128& xxxx, __m128& yyyy, __m128& zzzz)
         {
@@ -25,35 +25,35 @@ namespace ray
         }
 
         template <unsigned L0, unsigned L1 = L0, unsigned L2 = L1, unsigned L3 = L2>
-        inline __m128 mask128()
+        inline __m128 mask()
         {
             static_assert(L0 < 4 && L1 < 4 && L2 < 4 && L3 < 4);
-            constexpr unsigned mask = (1 << L0) | (1 << L1) | (1 << L2) | (1 << L3); 
+            constexpr unsigned mask = (1 << L0) | (1 << L1) | (1 << L2) | (1 << L3);
             return _mm_castsi128_ps(_mm_set_epi32(
-                mask & 0b1000 ? 0xFFFFFFFF : 0, 
-                mask & 0b0100 ? 0xFFFFFFFF : 0, 
-                mask & 0b0010 ? 0xFFFFFFFF : 0, 
+                mask & 0b1000 ? 0xFFFFFFFF : 0,
+                mask & 0b0100 ? 0xFFFFFFFF : 0,
+                mask & 0b0010 ? 0xFFFFFFFF : 0,
                 mask & 0b0001 ? 0xFFFFFFFF : 0
             ));
         }
 
-        inline __m128 mask_xyzw() { return mask128<0, 1, 2, 3>(); }
-        inline __m128 mask_xyz() { return mask128<0, 1, 2>(); }
-        inline __m128 mask_xyw() { return mask128<0, 1, 3>(); }
-        inline __m128 mask_xzw() { return mask128<0, 2, 3>(); }
-        inline __m128 mask_yzw() { return mask128<1, 2, 3>(); }
-        inline __m128 mask_xy() { return mask128<0, 1>(); }
-        inline __m128 mask_xz() { return mask128<0, 2>(); }
-        inline __m128 mask_xw() { return mask128<0, 3>(); }
-        inline __m128 mask_yz() { return mask128<1, 2>(); }
-        inline __m128 mask_yw() { return mask128<1, 3>(); }
-        inline __m128 mask_zw() { return mask128<2, 3>(); }
-        inline __m128 mask_x() { return mask128<0>(); }
-        inline __m128 mask_y() { return mask128<1>(); }
-        inline __m128 mask_z() { return mask128<2>(); }
-        inline __m128 mask_w() { return mask128<3>(); }
+        inline __m128 mask_xyzw() { return mask<0, 1, 2, 3>(); }
+        inline __m128 mask_xyz() { return mask<0, 1, 2>(); }
+        inline __m128 mask_xyw() { return mask<0, 1, 3>(); }
+        inline __m128 mask_xzw() { return mask<0, 2, 3>(); }
+        inline __m128 mask_yzw() { return mask<1, 2, 3>(); }
+        inline __m128 mask_xy() { return mask<0, 1>(); }
+        inline __m128 mask_xz() { return mask<0, 2>(); }
+        inline __m128 mask_xw() { return mask<0, 3>(); }
+        inline __m128 mask_yz() { return mask<1, 2>(); }
+        inline __m128 mask_yw() { return mask<1, 3>(); }
+        inline __m128 mask_zw() { return mask<2, 3>(); }
+        inline __m128 mask_x() { return mask<0>(); }
+        inline __m128 mask_y() { return mask<1>(); }
+        inline __m128 mask_z() { return mask<2>(); }
+        inline __m128 mask_w() { return mask<3>(); }
 
-        inline __m128 mask128(bool x, bool y, bool z, bool w)
+        inline __m128 mask(bool x, bool y, bool z, bool w)
         {
             return _mm_castsi128_ps(_mm_set_epi32(w ? 0xFFFFFFFF : 0, z ? 0xFFFFFFFF : 0, y ? 0xFFFFFFFF : 0, x ? 0xFFFFFFFF : 0));
         }

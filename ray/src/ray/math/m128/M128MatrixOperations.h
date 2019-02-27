@@ -7,7 +7,7 @@
 
 namespace ray
 {
-    namespace detail
+    namespace m128
     {
         // column-major
         inline void mulMat4Mat4(const __m128 lhs[4], const __m128 rhs[4], __m128 result[4])
@@ -362,7 +362,7 @@ namespace ray
                 );
 
             // truncate to be sure that w=0 so after multiplication the last row is 0, 0, 0, 1
-            __m128 invScales = detail::truncate3(_mm_div_ps(_mm_set1_ps(1.0f), scales));
+            __m128 invScales = m128::truncate3(_mm_div_ps(_mm_set1_ps(1.0f), scales));
 
             // apply scaling
             c0 = _mm_mul_ps(c0, invScales);
@@ -370,14 +370,14 @@ namespace ray
             c2 = _mm_mul_ps(c2, invScales);
 
             // R^-1 (with rescaling above)
-            detail::transpose3(c0, c1, c2);
+            m128::transpose3(c0, c1, c2);
 
             cols[0] = c0;
             cols[1] = c1;
             cols[2] = c2;
 
             // multiply (R^-1) * T
-            cols[3] = detail::neg(mulMat3Vec3(cols, cols[3]));
+            cols[3] = m128::neg(mulMat3Vec3(cols, cols[3]));
         }
 
         inline void invertMatAffineNoTrans(__m128 cols[4])
@@ -419,7 +419,7 @@ namespace ray
                 );
 
             // truncate to be sure that w=0 so after multiplication the last row is 0, 0, 0, 1
-            __m128 invScales = detail::truncate3(_mm_div_ps(_mm_set1_ps(1.0f), scales));
+            __m128 invScales = m128::truncate3(_mm_div_ps(_mm_set1_ps(1.0f), scales));
 
             // apply scaling
             c0 = _mm_mul_ps(c0, invScales);
@@ -427,7 +427,7 @@ namespace ray
             c2 = _mm_mul_ps(c2, invScales);
 
             // R^-1 (with rescaling above)
-            detail::transpose3(c0, c1, c2);
+            m128::transpose3(c0, c1, c2);
 
             cols[0] = c0;
             cols[1] = c1;
@@ -464,15 +464,15 @@ namespace ray
             __m128 c2 = cols[2];
 
             // R^-1
-            detail::transpose3(c0, c1, c2);
+            m128::transpose3(c0, c1, c2);
             cols[0] = c0;
             cols[1] = c1;
             cols[2] = c2;
 
             // multiply (R^-1) * T
-            cols[3] = detail::neg(mulMat3Vec3(cols, cols[3]));
+            cols[3] = m128::neg(mulMat3Vec3(cols, cols[3]));
         }
-        
+
         // column-major
         // __m128 mapped to
         // | A0  A2 |

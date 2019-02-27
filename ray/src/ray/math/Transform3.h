@@ -1,7 +1,7 @@
 #pragma once
 
-#include "detail/M128Math.h"
-#include "detail/M128MatrixOperations.h"
+#include "m128/M128Math.h"
+#include "m128/M128MatrixOperations.h"
 
 #include "Basis3.h"
 #include "Matrix4.h"
@@ -130,29 +130,29 @@ namespace ray
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
-            detail::mulMat3Mat3(lhs.m_columns, rhs.m_columns, ret.m_columns);
+            m128::mulMat3Mat3(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
         friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
-            return Vec3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
         }
 
         friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
-            return Vec3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
-            return Point3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+            return Point3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
         void invert()
         {
             // property of the rotation matrix
-            detail::transpose3(m_columns);
+            m128::transpose3(m_columns);
         }
 
         SelfType inverse() const
@@ -164,7 +164,7 @@ namespace ray
 
         void transpose()
         {
-            detail::transpose3(m_columns);
+            m128::transpose3(m_columns);
         }
 
         // enable casting to more generic matrix type
@@ -213,12 +213,12 @@ namespace ray
 
         friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
-            return Vec3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
-            return Point3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+            return Point3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
         void invert()
@@ -276,7 +276,7 @@ namespace ray
                 lhs.m_columns[1],
                 lhs.m_columns[2],
                 // truncate to leave it homogeneous
-                _mm_add_ps(detail::truncate3(rhs.m_columns[3]), lhs.m_columns[3])
+                _mm_add_ps(m128::truncate3(rhs.m_columns[3]), lhs.m_columns[3])
             );
         }
 
@@ -292,7 +292,7 @@ namespace ray
 
         void invert()
         {
-            m_columns[3] = detail::neg(m_columns[3], detail::mask_xyz());
+            m_columns[3] = m128::neg(m_columns[3], m128::mask_xyz());
         }
 
         SelfType inverse() const
@@ -350,23 +350,23 @@ namespace ray
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
-            detail::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
+            m128::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
         friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
-            return Vec3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
+            return Vec3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
-            return Point3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
+            return Point3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
         void invert()
         {
-            detail::invertMatAffineNoScale(m_columns);
+            m128::invertMatAffineNoScale(m_columns);
         }
 
         SelfType inverse() const
@@ -378,7 +378,7 @@ namespace ray
 
         void transpose()
         {
-            detail::transpose(m_columns);
+            m128::transpose(m_columns);
         }
 
         // enable casting to more generic matrix type
@@ -413,23 +413,23 @@ namespace ray
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
-            detail::mulMat3Mat3(lhs.m_columns, rhs.m_columns, ret.m_columns);
+            m128::mulMat3Mat3(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
         friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
-            return Vec3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
-            return Point3<float>(detail::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+            return Point3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
         void invert()
         {
-            detail::invertMatAffineNoTrans(m_columns);
+            m128::invertMatAffineNoTrans(m_columns);
         }
 
         SelfType inverse() const
@@ -441,7 +441,7 @@ namespace ray
 
         void transpose()
         {
-            detail::transpose3(m_columns);
+            m128::transpose3(m_columns);
         }
 
         // enable casting to more generic matrix type
@@ -481,24 +481,24 @@ namespace ray
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
-            detail::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
+            m128::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
         friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
-            return Vec3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
+            return Vec3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
-            return Point3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
+            return Point3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
         void invert()
         {
             // could probably be done more efficiently, but it's not important
-            detail::invertMatAffine(m_columns);
+            m128::invertMatAffine(m_columns);
         }
 
         SelfType inverse() const
@@ -510,7 +510,7 @@ namespace ray
 
         void transpose()
         {
-            detail::transpose(m_columns);
+            m128::transpose(m_columns);
         }
 
         // enable casting to more generic matrix type
@@ -545,23 +545,23 @@ namespace ray
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
-            detail::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
+            m128::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
         friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
-            return Vec3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
+            return Vec3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
         friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
-            return Point3<float>(detail::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
+            return Point3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
         void invert()
         {
-            detail::invertMatAffine(m_columns);
+            m128::invertMatAffine(m_columns);
         }
 
         SelfType inverse() const
@@ -573,7 +573,7 @@ namespace ray
 
         void transpose()
         {
-            detail::transpose(m_columns);
+            m128::transpose(m_columns);
         }
 
         // enable casting to more generic matrix type

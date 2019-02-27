@@ -5,9 +5,9 @@
 
 namespace ray
 {
-    namespace detail
+    namespace m128
     {
-        namespace m128
+        namespace lane
         {
             static constexpr int x = 0;
             static constexpr int y = 1;

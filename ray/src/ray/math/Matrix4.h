@@ -1,7 +1,7 @@
 #pragma once
 
-#include "detail/M128Math.h"
-#include "detail/M128MatrixOperations.h"
+#include "m128/M128Math.h"
+#include "m128/M128MatrixOperations.h"
 
 #include "Quat3.h"
 #include "Vec3.h"
@@ -17,28 +17,28 @@ namespace ray
         friend Matrix4<float> operator*(const Matrix4<float>& lhs, const Matrix4<float>& rhs)
         {
             Matrix4<float> ret{};
-            detail::mulMat4Mat4(lhs.m_columns, rhs.m_columns, ret.m_columns);
+            m128::mulMat4Mat4(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
         friend Vec3<float> operator*(const Matrix4<float>& lhs, const Vec3<float>& rhs)
         {
-            return Vec3<float>(detail::mulMat4Vec3(lhs.m_columns, rhs.xmm));
+            return Vec3<float>(m128::mulMat4Vec3(lhs.m_columns, rhs.xmm));
         }
 
         friend Point3<float> operator*(const Matrix4<float>& lhs, const Point3<float>& rhs)
         {
-            return Point3<float>(detail::mulMat4Vec3(lhs.m_columns, rhs.xmm));
+            return Point3<float>(m128::mulMat4Vec3(lhs.m_columns, rhs.xmm));
         }
 
         void transpose()
         {
-            detail::transpose(m_columns);
+            m128::transpose(m_columns);
         }
 
         void invert()
         {
-            detail::invertMat4(m_columns);
+            m128::invertMat4(m_columns);
         }
 
         Matrix4<float> inverse() const
@@ -58,7 +58,7 @@ namespace ray
 
         void transpose3()
         {
-            detail::transpose3(m_columns);
+            m128::transpose3(m_columns);
         }
 
         Matrix4(__m128 c0, __m128 c1, __m128 c2, __m128 c3) :
@@ -134,9 +134,9 @@ namespace ray
 
         explicit Matrix4(const OrthonormalBasis3<float>& basis) :
             Matrix4(
-                detail::truncate3(basis.x().xmm),
-                detail::truncate3(basis.y().xmm),
-                detail::truncate3(basis.z().xmm)
+                m128::truncate3(basis.x().xmm),
+                m128::truncate3(basis.y().xmm),
+                m128::truncate3(basis.z().xmm)
             )
         {
             transpose3();
@@ -144,9 +144,9 @@ namespace ray
 
         explicit Matrix4(const Basis3<float>& basis) :
             Matrix4(
-                detail::truncate3(basis.x().xmm),
-                detail::truncate3(basis.y().xmm),
-                detail::truncate3(basis.z().xmm)
+                m128::truncate3(basis.x().xmm),
+                m128::truncate3(basis.y().xmm),
+                m128::truncate3(basis.z().xmm)
             )
         {
             transpose3();
@@ -154,9 +154,9 @@ namespace ray
 
         Matrix4(const OrthonormalBasis3<float>& basis, const Vec3<float>& t) :
             Matrix4(
-                detail::truncate3(basis.x().xmm),
-                detail::truncate3(basis.y().xmm),
-                detail::truncate3(basis.z().xmm),
+                m128::truncate3(basis.x().xmm),
+                m128::truncate3(basis.y().xmm),
+                m128::truncate3(basis.z().xmm),
                 _mm_set_ps(1.0f, t.z, t.y, t.x)
             )
         {
@@ -165,9 +165,9 @@ namespace ray
 
         Matrix4(const Basis3<float>& basis, const Vec3<float>& t) :
             Matrix4(
-                detail::truncate3(basis.x().xmm),
-                detail::truncate3(basis.y().xmm),
-                detail::truncate3(basis.z().xmm),
+                m128::truncate3(basis.x().xmm),
+                m128::truncate3(basis.y().xmm),
+                m128::truncate3(basis.z().xmm),
                 _mm_set_ps(1.0f, t.z, t.y, t.x)
             )
         {
@@ -215,7 +215,7 @@ namespace ray
             // -----  *  ------  =  ---------
             // 0 | 1     0 | 1      0 |   1
 
-            const Vec3<float> t(detail::sub(origin.xmm, detail::mulMat3Vec3(m_columns, origin.xmm)));
+            const Vec3<float> t(m128::sub(origin.xmm, m128::mulMat3Vec3(m_columns, origin.xmm)));
             m_values[3][0] = t.x;
             m_values[3][1] = t.y;
             m_values[3][2] = t.z;

@@ -2,12 +2,12 @@
 
 #include "Vec3.h"
 
-#include "detail/M128Math.h"
+#include "m128/M128Math.h"
 
 #include <xmmintrin.h>
 #include <smmintrin.h>
 
-#include "detail/M128MemberSwizzleGeneratorDef.h"
+#include "m128/M128MemberSwizzleGeneratorDef.h"
 
 namespace ray
 {
@@ -85,7 +85,7 @@ namespace ray
 
         void negate(const Vec3Mask<float>& mask)
         {
-            xmm = detail::neg(xmm, mask.xmm);
+            xmm = m128::neg(xmm, mask.xmm);
         }
 
     protected:
@@ -114,11 +114,11 @@ namespace ray
         }
         static Vec3<float> blend(float a, float b, const Vec3Mask<float>& mask)
         {
-            return Vec3<float>(detail::blend(a, b, mask.xmm));
+            return Vec3<float>(m128::blend(a, b, mask.xmm));
         }
         static Vec3<float> blend(const Vec3<float>& a, const Vec3<float>& b, const Vec3Mask<float>& mask)
         {
-            return Vec3<float>(detail::blend(a.xmm, b.xmm, mask.xmm));
+            return Vec3<float>(m128::blend(a.xmm, b.xmm, mask.xmm));
         }
 
         Vec3() :
@@ -143,37 +143,37 @@ namespace ray
 
         Vec3<float>& operator+=(const Vec3<float>& rhs)
         {
-            xmm = detail::add(xmm, rhs.xmm);
+            xmm = m128::add(xmm, rhs.xmm);
             return *this;
         }
 
         Vec3<float>& operator-=(const Vec3<float>& rhs)
         {
-            xmm = detail::sub(xmm, rhs.xmm);
+            xmm = m128::sub(xmm, rhs.xmm);
             return *this;
         }
 
         Vec3<float>& operator*=(const Vec3<float>& rhs)
         {
-            xmm = detail::mul(xmm, rhs.xmm);
+            xmm = m128::mul(xmm, rhs.xmm);
             return *this;
         }
 
         Vec3<float>& operator/=(const Vec3<float>& rhs)
         {
-            xmm = detail::div(xmm, rhs.xmm);
+            xmm = m128::div(xmm, rhs.xmm);
             return *this;
         }
 
         Vec3<float>& operator*=(float rhs)
         {
-            xmm = detail::mul(xmm, rhs);
+            xmm = m128::mul(xmm, rhs);
             return *this;
         }
 
         Vec3<float>& operator/=(float rhs)
         {
-            xmm = detail::div(xmm, rhs);
+            xmm = m128::div(xmm, rhs);
             return *this;
         }
 
@@ -185,7 +185,7 @@ namespace ray
 
         float lengthSqr() const
         {
-            return detail::dot3(xmm, xmm);
+            return m128::dot3(xmm, xmm);
         }
 
         float invLength() const
@@ -205,7 +205,7 @@ namespace ray
 
         Normal3<float> normalized() const
         {
-            return Normal3<float>(AssumeNormalized{}, detail::mul(xmm, invLength()));
+            return Normal3<float>(AssumeNormalized{}, m128::mul(xmm, invLength()));
         }
 
         float max() const
@@ -264,13 +264,13 @@ namespace ray
 
         Point3<float>& operator+=(const Vec3<float>& rhs)
         {
-            xmm = detail::add(xmm, rhs.xmm);
+            xmm = m128::add(xmm, rhs.xmm);
             return *this;
         }
 
         Point3<float>& operator-=(const Vec3<float>& rhs)
         {
-            xmm = detail::sub(xmm, rhs.xmm);
+            xmm = m128::sub(xmm, rhs.xmm);
             return *this;
         }
 
@@ -320,204 +320,204 @@ namespace ray
 
     inline Vec3<float> operator-(const Point3<float>& lhs, const Point3<float>& rhs)
     {
-        return Vec3<float>(detail::sub(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::sub(lhs.xmm, rhs.xmm));
     }
 
     inline Point3<float> operator-(const Point3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Point3<float>(detail::sub(lhs.xmm, rhs.xmm));
+        return Point3<float>(m128::sub(lhs.xmm, rhs.xmm));
     }
 
     inline Vec3<float> operator-(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::sub(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::sub(lhs.xmm, rhs.xmm));
     }
 
 
     inline Point3<float> operator+(const Point3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Point3<float>(detail::add(lhs.xmm, rhs.xmm));
+        return Point3<float>(m128::add(lhs.xmm, rhs.xmm));
     }
 
     inline Vec3<float> operator+(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::add(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::add(lhs.xmm, rhs.xmm));
     }
 
 
     inline Vec3<float> operator*(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::mul(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::mul(lhs.xmm, rhs.xmm));
     }
 
     inline Vec3<float> operator*(const Vec3<float>& lhs, float rhs)
     {
-        return Vec3<float>(detail::mul(lhs.xmm, rhs));
+        return Vec3<float>(m128::mul(lhs.xmm, rhs));
     }
 
     inline Vec3<float> operator*(const Normal3<float>& lhs, float rhs)
     {
-        return Vec3<float>(detail::mul(lhs.xmm, rhs));
+        return Vec3<float>(m128::mul(lhs.xmm, rhs));
     }
 
     inline Vec3<float> operator*(float lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::mul(lhs, rhs.xmm));
+        return Vec3<float>(m128::mul(lhs, rhs.xmm));
     }
 
     inline Vec3<float> operator*(float lhs, const Normal3<float>& rhs)
     {
-        return Vec3<float>(detail::mul(lhs, rhs.xmm));
+        return Vec3<float>(m128::mul(lhs, rhs.xmm));
     }
 
 
     inline Vec3<float> operator/(const Vec3<float>& lhs, float rhs)
     {
-        return Vec3<float>(detail::div(lhs.xmm, rhs));
+        return Vec3<float>(m128::div(lhs.xmm, rhs));
     }
 
     inline Vec3<float> operator/(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::div(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::div(lhs.xmm, rhs.xmm));
     }
 
     inline Vec3<float> operator/(const Normal3<float>& lhs, float rhs)
     {
-        return Vec3<float>(detail::div(lhs.xmm, rhs));
+        return Vec3<float>(m128::div(lhs.xmm, rhs));
     }
 
     inline Vec3<float> operator/(float lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::div(lhs, rhs.xmm));
+        return Vec3<float>(m128::div(lhs, rhs.xmm));
     }
 
     inline Vec3<float> operator/(float lhs, const Normal3<float>& rhs)
     {
-        return Vec3<float>(detail::div(lhs, rhs.xmm));
+        return Vec3<float>(m128::div(lhs, rhs.xmm));
     }
 
 
     inline Vec3Mask<float> operator==(const Vec3<float> & lhs, const Vec3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmpeq(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator==(const Normal3<float>& lhs, const Normal3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmpeq(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator==(const Point3<float>& lhs, const Point3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmpeq(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator==(const Vec3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmpeq(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs)};
     }
 
     inline Vec3Mask<float> operator==(const Normal3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmpeq(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs)};
     }
 
     inline Vec3Mask<float> operator==(const Point3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmpeq(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs)};
     }
 
 
     inline Vec3Mask<float> operator<(const Vec3<float> & lhs, const Vec3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator<(const Normal3<float>& lhs, const Normal3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator<(const Point3<float>& lhs, const Point3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator<(const Vec3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs)};
     }
 
     inline Vec3Mask<float> operator<(const Normal3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs)};
     }
 
     inline Vec3Mask<float> operator<(const Point3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs)};
     }
 
 
     inline Vec3Mask<float> operator>(const Vec3<float> & lhs, const Vec3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(rhs.xmm, lhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(rhs.xmm, lhs.xmm)};
     }
 
     inline Vec3Mask<float> operator>(const Normal3<float>& lhs, const Normal3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(rhs.xmm, lhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(rhs.xmm, lhs.xmm)};
     }
 
     inline Vec3Mask<float> operator>(const Point3<float>& lhs, const Point3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(rhs.xmm, lhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(rhs.xmm, lhs.xmm)};
     }
 
     inline Vec3Mask<float> operator>(const Vec3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(rhs, lhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(rhs, lhs.xmm)};
     }
 
     inline Vec3Mask<float> operator>(const Normal3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(rhs, lhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(rhs, lhs.xmm)};
     }
 
     inline Vec3Mask<float> operator>(const Point3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmplt(rhs, lhs.xmm)};
+        return Vec3Mask<float>{m128::cmplt(rhs, lhs.xmm)};
     }
 
 
     inline Vec3Mask<float> operator<=(const Vec3<float> & lhs, const Vec3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmple(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator<=(const Normal3<float>& lhs, const Normal3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmple(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator<=(const Point3<float>& lhs, const Point3<float>& rhs)
     {
-        return Vec3Mask<float>{detail::cmple(lhs.xmm, rhs.xmm)};
+        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs.xmm)};
     }
 
     inline Vec3Mask<float> operator<=(const Vec3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmple(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs)};
     }
 
     inline Vec3Mask<float> operator<=(const Normal3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmple(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs)};
     }
 
     inline Vec3Mask<float> operator<=(const Point3<float>& lhs, float rhs)
     {
-        return Vec3Mask<float>{detail::cmple(lhs.xmm, rhs)};
+        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs)};
     }
 
 
@@ -534,104 +534,104 @@ namespace ray
 
     inline Vec3<float> abs(const Vec3<float>& v)
     {
-        return Vec3<float>(detail::abs(v.xmm));
+        return Vec3<float>(m128::abs(v.xmm));
     }
 
     inline Normal3<float> abs(const Normal3<float>& v)
     {
-        return Normal3<float>(AssumeNormalized{}, detail::abs(v.xmm));
+        return Normal3<float>(AssumeNormalized{}, m128::abs(v.xmm));
     }
 
     inline Point3<float> abs(const Point3<float>& v)
     {
-        return Point3<float>(detail::abs(v.xmm));
+        return Point3<float>(m128::abs(v.xmm));
     }
 
 
     inline float dot(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return detail::dot3(lhs.xmm, rhs.xmm);
+        return m128::dot3(lhs.xmm, rhs.xmm);
     }
 
     inline float dot(const Normal3<float>& lhs, const Vec3<float>& rhs)
     {
-        return detail::dot3(lhs.xmm, rhs.xmm);
+        return m128::dot3(lhs.xmm, rhs.xmm);
     }
 
     inline float dot(const Vec3<float>& lhs, const Normal3<float>& rhs)
     {
-        return detail::dot3(lhs.xmm, rhs.xmm);
+        return m128::dot3(lhs.xmm, rhs.xmm);
     }
 
     inline float dot(const Normal3<float>& lhs, const Normal3<float>& rhs)
     {
-        return detail::dot3(lhs.xmm, rhs.xmm);
+        return m128::dot3(lhs.xmm, rhs.xmm);
     }
 
 
     inline Vec3<float> cross(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::cross(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::cross(lhs.xmm, rhs.xmm));
     }
 
     inline Vec3<float> cross(const Normal3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::cross(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::cross(lhs.xmm, rhs.xmm));
     }
 
     inline Vec3<float> cross(const Vec3<float>& lhs, const Normal3<float>& rhs)
     {
-        return Vec3<float>(detail::cross(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::cross(lhs.xmm, rhs.xmm));
     }
 
     inline Vec3<float> cross(const Normal3<float>& lhs, const Normal3<float>& rhs)
     {
-        return Vec3<float>(detail::cross(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::cross(lhs.xmm, rhs.xmm));
     }
 
 
     inline Vec3<float> min(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::min(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::min(lhs.xmm, rhs.xmm));
     }
 
     inline Point3<float> min(const Point3<float>& lhs, const Point3<float>& rhs)
     {
-        return Point3<float>(detail::min(lhs.xmm, rhs.xmm));
+        return Point3<float>(m128::min(lhs.xmm, rhs.xmm));
     }
 
 
     inline Point3<float> max(const Point3<float>& lhs, const Point3<float>& rhs)
     {
-        return Point3<float>(detail::max(lhs.xmm, rhs.xmm));
+        return Point3<float>(m128::max(lhs.xmm, rhs.xmm));
     }
 
     inline Vec3<float> max(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(detail::max(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::max(lhs.xmm, rhs.xmm));
     }
 
 
     inline Vec3<float> sqrt(const Vec3<float>& lhs)
     {
-        return Vec3<float>(detail::sqrt(lhs.xmm));
+        return Vec3<float>(m128::sqrt(lhs.xmm));
     }
 
 
     inline Normal3<float> operator-(const Normal3<float>& vec)
     {
-        return Normal3<float>(AssumeNormalized{}, detail::neg(vec.xmm));
+        return Normal3<float>(AssumeNormalized{}, m128::neg(vec.xmm));
     }
 
     inline Vec3<float> operator-(const Vec3<float>& vec)
     {
-        return Vec3<float>(detail::neg(vec.xmm));
+        return Vec3<float>(m128::neg(vec.xmm));
     }
 
     inline Point3<float> operator-(const Point3<float>& vec)
     {
-        return Point3<float>(detail::neg(vec.xmm));
+        return Point3<float>(m128::neg(vec.xmm));
     }
 }
 
-#include "detail/M128MemberSwizzleGeneratorUndef.h"
+#include "m128/M128MemberSwizzleGeneratorUndef.h"

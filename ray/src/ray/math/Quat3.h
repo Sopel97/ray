@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/M128Math.h"
+#include "m128/M128Math.h"
 
 #include "Angle2.h"
 #include "AxisAngle3f.h"
@@ -8,7 +8,7 @@
 
 #include <cmath>
 
-#include "detail/M128MemberSwizzleGeneratorDef.h"
+#include "m128/M128MemberSwizzleGeneratorDef.h"
 
 namespace ray
 {
@@ -92,14 +92,14 @@ namespace ray
 
         Quat3<float>& operator+=(const Quat3<float>& rhs)
         {
-            xmm = detail::add(xmm, rhs.xmm);
+            xmm = m128::add(xmm, rhs.xmm);
 
             return *this;
         }
 
         Quat3<float>& operator-=(const Quat3<float>& rhs)
         {
-            xmm = detail::sub(xmm, rhs.xmm);
+            xmm = m128::sub(xmm, rhs.xmm);
 
             return *this;
         }
@@ -114,14 +114,14 @@ namespace ray
             */
 
             __m128 xxxx, yyyy, zzzz, wwww;
-            detail::spill(xmm, xxxx, yyyy, zzzz, wwww);
+            m128::spill(xmm, xxxx, yyyy, zzzz, wwww);
 
             xmm = 
-                detail::add(
-                    detail::mul(wwww, rhs.xmm),
-                    detail::neg(detail::mul(xxxx, rhs.wzyx().xmm), detail::mask_yw()),
-                    detail::neg(detail::mul(yyyy, rhs.zwxy().xmm), detail::mask_zw()),
-                    detail::neg(detail::mul(zzzz, rhs.yxwz().xmm), detail::mask_xw())
+                m128::add(
+                    m128::mul(wwww, rhs.xmm),
+                    m128::neg(m128::mul(xxxx, rhs.wzyx().xmm), m128::mask_yw()),
+                    m128::neg(m128::mul(yyyy, rhs.zwxy().xmm), m128::mask_zw()),
+                    m128::neg(m128::mul(zzzz, rhs.yxwz().xmm), m128::mask_xw())
                 );
 
             return *this;
@@ -129,14 +129,14 @@ namespace ray
 
         constexpr Quat3<float>& operator*=(float rhs)
         {
-            xmm = detail::mul(xmm, rhs);
+            xmm = m128::mul(xmm, rhs);
 
             return *this;
         }
 
         constexpr Quat3<float>& operator/=(float rhs)
         {
-            xmm = detail::div(xmm, rhs);
+            xmm = m128::div(xmm, rhs);
 
             return *this;
         }
@@ -155,7 +155,7 @@ namespace ray
 
         Quat3<float> conjugate() const
         {
-            return Quat3<float>(detail::neg(xmm, detail::mask128(true, true, true, false)));
+            return Quat3<float>(m128::neg(xmm, m128::mask(true, true, true, false)));
         }
 
         void invert()
@@ -174,7 +174,7 @@ namespace ray
 
         float dot(const Quat3<float>& rhs) const
         {
-            return detail::dot(xmm, rhs.xmm);
+            return m128::dot(xmm, rhs.xmm);
         }
 
         // http://people.csail.mit.edu/bkph/articles/Quaternions.pdf
@@ -188,7 +188,7 @@ namespace ray
 
         float lengthSqr() const
         {
-            return detail::dot(xmm, xmm);
+            return m128::dot(xmm, xmm);
         }
 
         float length() const
@@ -198,12 +198,12 @@ namespace ray
 
         float length3() const
         {
-            return std::sqrt(detail::dot3(xmm, xmm));
+            return std::sqrt(m128::dot3(xmm, xmm));
         }
 
         float invLength() const
         {
-            return 1.0f / std::sqrt(detail::dot(xmm, xmm));
+            return 1.0f / std::sqrt(m128::dot(xmm, xmm));
         }
     private:
     };
@@ -355,4 +355,4 @@ namespace ray
     }
 }
 
-#include "detail/M128MemberSwizzleGeneratorUndef.h"
+#include "m128/M128MemberSwizzleGeneratorUndef.h"
