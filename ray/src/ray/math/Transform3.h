@@ -3,6 +3,7 @@
 #include "detail/M128Math.h"
 #include "detail/M128MatrixOperations.h"
 
+#include "Basis3.h"
 #include "Matrix4.h"
 #include "OrthonormalBasis3.h"
 #include "Vec3.h"
@@ -383,6 +384,16 @@ namespace ray
             Matrix4()
         {
 
+        }
+
+        AffineTransformation3(const Basis3<float>& basis) :
+            Matrix4(
+                detail::truncate3(basis.x().xmm),
+                detail::truncate3(basis.y().xmm),
+                detail::truncate3(basis.z().xmm)
+            )
+        {
+            transpose();
         }
 
         friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)

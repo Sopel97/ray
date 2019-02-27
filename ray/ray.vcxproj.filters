@@ -317,5 +317,8 @@
     <ClInclude Include="src\ray\math\Handedness3.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\math\Basis3.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

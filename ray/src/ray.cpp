@@ -164,7 +164,7 @@ ClosedTriangleMesh createSmoothIcosahedron(const Vec3f& offset, float radius, co
     return mesh;
 }
 
-int main()
+int __cdecl main()
 {
     constexpr int width = 1920;
     constexpr int height = 1080;
