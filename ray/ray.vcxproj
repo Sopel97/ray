@@ -57,6 +57,7 @@
     <ClInclude Include="src\ray\math\BarycentricCoords.h" />
     <ClInclude Include="src\ray\math\Basis3.h" />
     <ClInclude Include="src\ray\math\BoundingVolume.h" />
+    <ClInclude Include="src\ray\math\detail\M128.h" />
     <ClInclude Include="src\ray\math\detail\M128Math.h" />
     <ClInclude Include="src\ray\math\detail\M128MatrixOperations.h" />
     <ClInclude Include="src\ray\math\detail\M128MemberSwizzleGeneratorDef.h" />

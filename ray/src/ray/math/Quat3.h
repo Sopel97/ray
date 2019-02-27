@@ -119,9 +119,9 @@ namespace ray
             xmm = 
                 detail::add(
                     detail::mul(wwww, rhs.xmm),
-                    detail::neg(detail::mul(xxxx, rhs.wzyx().xmm), detail::mask128(false, true, false, true)),
-                    detail::neg(detail::mul(yyyy, rhs.zwxy().xmm), detail::mask128(false, false, true, true)),
-                    detail::neg(detail::mul(zzzz, rhs.yxwz().xmm), detail::mask128(true, false, false, true))
+                    detail::neg(detail::mul(xxxx, rhs.wzyx().xmm), detail::mask_yw()),
+                    detail::neg(detail::mul(yyyy, rhs.zwxy().xmm), detail::mask_zw()),
+                    detail::neg(detail::mul(zzzz, rhs.yxwz().xmm), detail::mask_xw())
                 );
 
             return *this;

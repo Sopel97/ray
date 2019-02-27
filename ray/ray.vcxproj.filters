@@ -329,5 +329,8 @@
     <ClInclude Include="src\ray\math\detail\M128MemberSwizzleGeneratorUndef.h">
       <Filter>Header Files\src\math\detail</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\math\detail\M128.h">
+      <Filter>Header Files\src\math\detail</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

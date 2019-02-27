@@ -1,5 +1,7 @@
 #pragma once
 
+#include "M128.h"
+
 #include <xmmintrin.h>
 #include <smmintrin.h>
 
@@ -7,14 +9,6 @@ namespace ray
 {
     namespace detail
     {
-        namespace m128
-        {
-            static constexpr int x = 0;
-            static constexpr int y = 1;
-            static constexpr int z = 2;
-            static constexpr int w = 3;
-        }
-
         template <unsigned X, unsigned Y, unsigned Z, unsigned W>
         inline __m128 perm(__m128 v)
         {

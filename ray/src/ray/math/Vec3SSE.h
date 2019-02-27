@@ -122,7 +122,7 @@ namespace ray
         }
 
         Vec3() :
-            xmm(_mm_set1_ps(0.0f))
+            xmm(_mm_setzero_ps())
         {
         }
 
@@ -247,7 +247,7 @@ namespace ray
         {
         }
         Point3() :
-            xmm(_mm_set1_ps(0.0f))
+            xmm(_mm_setzero_ps())
         {
         }
 

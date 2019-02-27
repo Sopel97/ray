@@ -24,27 +24,51 @@ namespace ray
             wwww = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(3, 3, 3, 3));
         }
 
+        template <unsigned L0, unsigned L1 = L0, unsigned L2 = L1, unsigned L3 = L2>
+        inline __m128 mask128()
+        {
+            static_assert(L0 < 4 && L1 < 4 && L2 < 4 && L3 < 4);
+            constexpr unsigned mask = (1 << L0) | (1 << L1) | (1 << L2) | (1 << L3); 
+            return _mm_castsi128_ps(_mm_set_epi32(
+                mask & 0b1000 ? 0xFFFFFFFF : 0, 
+                mask & 0b0100 ? 0xFFFFFFFF : 0, 
+                mask & 0b0010 ? 0xFFFFFFFF : 0, 
+                mask & 0b0001 ? 0xFFFFFFFF : 0
+            ));
+        }
+
+        inline __m128 mask_xyzw() { return mask128<0, 1, 2, 3>(); }
+        inline __m128 mask_xyz() { return mask128<0, 1, 2>(); }
+        inline __m128 mask_xyw() { return mask128<0, 1, 3>(); }
+        inline __m128 mask_xzw() { return mask128<0, 2, 3>(); }
+        inline __m128 mask_yzw() { return mask128<1, 2, 3>(); }
+        inline __m128 mask_xy() { return mask128<0, 1>(); }
+        inline __m128 mask_xz() { return mask128<0, 2>(); }
+        inline __m128 mask_xw() { return mask128<0, 3>(); }
+        inline __m128 mask_yz() { return mask128<1, 2>(); }
+        inline __m128 mask_yw() { return mask128<1, 3>(); }
+        inline __m128 mask_zw() { return mask128<2, 3>(); }
+        inline __m128 mask_x() { return mask128<0>(); }
+        inline __m128 mask_y() { return mask128<1>(); }
+        inline __m128 mask_z() { return mask128<2>(); }
+        inline __m128 mask_w() { return mask128<3>(); }
+
         inline __m128 mask128(bool x, bool y, bool z, bool w)
         {
             return _mm_castsi128_ps(_mm_set_epi32(w ? 0xFFFFFFFF : 0, z ? 0xFFFFFFFF : 0, y ? 0xFFFFFFFF : 0, x ? 0xFFFFFFFF : 0));
         }
 
-        inline __m128 xyzMask()
-        {
-            return _mm_castsi128_ps(_mm_set_epi32(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF));
-        }
-
         // for xyzw vector make it xyz0
         inline __m128 truncate3(__m128 v)
         {
-            return _mm_and_ps(v, xyzMask());
+            return _mm_and_ps(v, mask_xyz());
         }
 
         inline __m128 undefined_ps()
         {
             // msvc lacks _mm_undefined_ps
             // maybe there is a better way?
-            return _mm_set1_ps(0.0f);
+            return _mm_setzero_ps();
         }
 
         inline float hadd(__m128 a)

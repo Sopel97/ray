@@ -292,7 +292,7 @@ namespace ray
 
         void invert()
         {
-            m_columns[3] = detail::neg(m_columns[3], detail::xyzMask());
+            m_columns[3] = detail::neg(m_columns[3], detail::mask_xyz());
         }
 
         SelfType inverse() const
