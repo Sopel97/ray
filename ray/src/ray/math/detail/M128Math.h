@@ -1,5 +1,7 @@
 #pragma once
 
+#include "M128Swizzle.h"
+
 #include <xmmintrin.h>
 #include <smmintrin.h>
 

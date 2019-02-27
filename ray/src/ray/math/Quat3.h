@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+#include "detail/M128MemberSwizzleGeneratorDef.h"
+
 namespace ray
 {
     template <typename T>
@@ -24,6 +26,7 @@ namespace ray
             __m128 xmm;
         };
 
+        RAY_GEN_MEMBER_SWIZZLE4_ALL(Quat3<float>)
 
         static Quat3<float> identity()
         {
@@ -116,9 +119,9 @@ namespace ray
             xmm = 
                 detail::add(
                     detail::mul(wwww, rhs.xmm),
-                    detail::neg(detail::mul(xxxx, _mm_shuffle_ps(rhs.xmm, rhs.xmm, _MM_SHUFFLE(3, 2, 1, 0))), detail::mask128(false, true, false, true)),
-                    detail::neg(detail::mul(yyyy, _mm_shuffle_ps(rhs.xmm, rhs.xmm, _MM_SHUFFLE(2, 3, 0, 1))), detail::mask128(false, false, true, true)),
-                    detail::neg(detail::mul(zzzz, _mm_shuffle_ps(rhs.xmm, rhs.xmm, _MM_SHUFFLE(1, 0, 3, 2))), detail::mask128(true, false, false, true))
+                    detail::neg(detail::mul(xxxx, rhs.wzyx().xmm), detail::mask128(false, true, false, true)),
+                    detail::neg(detail::mul(yyyy, rhs.zwxy().xmm), detail::mask128(false, false, true, true)),
+                    detail::neg(detail::mul(zzzz, rhs.yxwz().xmm), detail::mask128(true, false, false, true))
                 );
 
             return *this;
@@ -351,3 +354,5 @@ namespace ray
         }
     }
 }
+
+#include "detail/M128MemberSwizzleGeneratorUndef.h"

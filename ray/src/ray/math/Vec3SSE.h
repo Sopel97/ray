@@ -7,6 +7,8 @@
 #include <xmmintrin.h>
 #include <smmintrin.h>
 
+#include "detail/M128MemberSwizzleGeneratorDef.h"
+
 namespace ray
 {
     template <>
@@ -37,6 +39,8 @@ namespace ray
             };
             __m128 xmm;
         };
+
+        RAY_GEN_MEMBER_SWIZZLE3_ALL(Normal3<float>)
 
         static Normal3<float> xAxis()
         {
@@ -83,6 +87,12 @@ namespace ray
         {
             xmm = detail::neg(xmm, mask.xmm);
         }
+
+    protected:
+        explicit Normal3(__m128 xmm) :
+            xmm(xmm)
+        {
+        }
     };
     static_assert(sizeof(Normal3f) == sizeof(__m128));
 
@@ -95,6 +105,8 @@ namespace ray
             };
             __m128 xmm;
         };
+
+        RAY_GEN_MEMBER_SWIZZLE3_ALL(Vec3<float>)
 
         static Vec3<float> broadcast(float xyz)
         {
@@ -219,6 +231,8 @@ namespace ray
             };
             __m128 xmm;
         };
+
+        RAY_GEN_MEMBER_SWIZZLE3_ALL(Point3<float>)
 
         static Point3<float> broadcast(float xyz)
         {
@@ -619,3 +633,5 @@ namespace ray
         return Point3<float>(detail::neg(vec.xmm));
     }
 }
+
+#include "detail/M128MemberSwizzleGeneratorUndef.h"
