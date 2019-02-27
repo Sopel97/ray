@@ -149,8 +149,8 @@ namespace ray
 
         const Vec3f P = O - C;
 
-        const float b = 2.0f * dot(P, D);
-        const float c = dot(P, P) - R * R;
+        const float b = 2.0f * dot3(P, D);
+        const float c = dot3(P, P) - R * R;
 
         const float d = b * b - 4.0f * c;
 
@@ -635,8 +635,8 @@ namespace ray
         const Normal3f nor = tri.plane().normal;
         const float dist = tri.plane().distance;
 
-        const float nd = dot(invDir, nor);
-        const float pn = dot(Vec3f(orig), nor);
+        const float nd = dot3(invDir, nor);
+        const float pn = dot3(Vec3f(orig), nor);
         const float t = (dist - pn) * nd;
 
         if (t < 0.0f) return false;
@@ -648,7 +648,7 @@ namespace ray
         const Vec3f v0v1 = tri.e01();
         const Vec3f v0v2 = tri.e02();
         const Vec3f pvec = cross(dir, v0v2);
-        const float det = dot(v0v1, pvec);
+        const float det = dot3(v0v1, pvec);
 
         // ray and triangle are parallel if det is close to 0
         if (std::abs(det) < 0.00001f) return false;
@@ -656,11 +656,11 @@ namespace ray
         const float invDet = 1.0f / det;
 
         const Vec3f tvec = orig - tri.v0();
-        const float u = dot(tvec, pvec) * invDet;
+        const float u = dot3(tvec, pvec) * invDet;
         if (u < 0 || u > 1) return false;
 
         const Vec3f qvec = cross(tvec, v0v1);
-        const float v = dot(dir, qvec) * invDet;
+        const float v = dot3(dir, qvec) * invDet;
         if (v < 0 || (v + u) > 1) return false;
 
         const float w = 1.0f - (v + u);

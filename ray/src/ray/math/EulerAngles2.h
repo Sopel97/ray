@@ -2,7 +2,7 @@
 
 #include "Angle2.h"
 
-namespace ls
+namespace ray
 {
     template <typename T>
     struct EulerAngles3

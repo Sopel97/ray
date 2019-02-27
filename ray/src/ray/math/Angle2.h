@@ -3,6 +3,7 @@
 #include "MathConstants.h"
 
 #include <cmath>
+#include <utility>
 
 namespace ray
 {
@@ -53,6 +54,35 @@ namespace ray
         {
             using std::tan;
             return tan(m_radians);
+        }
+
+        Angle2<T>& operator*=(float s)
+        {
+            m_radians *= s;
+            return *this;
+        }
+
+        Angle2<T>& operator/=(float s)
+        {
+            m_radians /= s;
+            return *this;
+        }
+
+        Angle2<T>& operator+=(const Angle2<T>& s)
+        {
+            m_radians += s.m_radians;
+            return *this;
+        }
+
+        Angle2<T>& operator-=(const Angle2<T>& s)
+        {
+            m_radians -= s.m_radians;
+            return *this;
+        }
+
+        friend Angle2<T> operator*(const Angle2<T>& a, float s)
+        {
+            return Angle2<T>(a.radians * s);
         }
 
     private:

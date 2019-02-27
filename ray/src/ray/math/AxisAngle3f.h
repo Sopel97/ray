@@ -3,7 +3,7 @@
 #include "Angle2.h"
 #include "Vec3.h"
 
-namespace ls
+namespace ray
 {
     template <typename T>
     struct AxisAngle3

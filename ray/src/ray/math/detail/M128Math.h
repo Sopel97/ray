@@ -7,6 +7,26 @@ namespace ray
 {
     namespace detail
     {
+        inline void spill3(__m128 vec, __m128& xxxx, __m128& yyyy, __m128& zzzz)
+        {
+            xxxx = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(0, 0, 0, 0));
+            yyyy = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(1, 1, 1, 1));
+            zzzz = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(2, 2, 2, 2));
+        }
+
+        inline void spill(__m128 vec, __m128& xxxx, __m128& yyyy, __m128& zzzz, __m128& wwww)
+        {
+            xxxx = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(0, 0, 0, 0));
+            yyyy = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(1, 1, 1, 1));
+            zzzz = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(2, 2, 2, 2));
+            wwww = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(3, 3, 3, 3));
+        }
+
+        inline __m128 mask128(bool x, bool y, bool z, bool w)
+        {
+            return _mm_castsi128_ps(_mm_set_epi32(w ? 0xFFFFFFFF : 0, z ? 0xFFFFFFFF : 0, y ? 0xFFFFFFFF : 0, x ? 0xFFFFFFFF : 0));
+        }
+
         inline __m128 xyzMask()
         {
             return _mm_castsi128_ps(_mm_set_epi32(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF));
@@ -62,6 +82,16 @@ namespace ray
         inline __m128 add(__m128 a, __m128 b)
         {
             return _mm_add_ps(a, b);
+        }
+
+        inline __m128 add(__m128 a, __m128 b, __m128 c)
+        {
+            return _mm_add_ps(_mm_add_ps(a, b), c);
+        }
+
+        inline __m128 add(__m128 a, __m128 b, __m128 c, __m128 d)
+        {
+            return _mm_add_ps(_mm_add_ps(a, b), _mm_add_ps(c, d));
         }
 
         inline __m128 div(__m128 a, __m128 b)
@@ -139,13 +169,18 @@ namespace ray
             return _mm_cmpeq_ps(a, _mm_set1_ps(b));
         }
 
-        inline float dot(__m128 a, __m128 b)
+        inline float dot3(__m128 a, __m128 b)
         {
             // mul first 3 components of xmm, sum it, and store in the first component, return first component
             return _mm_cvtss_f32(_mm_dp_ps(a, b, 0b0111'0001));
 
             // should be faster, but on nehalem it actually isn't?
             // return hadd3(mul(a, b));
+        }
+
+        inline float dot(__m128 a, __m128 b)
+        {
+            return hadd(mul(a, b));
         }
 
         inline __m128 cross(__m128 a, __m128 b)

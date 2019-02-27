@@ -11,7 +11,7 @@ namespace ray
 {
     // Allows per vertex normals, but requires their directions
     // to be coherent with direction of cross(m_e01, m_e02).
-    // NOTE: this assumption could be removed by doing one more dot in raycast
+    // NOTE: this assumption could be removed by doing one more dot3 in raycast
     // Size should be 128 with no precomputed data.
     struct Triangle3
     {
@@ -151,9 +151,9 @@ namespace ray
         void precompute()
         {
             /*
-            m_d00 = dot(m_e01, m_e01);
-            m_d01 = dot(m_e01, m_e02);
-            m_d11 = dot(m_e02, m_e02);
+            m_d00 = dot3(m_e01, m_e01);
+            m_d01 = dot3(m_e01, m_e02);
+            m_d11 = dot3(m_e02, m_e02);
             m_invDet = 1.0f / (m_d00 * m_d11 - m_d01 * m_d01);
             m_plane = Plane(m_v0, m_e01, m_e02);
             */

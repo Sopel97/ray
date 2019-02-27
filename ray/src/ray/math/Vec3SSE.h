@@ -173,7 +173,7 @@ namespace ray
 
         float lengthSqr() const
         {
-            return detail::dot(xmm, xmm);
+            return detail::dot3(xmm, xmm);
         }
 
         float invLength() const
@@ -536,22 +536,22 @@ namespace ray
 
     inline float dot(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return detail::dot(lhs.xmm, rhs.xmm);
+        return detail::dot3(lhs.xmm, rhs.xmm);
     }
 
     inline float dot(const Normal3<float>& lhs, const Vec3<float>& rhs)
     {
-        return detail::dot(lhs.xmm, rhs.xmm);
+        return detail::dot3(lhs.xmm, rhs.xmm);
     }
 
     inline float dot(const Vec3<float>& lhs, const Normal3<float>& rhs)
     {
-        return detail::dot(lhs.xmm, rhs.xmm);
+        return detail::dot3(lhs.xmm, rhs.xmm);
     }
 
     inline float dot(const Normal3<float>& lhs, const Normal3<float>& rhs)
     {
-        return detail::dot(lhs.xmm, rhs.xmm);
+        return detail::dot3(lhs.xmm, rhs.xmm);
     }
 
 

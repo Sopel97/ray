@@ -9,21 +9,6 @@ namespace ray
 {
     namespace detail
     {
-        inline void spill3(__m128 vec, __m128& xxxx, __m128& yyyy, __m128& zzzz)
-        {
-            xxxx = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(0, 0, 0, 0));
-            yyyy = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(1, 1, 1, 1));
-            zzzz = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(2, 2, 2, 2));
-        }
-
-        inline void spill(__m128 vec, __m128& xxxx, __m128& yyyy, __m128& zzzz, __m128& wwww)
-        {
-            xxxx = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(0, 0, 0, 0));
-            yyyy = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(1, 1, 1, 1));
-            zzzz = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(2, 2, 2, 2));
-            wwww = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(3, 3, 3, 3));
-        }
-
         // column-major
         inline void mulMat4Mat4(const __m128 lhs[4], const __m128 rhs[4], __m128 result[4])
         {
