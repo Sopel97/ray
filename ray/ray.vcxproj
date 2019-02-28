@@ -70,7 +70,7 @@
     <ClInclude Include="src\ray\math\MathConstants.h" />
     <ClInclude Include="src\ray\math\Matrix4.h" />
     <ClInclude Include="src\ray\math\OrthonormalBasis3.h" />
-    <ClInclude Include="src\ray\math\Quat3.h" />
+    <ClInclude Include="src\ray\math\Quat4.h" />
     <ClInclude Include="src\ray\math\Ray.h" />
     <ClInclude Include="src\ray\math\Raycast.h" />
     <ClInclude Include="src\ray\math\RaycastHit.h" />
@@ -79,6 +79,7 @@
     <ClInclude Include="src\ray\math\Vec2.h" />
     <ClInclude Include="src\ray\math\Vec3SSE.h" />
     <ClInclude Include="src\ray\math\Vec3.h" />
+    <ClInclude Include="src\ray\math\ViewingFrustum3.h" />
     <ClInclude Include="src\ray\perf\PerformanceStats.h" />
     <ClInclude Include="src\ray\Raytracer.h" />
     <ClInclude Include="src\ray\sampler\AdaptiveMultisampler.h" />

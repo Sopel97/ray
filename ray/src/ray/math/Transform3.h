@@ -6,7 +6,7 @@
 #include "Basis3.h"
 #include "Matrix4.h"
 #include "OrthonormalBasis3.h"
-#include "Quat3.h"
+#include "Quat4.h"
 #include "Vec3.h"
 
 #include <cstdint>
@@ -51,7 +51,7 @@ namespace ray
     struct alignas(alignof(__m128)) AffineTransformation3<float, MaskV>;
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::None> : Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::None> : protected Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::None>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::None;
@@ -107,7 +107,7 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Rotation> : Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Rotation> : protected Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::Rotation>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::Rotation;
@@ -122,7 +122,7 @@ namespace ray
         {
         }
 
-        explicit AffineTransformation3(const Quat3<float>& q) :
+        explicit AffineTransformation3(const Quat4<float>& q) :
             Matrix4(q.normalized())
         {
         }
@@ -181,7 +181,7 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Scale> : Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Scale> : protected Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::Scale>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::Scale;
@@ -254,7 +254,7 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Translation> : Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Translation> : protected Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::Translation>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::Translation;
@@ -327,7 +327,7 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::RotationTranslation> : Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::RotationTranslation> : protected Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::RotationTranslation>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::RotationTranslation;
@@ -342,7 +342,7 @@ namespace ray
         {
         }
 
-        AffineTransformation3(const Quat3<float>& q, const Point3<float>& origin) :
+        AffineTransformation3(const Quat4<float>& q, const Point3<float>& origin) :
             Matrix4(q.normalized(), origin)
         {
         }
@@ -395,7 +395,7 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::RotationScale> : Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::RotationScale> : protected Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::RotationScale>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::RotationScale;
@@ -458,7 +458,7 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::ScaleTranslation> : Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::ScaleTranslation> : protected Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::ScaleTranslation>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::ScaleTranslation;
@@ -527,7 +527,7 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::All> : Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::All> : protected Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::All>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::All;

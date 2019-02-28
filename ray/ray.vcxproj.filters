@@ -290,9 +290,6 @@
     <ClInclude Include="src\ray\material\MaterialPtrStorage.h">
       <Filter>Header Files\src\material</Filter>
     </ClInclude>
-    <ClInclude Include="src\ray\math\Quat3.h">
-      <Filter>Header Files\src\math</Filter>
-    </ClInclude>
     <ClInclude Include="src\ray\math\AxisAngle3f.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
@@ -334,6 +331,12 @@
     </ClInclude>
     <ClInclude Include="src\ray\math\m128\M128Shuffle.h">
       <Filter>Header Files\src\math\m128</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Quat4.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\ViewingFrustum3.h">
+      <Filter>Header Files\src\math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

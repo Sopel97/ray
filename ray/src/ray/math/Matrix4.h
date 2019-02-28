@@ -3,8 +3,9 @@
 #include "m128/M128Math.h"
 #include "m128/M128MatrixOperations.h"
 
-#include "Quat3.h"
+#include "Quat4.h"
 #include "Vec3.h"
+#include "ViewingFrustum3.h"
 
 namespace ray
 {
@@ -14,6 +15,58 @@ namespace ray
     template <>
     struct alignas(alignof(__m128)) Matrix4<float>
     {
+        // takes rows, transposes
+        // will mostly be used in source with literals
+        // so it is the most intuitive way
+        Matrix4(
+            float m00, float m10, float m20, float m30,
+            float m01, float m11, float m21, float m31,
+            float m02, float m12, float m22, float m32,
+            float m03, float m13, float m23, float m33
+        ) :
+            m_values{
+                m00, m01, m02, m03,
+                m10, m11, m12, m13,
+                m20, m21, m22, m23,
+                m30, m31, m32, m33
+        }
+        {
+        }
+
+        Matrix4(const ViewingFrustum3<float>& f) :
+            Matrix4()
+        {
+            // http://learnwebgl.brown37.net/lib/learn_webgl_matrix.js
+
+            const float near = f.near;
+            const float far = f.far;
+            const float top = near * (f.fovy * 0.5f).tan();
+            const float bottom = -top;
+            const float right = top * f.aspect;
+            const float left = -right;
+
+            const float sx = 2.0f * near / (right - left);
+            const float sy = 2.0f * near / (top - bottom);
+
+            const float c2 = -(far + near) / (far - near);
+            const float c1 = 2.0f * near * far / (near - far);
+
+            const float tx = -near * (left + right) / (right - left);
+            const float ty = -near * (bottom + top) / (top - bottom);
+
+            m_values[0][0] = sx;
+
+            m_values[1][1] = sy;
+
+            m_values[2][2] = c2;
+            m_values[2][3] = -1.0f;
+
+            m_values[3][0] = tx;
+            m_values[3][1] = ty;
+            m_values[3][2] = c1;
+            m_values[3][3] = 0.0f;
+        }
+
         friend Matrix4<float> operator*(const Matrix4<float>& lhs, const Matrix4<float>& rhs)
         {
             Matrix4<float> ret{};
@@ -69,25 +122,6 @@ namespace ray
 
         Matrix4(__m128 c0, __m128 c1, __m128 c2) :
             m_columns{ c0, c1, c2, _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f) }
-        {
-
-        }
-
-        // takes rows, transposes
-        // will mostly be used in source with literals
-        // so it is the most intuitive way
-        Matrix4(
-            float m00, float m10, float m20, float m30,
-            float m01, float m11, float m21, float m31,
-            float m02, float m12, float m22, float m32,
-            float m03, float m13, float m23, float m33
-        ) :
-            m_values{
-                m00, m01, m02, m03,
-                m10, m11, m12, m13,
-                m20, m21, m22, m23,
-                m30, m31, m32, m33
-            }
         {
 
         }
@@ -174,7 +208,7 @@ namespace ray
             transpose3();
         }
 
-        explicit Matrix4(const Quat3<float>& q) :
+        explicit Matrix4(const Quat4<float>& q) :
             Matrix4()
         {
             const float x2 = q.x*q.x;
@@ -197,7 +231,7 @@ namespace ray
             m_values[2][2] = 1.0f - 2.0f * (x2 + y2);
         }
 
-        Matrix4(const Quat3<float>& q, const Vec3<float>& t) :
+        Matrix4(const Quat4<float>& q, const Vec3<float>& t) :
             Matrix4(q)
         {
             m_values[3][0] = t.x;
@@ -205,7 +239,7 @@ namespace ray
             m_values[3][2] = t.z;
         }
 
-        Matrix4(const Quat3<float>& q, const Point3<float>& origin) :
+        Matrix4(const Quat4<float>& q, const Point3<float>& origin) :
             Matrix4(q, Vec3<float>(origin))
         {
             // (TR)T^-1

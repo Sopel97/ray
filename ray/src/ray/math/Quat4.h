@@ -13,10 +13,10 @@
 namespace ray
 {
     template <typename T>
-    struct Quat3;
+    struct Quat4;
 
     template<>
-    struct Quat3<float>
+    struct Quat4<float>
     {
     public:
         union {
@@ -26,20 +26,20 @@ namespace ray
             __m128 xmm;
         };
 
-        RAY_GEN_MEMBER_SWIZZLE4_ALL(Quat3<float>)
+        RAY_GEN_MEMBER_SWIZZLE4_ALL(Quat4<float>)
 
-        static Quat3<float> identity()
+        static Quat4<float> identity()
         {
             return {};
         }
 
-        Quat3(__m128 xmm) noexcept :
+        Quat4(__m128 xmm) noexcept :
             xmm(xmm)
         {
 
         }
 
-        Quat3() noexcept :
+        Quat4() noexcept :
             x(0),
             y(0),
             z(0),
@@ -48,7 +48,7 @@ namespace ray
 
         }
 
-        Quat3(float x, float y, float z, float w) :
+        Quat4(float x, float y, float z, float w) :
             x(x),
             y(y),
             z(z),
@@ -57,7 +57,7 @@ namespace ray
 
         }
 
-        explicit Quat3(EulerAngles3<float> a)
+        explicit Quat4(EulerAngles3<float> a)
         {
             a.pitch *= 0.5f;
             a.yaw *= 0.5f;
@@ -73,7 +73,7 @@ namespace ray
             w = cp * cy * cr + sp * sy * sr;
         }
 
-        explicit Quat3(const AxisAngle3<float>& a)
+        explicit Quat4(const AxisAngle3<float>& a)
         {
             const Angle2<float> halfAngle = a.angle() * 0.5f;
 
@@ -85,26 +85,26 @@ namespace ray
             z = a.axis().z * s;
         }
 
-        Quat3(const Quat3<float>&) = default;
-        Quat3(Quat3<float>&&) noexcept = default;
-        Quat3<float>& operator=(const Quat3<float>&) = default;
-        Quat3<float>& operator=(Quat3<float>&&) noexcept = default;
+        Quat4(const Quat4<float>&) = default;
+        Quat4(Quat4<float>&&) noexcept = default;
+        Quat4<float>& operator=(const Quat4<float>&) = default;
+        Quat4<float>& operator=(Quat4<float>&&) noexcept = default;
 
-        Quat3<float>& operator+=(const Quat3<float>& rhs)
+        Quat4<float>& operator+=(const Quat4<float>& rhs)
         {
             xmm = m128::add(xmm, rhs.xmm);
 
             return *this;
         }
 
-        Quat3<float>& operator-=(const Quat3<float>& rhs)
+        Quat4<float>& operator-=(const Quat4<float>& rhs)
         {
             xmm = m128::sub(xmm, rhs.xmm);
 
             return *this;
         }
 
-        Quat3<float>& operator*=(const Quat3<float>& rhs)
+        Quat4<float>& operator*=(const Quat4<float>& rhs)
         {
             /*
             const float newX = w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y;
@@ -127,23 +127,23 @@ namespace ray
             return *this;
         }
 
-        constexpr Quat3<float>& operator*=(float rhs)
+        constexpr Quat4<float>& operator*=(float rhs)
         {
             xmm = m128::mul(xmm, rhs);
 
             return *this;
         }
 
-        constexpr Quat3<float>& operator/=(float rhs)
+        constexpr Quat4<float>& operator/=(float rhs)
         {
             xmm = m128::div(xmm, rhs);
 
             return *this;
         }
 
-        Quat3<float> normalized() const
+        Quat4<float> normalized() const
         {
-            Quat3<float> result(*this);
+            Quat4<float> result(*this);
             result.normalize();
             return result;
         }
@@ -153,9 +153,9 @@ namespace ray
             (*this) *= invLength();
         }
 
-        Quat3<float> conjugate() const
+        Quat4<float> conjugate() const
         {
-            return Quat3<float>(m128::neg(xmm, m128::mask(true, true, true, false)));
+            return Quat4<float>(m128::neg(xmm, m128::mask(true, true, true, false)));
         }
 
         void invert()
@@ -165,14 +165,14 @@ namespace ray
             (*this) *= invLen; // conjugate doesn't change it but we don't need to have a dependency
         }
 
-        Quat3<float> inverse() const
+        Quat4<float> inverse() const
         {
-            Quat3<float> result(*this);
+            Quat4<float> result(*this);
             result.invert();
             return result;
         }
 
-        float dot(const Quat3<float>& rhs) const
+        float dot(const Quat4<float>& rhs) const
         {
             return m128::dot(xmm, rhs.xmm);
         }
@@ -208,47 +208,47 @@ namespace ray
     private:
     };
 
-    using Quat3d = Quat3<double>;
-    using Quat3f = Quat3<float>;
+    using Quat3d = Quat4<double>;
+    using Quat3f = Quat4<float>;
 
     template <typename T>
-    Quat3<T> operator+(const Quat3<T>& lhs, const Quat3<T>& rhs)
+    Quat4<T> operator+(const Quat4<T>& lhs, const Quat4<T>& rhs)
     {
-        Quat3<T> result(lhs);
+        Quat4<T> result(lhs);
         return (result += rhs);
     }
 
     template <typename T>
-    Quat3<T> operator-(const Quat3<T>& lhs, const Quat3<T>& rhs)
+    Quat4<T> operator-(const Quat4<T>& lhs, const Quat4<T>& rhs)
     {
-        Quat3<T> result(lhs);
+        Quat4<T> result(lhs);
         return (result -= rhs);
     }
 
     template <typename T>
-    Quat3<T> operator*(const Quat3<T>& lhs, const Quat3<T>& rhs)
+    Quat4<T> operator*(const Quat4<T>& lhs, const Quat4<T>& rhs)
     {
-        Quat3<T> result(lhs);
+        Quat4<T> result(lhs);
         return (result *= rhs);
     }
 
     template <typename T>
-    Quat3<T> operator*(const Quat3<T>& lhs, const T& rhs)
+    Quat4<T> operator*(const Quat4<T>& lhs, const T& rhs)
     {
-        Quat3<T> result(lhs);
+        Quat4<T> result(lhs);
         return (result *= rhs);
     }
 
     template <typename T>
-    Quat3<T> operator/(const Quat3<T>& lhs, const T& rhs)
+    Quat4<T> operator/(const Quat4<T>& lhs, const T& rhs)
     {
-        Quat3<T> result(lhs);
+        Quat4<T> result(lhs);
         return (result /= rhs);
     }
 
     // e^q
     template <typename T>
-    Quat3<T> exp(const Quat3<T>& q)
+    Quat4<T> exp(const Quat4<T>& q)
     {
         static constexpr T eps = T(0.00001);
 
@@ -263,7 +263,7 @@ namespace ray
             const T s = sin(vlen);
             const T c = cos(vlen);
             const T scale = s / vlen;
-            return Quat3<T>(
+            return Quat4<T>(
                 scale * q.x,
                 scale * q.y,
                 scale * q.z,
@@ -272,12 +272,12 @@ namespace ray
         }
         else
         {
-            return Quat3<T>{};
+            return Quat4<T>{};
         }
     }
 
     template <typename T>
-    Quat3<T> log(const Quat3<T>& q)
+    Quat4<T> log(const Quat4<T>& q)
     {
         using std::atan2;
         using std::log;
@@ -291,21 +291,21 @@ namespace ray
         {
             const T t = atan2(vlen, q.w) / vlen;
             const T len = vlen * vlen + q.w * q.w;
-            return Quat3<T>(t * q.x, t * q.y, t * q.z, T(0.5) * log(len));
+            return Quat4<T>(t * q.x, t * q.y, t * q.z, T(0.5) * log(len));
         }
         else
         {
             if (q.w > T(0))
             {
-                return Quat3<T>(T(0), T(0), T(0), log(q.w));
+                return Quat4<T>(T(0), T(0), T(0), log(q.w));
             }
             else if (q.w < T(0))
             {
-                return Quat3<T>(static_cast<T>(pi), T(0), T(0), log(-q.w));
+                return Quat4<T>(static_cast<T>(pi), T(0), T(0), log(-q.w));
             }
             else
             {
-                return Quat3<T>(
+                return Quat4<T>(
                     std::numeric_limits<float>::infinity(),
                     std::numeric_limits<float>::infinity(),
                     std::numeric_limits<float>::infinity(),
@@ -318,7 +318,7 @@ namespace ray
 
     // https://en.wikipedia.org/wiki/Slerp
     template <typename T>
-    constexpr Quat3<T> slerp(const Quat3<T>& lhs, const Quat3<T>& rhs, const T& t)
+    constexpr Quat4<T> slerp(const Quat4<T>& lhs, const Quat4<T>& rhs, const T& t)
     {
         using std::sin;
         using std::cos;
@@ -326,7 +326,7 @@ namespace ray
 
         static constexpr T eps = T(0.01);
 
-        Quat3<T> q = rhs;
+        Quat4<T> q = rhs;
         T cosTheta = std::clamp(lhs.dot(rhs), T(-1.0), T(1.0));
 
         // take shorter path
