@@ -241,6 +241,19 @@ namespace ray
             r[2] = _mm_shuffle_ps(t1, r[2], _MM_SHUFFLE(0, 2, 2, 0));
         }
 
+        // zero extent
+        inline void transpose3zx(__m128& r0, __m128& r1, __m128& r2)
+        {
+            __m128 r3 = _mm_setzero_ps();
+            transpose(r0, r1, r2, r3);
+        }
+
+        inline void transpose3zx(__m128 r[3])
+        {
+            __m128 r3 = _mm_setzero_ps();
+            transpose(r[0], r[1], r[2], r3);
+        }
+
         inline void transpose(__m128 r[4])
         {
             _MM_TRANSPOSE4_PS(r[0], r[1], r[2], r[3]);

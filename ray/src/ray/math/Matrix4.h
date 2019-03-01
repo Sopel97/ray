@@ -7,6 +7,8 @@
 #include "Vec3.h"
 #include "ViewingFrustum3.h"
 
+#include <iostream>
+
 namespace ray
 {
     template <typename T>
@@ -84,14 +86,27 @@ namespace ray
             return Point3<float>(m128::mulMat4Vec3(lhs.m_columns, rhs.xmm));
         }
 
+        bool isAlmostIdentity() const
+        {
+            static constexpr float eps = 1e-5;
+            for (int r = 0; r < 4; ++r)
+            {
+                for (int c = 0; c < 4; ++c)
+                {
+                    if (std::abs(m_values[r][c] - static_cast<float>(r == c)) > eps) return false;
+                }
+            }
+            return true;
+        }
+
         void transpose()
         {
             m128::transpose(m_columns);
         }
 
-        void transpose3()
+        void transpose3zx()
         {
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         Matrix4 transposed() const
@@ -111,6 +126,18 @@ namespace ray
             Matrix4<float> c(*this);
             c.invert();
             return c;
+        }
+
+        void print() const
+        {
+            for (int r = 0; r < 4; ++r)
+            {
+                for (int c = 0; c < 4; ++c)
+                {
+                    std::cout << m_values[c][r] << ' ';
+                }
+                std::cout << '\n';
+            }
         }
 
     protected:
@@ -145,10 +172,10 @@ namespace ray
 
         Matrix4(float xs, float ys, float zs, const Vec3<float>& t) :
             Matrix4(
-                xs, 0.0f, 0.0f, 0.0f,
-                0.0f, ys, 0.0f, 0.0f,
-                0.0f, 0.0f, zs, 0.0f,
-                t.x, t.y, t.z, 1.0f
+                xs, 0.0f, 0.0f, t.x,
+                0.0f, ys, 0.0f, t.y,
+                0.0f, 0.0f, zs, t.z,
+                0.0f, 0.0f, 0.0f, 1.0f
             )
         {
         }
@@ -165,10 +192,10 @@ namespace ray
 
         explicit Matrix4(const Vec3<float>& t) :
             Matrix4(
-                1.0f, 0.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f, 0.0f,
-                0.0f, 0.0f, 1.0f, 0.0f,
-                t.x, t.y, t.z, 1.0f
+                1.0f, 0.0f, 0.0f, t.x,
+                0.0f, 1.0f, 0.0f, t.y,
+                0.0f, 0.0f, 1.0f, t.z,
+                0.0f, 0.0f, 0.0f, 1.0f
             )
         {
         }
@@ -180,7 +207,7 @@ namespace ray
                 m128::truncate3(basis.z().xmm)
             )
         {
-            transpose3();
+            transpose3zx();
         }
 
         explicit Matrix4(const Basis3<float>& basis) :
@@ -190,7 +217,7 @@ namespace ray
                 m128::truncate3(basis.z().xmm)
             )
         {
-            transpose3();
+            transpose3zx();
         }
 
         Matrix4(const OrthonormalBasis3<float>& basis, const Vec3<float>& t) :
@@ -201,7 +228,7 @@ namespace ray
                 _mm_set_ps(1.0f, t.z, t.y, t.x)
             )
         {
-            transpose3();
+            transpose3zx();
         }
 
         Matrix4(const Basis3<float>& basis, const Vec3<float>& t) :
@@ -212,7 +239,7 @@ namespace ray
                 _mm_set_ps(1.0f, t.z, t.y, t.x)
             )
         {
-            transpose3();
+            transpose3zx();
         }
 
         explicit Matrix4(const Quat4<float>& q) :

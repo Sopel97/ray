@@ -164,7 +164,7 @@ namespace ray
         void invert()
         {
             // property of the rotation matrix
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         SelfType inverse() const
@@ -176,12 +176,12 @@ namespace ray
 
         void transpose()
         {
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         void transpose3()
         {
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         SelfType transposed() const
@@ -328,7 +328,7 @@ namespace ray
 
         void transpose3()
         {
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         Matrix4<float> transposed() const
@@ -392,7 +392,7 @@ namespace ray
 
         void invert()
         {
-            m128::invertMatAffineNoScale(m_columns);
+            m128::invertMatAffineNoScalePerpAxes(m_columns);
         }
 
         SelfType inverse() const
@@ -404,7 +404,7 @@ namespace ray
 
         void transpose3()
         {
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         Matrix4<float> transposed() const
@@ -457,7 +457,7 @@ namespace ray
 
         void invert()
         {
-            m128::invertMatAffineNoTrans(m_columns);
+            m128::invertMatAffine(m_columns);
         }
 
         SelfType inverse() const
@@ -469,12 +469,12 @@ namespace ray
 
         void transpose()
         {
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         void transpose3()
         {
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         SelfType transposed() const
@@ -610,7 +610,7 @@ namespace ray
 
         void transpose3()
         {
-            m128::transpose3(m_columns);
+            m128::transpose3zx(m_columns);
         }
 
         Matrix4<float> transposed() const

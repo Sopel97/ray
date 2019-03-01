@@ -34,7 +34,7 @@ namespace ray
         OrthonormalBasis3(const Normal3f& n0, const Normal3f& n1, const Normal3f& n2) :
             m_x(n0),
             m_y((Vec3<T>(n1) - projection(n1, n0)).normalized()),
-            m_y((Vec3<T>(n1) - projection(n2, n0) - projection(n2, n1)).normalized())
+            m_z((Vec3<T>(n2) - projection(n2, n0) - projection(n2, m_y)).normalized())
         {
 
         }
@@ -43,7 +43,7 @@ namespace ray
         OrthonormalBasis3(AssumeOrthogonal, const Normal3<T>& n0, const Normal3<T>& n1, const Normal3<T>& n2) :
             m_x(n0),
             m_y(n1),
-            m_y(n2)
+            m_z(n2)
         {
 
         }

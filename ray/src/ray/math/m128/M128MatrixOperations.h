@@ -86,7 +86,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[0] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[0] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 1
@@ -98,7 +98,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[1] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[1] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 2
@@ -110,7 +110,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[2] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[2] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
         }
 
@@ -130,7 +130,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[0] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[0] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 1
@@ -142,7 +142,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[1] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[1] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 2
@@ -154,7 +154,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[2] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[2] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 3
@@ -187,7 +187,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[0] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[0] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 1
@@ -199,7 +199,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[1] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[1] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 2
@@ -211,7 +211,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[2] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[2] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 3
@@ -243,7 +243,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[0] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[0] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 1
@@ -255,7 +255,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[1] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[1] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 2
@@ -267,7 +267,7 @@ namespace ray
                 y = _mm_mul_ps(y, c1);
                 z = _mm_mul_ps(z, c2);
 
-                result[2] = _mm_add_ps(x, _mm_add_ps(y, z));
+                result[2] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
             }
 
             // column 3
@@ -292,6 +292,23 @@ namespace ray
             v2 = _mm_mul_ps(v2, lhs[2]);
 
             return _mm_add_ps(v0, _mm_add_ps(v1, v2));
+        }
+
+        // column-major, vector is in homogeneous coordinates
+        inline __m128 mulMat3Vec3homo(const __m128 lhs[3], __m128 rhs)
+        {
+            __m128 v0, v1, v2;
+            spill3(rhs, v0, v1, v2);
+
+            v0 = _mm_mul_ps(v0, lhs[0]);
+            v1 = _mm_mul_ps(v1, lhs[1]);
+            v2 = _mm_mul_ps(v2, lhs[2]);
+
+            return _mm_blend_ps(
+                _mm_add_ps(v0, _mm_add_ps(v1, v2)),
+                rhs,
+                0b1000
+            );
         }
 
         inline __m128 mulMatAffineVec3(const __m128 lhs[4], __m128 rhs)
@@ -322,7 +339,7 @@ namespace ray
             return _mm_div_ps(res, wwww);
         }
 
-        inline void invertMatAffine(__m128 cols[4])
+        inline void invertMatAffinePerpAxes(__m128 cols[4])
         {
             // column-major
             // X0 X1 X2 T0
@@ -370,17 +387,17 @@ namespace ray
             c2 = _mm_mul_ps(c2, invScales);
 
             // R^-1 (with rescaling above)
-            m128::transpose3(c0, c1, c2);
+            m128::transpose3zx(c0, c1, c2);
 
             cols[0] = c0;
             cols[1] = c1;
             cols[2] = c2;
 
             // multiply (R^-1) * T
-            cols[3] = m128::neg(mulMat3Vec3(cols, cols[3]));
+            cols[3] = m128::neg(mulMat3Vec3homo(cols, cols[3]), mask_xyz());
         }
 
-        inline void invertMatAffineNoTrans(__m128 cols[4])
+        inline void invertMatAffineNoTransPerpAxes(__m128 cols[4])
         {
             // column-major
             // X0 X1 X2 T0
@@ -427,14 +444,14 @@ namespace ray
             c2 = _mm_mul_ps(c2, invScales);
 
             // R^-1 (with rescaling above)
-            m128::transpose3(c0, c1, c2);
+            m128::transpose3zx(c0, c1, c2);
 
             cols[0] = c0;
             cols[1] = c1;
             cols[2] = c2;
         }
 
-        inline void invertMatAffineNoScale(__m128 cols[4])
+        inline void invertMatAffineNoScalePerpAxes(__m128 cols[4])
         {
             // column-major
             // X0 X1 X2 T0
@@ -459,18 +476,11 @@ namespace ray
             //
             // but we don't care what the last row holds because it's always ignored in the computations
 
-            __m128 c0 = cols[0];
-            __m128 c1 = cols[1];
-            __m128 c2 = cols[2];
-
             // R^-1
-            m128::transpose3(c0, c1, c2);
-            cols[0] = c0;
-            cols[1] = c1;
-            cols[2] = c2;
+            m128::transpose3zx(cols[0], cols[1], cols[2]);
 
             // multiply (R^-1) * T
-            cols[3] = m128::neg(mulMat3Vec3(cols, cols[3]));
+            cols[3] = m128::neg(mulMat3Vec3homo(cols, cols[3]), mask_xyz());
         }
 
         // column-major
@@ -524,7 +534,7 @@ namespace ray
             );
 
             __m128 detA, detB, detC, detD;
-            spill(detSub, detA, detB, detC, detD);
+            spill(detSub, detA, detC, detB, detD);
 
             // let iM = 1/|M| * | X  Y |
             //                  | Z  W |
@@ -570,6 +580,38 @@ namespace ray
             cols[1] = shuffle_zxzx(X_, Z_);
             cols[2] = shuffle_wywy(Y_, W_);
             cols[3] = shuffle_zxzx(Y_, W_);
+        }
+
+        inline void invertMat3(__m128 cols[3])
+        {
+            // https://en.wikipedia.org/wiki/Invertible_matrix#Inversion_of_3_%C3%97_3_matrices
+
+            //                   [ (c1 x c2)^T ]
+            // A^-1 = 1/det(A) * [ (c2 x c0)^T ]
+            //                   [ (c0 x c1)^T ]
+
+            // our m128 cross() preserves the last component (w), so we don't have to zero it explicitly
+
+            __m128 c0 = cols[0];
+            __m128 c1 = cols[1];
+            __m128 c2 = cols[2];
+
+            __m128 c0c1 = cross(c0, c1);
+            const float invDet = 1.0f / dot3(c0c1, c2);
+
+            cols[0] = mul(invDet, cross(c1, c2));
+            cols[1] = mul(invDet, cross(c2, c0));
+            cols[2] = mul(invDet, c0c1);
+
+            transpose3zx(cols);
+        }
+
+        // inv(A) = [ inv(R)   -inv(R) * T ]
+        //          [   0            1     ]
+        inline void invertMatAffine(__m128 cols[4])
+        {
+            invertMat3(cols);
+            cols[3] = m128::neg(mulMat3Vec3homo(cols, cols[3]), mask_xyz());
         }
     }
 }
