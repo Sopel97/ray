@@ -51,10 +51,17 @@ namespace ray
     struct alignas(alignof(__m128)) AffineTransformation3<float, MaskV>;
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::None> : protected Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::None> : Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::None>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::None;
+
+        // enable construction from more specific matrix type
+        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+            Matrix4(other)
+        {
+        }
 
         AffineTransformation3() :
             Matrix4()
@@ -93,24 +100,29 @@ namespace ray
             // nothing to do
         }
 
-        // enable casting to more generic matrix type
-        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
-        operator AffineTransformation3<float, OtherMaskV>() const
+        void transpose3()
         {
-            return AffineTransformation3<float, OtherMaskV>(
-                m_columns[0],
-                m_columns[1],
-                m_columns[2],
-                m_columns[3]
-            );
+            // nothing to do
+        }
+
+        SelfType transposed() const
+        {
+            return *this;
         }
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Rotation> : protected Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Rotation> : Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::Rotation>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::Rotation;
+
+        // enable construction from more specific matrix type
+        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+            Matrix4(other)
+        {
+        }
 
         AffineTransformation3() :
             Matrix4()
@@ -167,24 +179,31 @@ namespace ray
             m128::transpose3(m_columns);
         }
 
-        // enable casting to more generic matrix type
-        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
-        operator AffineTransformation3<float, OtherMaskV>() const
+        void transpose3()
         {
-            return AffineTransformation3<float, OtherMaskV>(
-                m_columns[0],
-                m_columns[1],
-                m_columns[2],
-                m_columns[3]
-                );
+            m128::transpose3(m_columns);
+        }
+
+        SelfType transposed() const
+        {
+            SelfType m(*this);
+            m.transpose();
+            return m;
         }
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Scale> : protected Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Scale> : Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::Scale>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::Scale;
+
+        // enable construction from more specific matrix type
+        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+            Matrix4(other)
+        {
+        }
 
         AffineTransformation3() :
             Matrix4()
@@ -240,24 +259,29 @@ namespace ray
             // nothing to do
         }
 
-        // enable casting to more generic matrix type
-        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
-        operator AffineTransformation3<float, OtherMaskV>() const
+        void transpose3()
         {
-            return AffineTransformation3<float, OtherMaskV>(
-                m_columns[0],
-                m_columns[1],
-                m_columns[2],
-                m_columns[3]
-            );
+            // nothing to do
+        }
+
+        SelfType transposed() const
+        {
+            return *this;
         }
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Translation> : protected Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::Translation> : Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::Translation>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::Translation;
+
+        // enable construction from more specific matrix type
+        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+            Matrix4(other)
+        {
+        }
 
         AffineTransformation3() :
             Matrix4()
@@ -302,21 +326,16 @@ namespace ray
             return c;
         }
 
-        void transpose()
+        void transpose3()
         {
-            // nothing to do
+            m128::transpose3(m_columns);
         }
 
-        // enable casting to more generic matrix type
-        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
-        operator AffineTransformation3<float, OtherMaskV>() const
+        Matrix4<float> transposed() const
         {
-            return AffineTransformation3<float, OtherMaskV>(
-                m_columns[0],
-                m_columns[1],
-                m_columns[2],
-                m_columns[3]
-                );
+            Matrix4<float> m(*this);
+            m.transpose();
+            return m;
         }
 
     protected:
@@ -327,10 +346,17 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::RotationTranslation> : protected Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::RotationTranslation> : Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::RotationTranslation>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::RotationTranslation;
+
+        // enable construction from more specific matrix type
+        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+            Matrix4(other)
+        {
+        }
 
         AffineTransformation3() :
             Matrix4()
@@ -376,29 +402,31 @@ namespace ray
             return c;
         }
 
-        void transpose()
+        void transpose3()
         {
-            m128::transpose(m_columns);
+            m128::transpose3(m_columns);
         }
 
-        // enable casting to more generic matrix type
-        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
-        operator AffineTransformation3<float, OtherMaskV>() const
+        Matrix4<float> transposed() const
         {
-            return AffineTransformation3<float, OtherMaskV>(
-                m_columns[0],
-                m_columns[1],
-                m_columns[2],
-                m_columns[3]
-                );
+            Matrix4<float> m(*this);
+            m.transpose();
+            return m;
         }
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::RotationScale> : protected Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::RotationScale> : Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::RotationScale>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::RotationScale;
+
+        // enable construction from more specific matrix type
+        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+            Matrix4(other)
+        {
+        }
 
         AffineTransformation3() :
             Matrix4()
@@ -444,24 +472,31 @@ namespace ray
             m128::transpose3(m_columns);
         }
 
-        // enable casting to more generic matrix type
-        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
-        operator AffineTransformation3<float, OtherMaskV>() const
+        void transpose3()
         {
-            return AffineTransformation3<float, OtherMaskV>(
-                m_columns[0],
-                m_columns[1],
-                m_columns[2],
-                m_columns[3]
-                );
+            m128::transpose3(m_columns);
+        }
+
+        SelfType transposed() const
+        {
+            SelfType m(*this);
+            m.transpose();
+            return m;
         }
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::ScaleTranslation> : protected Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::ScaleTranslation> : Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::ScaleTranslation>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::ScaleTranslation;
+
+        // enable construction from more specific matrix type
+        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+            Matrix4(other)
+        {
+        }
 
         AffineTransformation3() :
             Matrix4()
@@ -508,29 +543,31 @@ namespace ray
             return c;
         }
 
-        void transpose()
+        void transpose3()
         {
-            m128::transpose(m_columns);
+            // nothing to do
         }
 
-        // enable casting to more generic matrix type
-        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
-        operator AffineTransformation3<float, OtherMaskV>() const
+        Matrix4<float> transposed() const
         {
-            return AffineTransformation3<float, OtherMaskV>(
-                m_columns[0],
-                m_columns[1],
-                m_columns[2],
-                m_columns[3]
-                );
+            Matrix4<float> m(*this);
+            m.transpose();
+            return m;
         }
     };
 
     template <>
-    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::All> : protected Matrix4<float>
+    struct alignas(alignof(__m128)) AffineTransformation3<float, AffineTransformationComponentMask::All> : Matrix4<float>
     {
         using SelfType = AffineTransformation3<float, AffineTransformationComponentMask::All>;
         static constexpr AffineTransformationComponentMask mask = AffineTransformationComponentMask::All;
+
+        // enable construction from more specific matrix type
+        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+            Matrix4(other)
+        {
+        }
 
         AffineTransformation3() :
             Matrix4()
@@ -571,21 +608,16 @@ namespace ray
             return c;
         }
 
-        void transpose()
+        void transpose3()
         {
-            m128::transpose(m_columns);
+            m128::transpose3(m_columns);
         }
 
-        // enable casting to more generic matrix type
-        template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(mask, OtherMaskV)>>
-        operator AffineTransformation3<float, OtherMaskV>() const
+        Matrix4<float> transposed() const
         {
-            return AffineTransformation3<float, OtherMaskV>(
-                m_columns[0],
-                m_columns[1],
-                m_columns[2],
-                m_columns[3]
-                );
+            Matrix4<float> m(*this);
+            m.transpose();
+            return m;
         }
     };
 
@@ -613,4 +645,22 @@ namespace ray
             return lhs * AffineTransformation3<T, commonMask>(rhs);
         }
     }
+
+    static_assert(std::is_same_v<decltype(std::declval<Identity3f>() * std::declval<Identity3f>()), Identity3f>);
+    static_assert(std::is_same_v<decltype(std::declval<Rotation3f>() * std::declval<Rotation3f>()), Rotation3f>);
+    static_assert(std::is_same_v<decltype(std::declval<Scale3f>() * std::declval<Scale3f>()), Scale3f>);
+    static_assert(std::is_same_v<decltype(std::declval<Translation3f>() * std::declval<Translation3f>()), Translation3f>);
+    static_assert(std::is_same_v<decltype(std::declval<RotationScale3f>() * std::declval<RotationScale3f>()), RotationScale3f>);
+    static_assert(std::is_same_v<decltype(std::declval<RotationTranslation3f>() * std::declval<RotationTranslation3f>()), RotationTranslation3f>);
+    static_assert(std::is_same_v<decltype(std::declval<ScaleTranslation3f>() * std::declval<ScaleTranslation3f>()), ScaleTranslation3f>);
+    static_assert(std::is_same_v<decltype(std::declval<AffineTransformation3f>() * std::declval<AffineTransformation3f>()), AffineTransformation3f>);
+    static_assert(std::is_same_v<decltype(std::declval<Matrix4f>() * std::declval<Matrix4f>()), Matrix4f>);
+
+    static_assert(std::is_same_v<decltype(std::declval<Identity3f>() * std::declval<Rotation3f>()), Rotation3f>);
+    static_assert(std::is_same_v<decltype(std::declval<Rotation3f>() * std::declval<Translation3f>()), RotationTranslation3f>);
+    static_assert(std::is_same_v<decltype(std::declval<Scale3f>() * std::declval<RotationTranslation3f>()), AffineTransformation3f>);
+    static_assert(std::is_same_v<decltype(std::declval<RotationScale3f>() * std::declval<Identity3f>()), RotationScale3f>);
+    static_assert(std::is_same_v<decltype(std::declval<Matrix4f>() * std::declval<RotationScale3f>()), Matrix4f>);
+    static_assert(std::is_same_v<decltype(std::declval<RotationTranslation3f>() * std::declval<Matrix4f>()), Matrix4f>);
+    static_assert(std::is_same_v<decltype(std::declval<Identity3f>() * std::declval<ScaleTranslation3f>()), ScaleTranslation3f>);
 }

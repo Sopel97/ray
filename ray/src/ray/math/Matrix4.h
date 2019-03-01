@@ -89,6 +89,18 @@ namespace ray
             m128::transpose(m_columns);
         }
 
+        void transpose3()
+        {
+            m128::transpose3(m_columns);
+        }
+
+        Matrix4 transposed() const
+        {
+            Matrix4 m(*this);
+            m.transpose();
+            return m;
+        }
+
         void invert()
         {
             m128::invertMat4(m_columns);
@@ -108,11 +120,6 @@ namespace ray
             // [col][row]
             float m_values[4][4];
         };
-
-        void transpose3()
-        {
-            m128::transpose3(m_columns);
-        }
 
         Matrix4(__m128 c0, __m128 c1, __m128 c2, __m128 c3) :
             m_columns{ c0, c1, c2, c3 }
