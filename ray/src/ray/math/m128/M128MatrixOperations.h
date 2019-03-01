@@ -606,6 +606,38 @@ namespace ray
             transpose3zx(cols);
         }
 
+        inline void invertTransposeMat3(__m128 cols[3])
+        {
+            // same as above but don't transpose back
+
+            __m128 c0 = cols[0];
+            __m128 c1 = cols[1];
+            __m128 c2 = cols[2];
+
+            __m128 c0c1 = cross(c0, c1);
+            const float invDet = 1.0f / dot3(c0c1, c2);
+
+            cols[0] = mul(invDet, cross(c1, c2));
+            cols[1] = mul(invDet, cross(c2, c0));
+            cols[2] = mul(invDet, c0c1);
+        }
+
+        inline void invertTransposeMat3(const __m128 cols[3], __m128 out[3])
+        {
+            // same as above but don't transpose back
+
+            __m128 c0 = cols[0];
+            __m128 c1 = cols[1];
+            __m128 c2 = cols[2];
+
+            __m128 c0c1 = cross(c0, c1);
+            const float invDet = 1.0f / dot3(c0c1, c2);
+
+            out[0] = mul(invDet, cross(c1, c2));
+            out[1] = mul(invDet, cross(c2, c0));
+            out[2] = mul(invDet, c0c1);
+        }
+
         // inv(A) = [ inv(R)   -inv(R) * T ]
         //          [   0            1     ]
         inline void invertMatAffine(__m128 cols[4])
