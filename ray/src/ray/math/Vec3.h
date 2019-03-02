@@ -680,4 +680,4 @@ namespace ray
     }
 }
 
-#include "Vec3SSE.h"
+#include "Vec3Float.h"

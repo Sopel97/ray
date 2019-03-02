@@ -371,7 +371,6 @@ int __cdecl main()
 
     auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m7s }, { &m7m } });
 
-    
     csgs.emplace_back(
         (
             (
@@ -393,7 +392,6 @@ int __cdecl main()
         )
         | sumPart16
     );
-    
 
     //csgs.emplace_back(sumPart16);
 

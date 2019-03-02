@@ -259,6 +259,30 @@ namespace ray
             _MM_TRANSPOSE4_PS(r[0], r[1], r[2], r[3]);
         }
 
+        inline float hmin(__m128 x)
+        {
+            /*
+            __m128 y = _mm_movehdup_ps(x);
+            __m128 m1 = _mm_max_ps(x, y); // m1[0] = max(x[0], x[1]), m1[2] = max(x[2], x[3])
+            __m128 m2 = _mm_movehl_ps(m1, m1); // m2[0] = max(x[2], x[3])
+            return _mm_cvtss_f32(_mm_max_ps(m1, m2));
+            */
+
+            __m128 y = perm_zwxy(x); // hi <=> lo
+            __m128 m1 = _mm_min_ps(x, y); // m1[0] = min(x[0], x[2]), m1[1] = min(x[1], x[3]), m1[2] = min(x[2], x[0]), m1[2] = min(x[3], x[1])
+            __m128 m2 = perm_yxwz(m1); // m2[0] = m1[1], m2[1] = m1[0], m2[2] = m1[3], m2[3] = m1[2]
+            return _mm_cvtss_f32(_mm_min_ps(m1, m2));
+        }
+
+        inline float hmax(__m128 x)
+        {
+
+            __m128 y = perm_zwxy(x); // hi <=> lo
+            __m128 m1 = _mm_max_ps(x, y); // m1[0] = max(x[0], x[2]), m1[1] = max(x[1], x[3]), m1[2] = max(x[2], x[0]), m1[2] = max(x[3], x[1])
+            __m128 m2 = perm_yxwz(m1); // m2[0] = m1[1], m2[1] = m1[0], m2[2] = m1[3], m2[3] = m1[2]
+            return _mm_cvtss_f32(_mm_max_ps(m1, m2));
+        }
+
         inline __m128 min(__m128 a, __m128 b)
         {
             return _mm_min_ps(a, b);

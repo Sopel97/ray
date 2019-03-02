@@ -59,6 +59,7 @@
     <ClInclude Include="src\ray\math\BoundingVolume.h" />
     <ClInclude Include="src\ray\math\detail\VecDetail.h" />
     <ClInclude Include="src\ray\math\EulerAngles2.h" />
+    <ClInclude Include="src\ray\math\Float4.h" />
     <ClInclude Include="src\ray\math\Handedness3.h" />
     <ClInclude Include="src\ray\math\Interval.h" />
     <ClInclude Include="src\ray\math\m128\M128.h" />
@@ -77,7 +78,7 @@
     <ClInclude Include="src\ray\math\TextureCoordinateResolver.h" />
     <ClInclude Include="src\ray\math\Transform3.h" />
     <ClInclude Include="src\ray\math\Vec2.h" />
-    <ClInclude Include="src\ray\math\Vec3SSE.h" />
+    <ClInclude Include="src\ray\math\Vec3Float.h" />
     <ClInclude Include="src\ray\math\Vec3.h" />
     <ClInclude Include="src\ray\math\ViewingFrustum3.h" />
     <ClInclude Include="src\ray\perf\PerformanceStats.h" />

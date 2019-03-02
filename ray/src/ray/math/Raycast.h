@@ -1269,11 +1269,10 @@ namespace ray
         //     - transform direction by inverse of 3x3 inner matrix (disregarding translation)
         //   - remember the length of the transformed direction - will be used to scale distance
         //   - make a ray as if the direction was unitary
-        //   - transform the distance to the previously hit object such that it's as if it were in the same space
         //   - if we hit the sphere:
-        //     - transform back to world
+        //     - transform intervals back to the world coordinates
         //   - if not:
-        //     - transform the previous hit's distance back
+        //     - we don't have to do anything
 
         const Vec3f D = sh.worldToLocal.apply3(Vec3f(ray.direction())); // it's not a surface normal
         const float DLen = D.length();

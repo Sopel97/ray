@@ -245,9 +245,6 @@
     <ClInclude Include="src\ray\math\detail\VecDetail.h">
       <Filter>Header Files\src\math\detail</Filter>
     </ClInclude>
-    <ClInclude Include="src\ray\math\Vec3SSE.h">
-      <Filter>Header Files\src\math</Filter>
-    </ClInclude>
     <ClInclude Include="src\ray\shape\Triangle3.h">
       <Filter>Header Files\src\shape</Filter>
     </ClInclude>
@@ -340,6 +337,12 @@
     </ClInclude>
     <ClInclude Include="src\ray\shape\TransformedShape3.h">
       <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Vec3Float.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\math\Float4.h">
+      <Filter>Header Files\src\math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
