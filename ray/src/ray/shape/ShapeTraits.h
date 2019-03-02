@@ -13,6 +13,8 @@ namespace ray
     struct Cylinder;
     struct OrientedBox3;
     struct ClosedTriangleMeshFace;
+    template <typename TransformT, typename ShapeT>
+    struct TransformedShape3;
 
     template <typename ShapeT>
     struct ShapeTraits;
@@ -106,6 +108,19 @@ namespace ray
         static constexpr bool hasVolume = false;
         static constexpr bool isLocallyContinuable = false;
         static constexpr bool isBounded = true;
+    };
+
+    template <typename TransformT, typename ShapeT>
+    struct ShapeTraits<TransformedShape3<TransformT, ShapeT>>
+    {
+        using ShapePackType = TransformedShape3<TransformT, ShapeT>;
+        using BaseShapeType = TransformedShape3<TransformT, ShapeT>; // for a pack it should be an underlying shape
+        static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
+        static constexpr int numSurfaceMaterialsPerShape = ShapeTraits<ShapeT>::numSurfaceMaterialsPerShape;
+        static constexpr int numMediumMaterialsPerShape = ShapeTraits<ShapeT>::numMediumMaterialsPerShape;
+        static constexpr bool hasVolume = ShapeTraits<ShapeT>::hasVolume;
+        static constexpr bool isLocallyContinuable = ShapeTraits<ShapeT>::isLocallyContinuable;
+        static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
     };
 
     template <>

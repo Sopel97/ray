@@ -39,6 +39,7 @@
 #include <ray/shape/Plane.h>
 #include <ray/shape/Shapes.h>
 #include <ray/shape/Sphere.h>
+#include <ray/shape/TransformedShape3.h>
 
 #include <ray/Camera.h>
 #include <ray/Image.h>
@@ -224,10 +225,13 @@ int __cdecl main()
     auto& pat = texDb.get("square-pattern");
     texDb.emplace<SquarePattern>("square-pattern2", ColorRGBf(0.8f, 0.8f, 0.8f), ColorRGBf(0.6f, 0.6f, 0.6f), 2.0f);
     auto& pat2 = texDb.get("square-pattern2");
+    texDb.emplace<SquarePattern>("square-pattern3", ColorRGBf(0.8f, 0.8f, 0.8f), ColorRGBf(0.6f, 0.6f, 0.6f), 4.0f);
+    auto& pat3 = texDb.get("square-pattern3");
 
     MaterialDatabase matDb;
     auto& m1s = matDb.emplaceSurface("mat1", ColorRGBf(0.2, 0.2, 0.2), ColorRGBf(0, 0, 0), 0.0f, 0.3f, 0.4f, &pat);
     auto& m11s = matDb.emplaceSurface("mat11", ColorRGBf(0.6, 0.6, 0.6), ColorRGBf(0, 0, 0), 0.0f, 0.1f, 0.7f, &pat2);
+    auto& m111s = matDb.emplaceSurface("mat111", ColorRGBf(0.6, 0.6, 0.6), ColorRGBf(0, 0, 0), 0.0f, 0.1f, 0.7f, &pat3);
     auto& m2s = matDb.emplaceSurface("mat2", ColorRGBf(1.00, 0.32, 0.36), ColorRGBf(0, 0, 0), 0.5f, 0.4f, 0.0f);
     auto& m3s = matDb.emplaceSurface("mat3", ColorRGBf(0.90, 0.76, 0.46), ColorRGBf(0, 0, 0), 0.9f, 0.1f, 0.0f);
     auto& m4s = matDb.emplaceSurface("mat4", ColorRGBf(0.65, 0.77, 0.97), ColorRGBf(0, 0, 0), 0.1f, 0.8f, 0.0f);
@@ -265,9 +269,20 @@ int __cdecl main()
     std::vector<SceneObject<Cylinder>> cylinders;
     std::vector<SceneObject<Capsule>> capsules;
     std::vector<SceneObject<OrientedBox3>> obbs;
+    std::vector<SceneObject<TransformedShape3<AffineTransformation3f, Sphere>>> trSpheres;
 
     //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
     ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f / 2.0f, &m7s, &m7m);
+
+    trSpheres.emplace_back(SceneObject<TransformedShape3<AffineTransformation3f, Sphere>>(
+        TransformedShape3<AffineTransformation3f, Sphere>{
+            Rotation3f(OrthonormalBasis3f(Normal3f(1, 2, 3), Normal3f(4, 3, 2), Handedness3::Right)) * AffineTransformation3f(
+                Basis3f(Vec3f(0.5f, 1.0f, 0), Vec3f(0, 0.9f, 0), Vec3f(0, 0, 0.6f)),
+                Vec3f(0, 0, -7)
+            ).inverse(),
+            Sphere(Point3f(0.0, 0, 0), 3.5)
+        }
+        , { { &m7s }, { &m7m } }));
 
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     //planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
@@ -355,7 +370,7 @@ int __cdecl main()
     //auto diffPart15 = SceneObject<CsgShape>(Cylinder(obb.min(), obb.max(), 2.0f), { &m7, &m4 });
     auto diffPart15 = SceneObject<CsgShape>(Capsule(obb.min(), obb.max(), 2.0f), { { &m7s, &m4s }, { &m7m } });
 
-    
+    /*
     csgs.emplace_back(
         (
             (
@@ -374,15 +389,16 @@ int __cdecl main()
          - diffPart14
         // - diffPart15
     );
-    
+    */
+
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
 
-    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3>;
+    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation3f, Sphere>>;
     using PartitionerType = StaticBvhObjectMeanPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
-    RawSceneObjectBlob<ShapesT> shapes(std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
+    RawSceneObjectBlob<ShapesT> shapes(std::move(trSpheres), std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
     StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes, 3);
     //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/

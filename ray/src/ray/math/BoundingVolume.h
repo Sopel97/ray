@@ -8,6 +8,7 @@
 #include <ray/shape/OrientedBox3.h>
 #include <ray/shape/ShapeTags.h>
 #include <ray/shape/Sphere.h>
+#include <ray/shape/TransformedShape3.h>
 #include <ray/shape/Triangle3.h>
 
 namespace ray
@@ -124,6 +125,27 @@ namespace ray
             const Point3f bmin = min(min(tri.v0(), v1), v2);
             const Point3f bmax = max(max(tri.v0(), v1), v2);
             return Box3(bmin, bmax);
+        }
+
+        template <typename TransformT, typename ShapeT>
+        static Box3 get(const TransformedShape3<TransformT, ShapeT>& sh)
+        {
+            auto vs = get(sh.shape).vertices();
+            const auto localToWorld = sh.worldToLocal.inverse();
+            for (auto& p : vs)
+            {
+                p = localToWorld * p;
+            }
+
+            Point3f a = vs[0];
+            Point3f b = vs[0];
+            for (int i = 1; i < vs.size(); ++i)
+            {
+                a = min(a, vs[i]);
+                b = max(b, vs[i]);
+            }
+
+            return Box3(a, b);
         }
     };
 }

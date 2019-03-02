@@ -2,6 +2,8 @@
 
 #include <ray/math/Vec3.h>
 
+#include <array>
+
 namespace ray
 {
     struct Box3
@@ -50,6 +52,24 @@ namespace ray
             if (box.max.x > max.x) max.x = box.max.x;
             if (box.max.y > max.y) max.y = box.max.y;
             if (box.max.z > max.z) max.z = box.max.z;
+        }
+
+        std::array<Point3f, 8> vertices() const
+        {
+            std::array<Point3f, 8> v;
+            Point3f origin = center();
+            Vec3f halfSize = extent() / 2.0f;
+
+            v[0] = origin + Vec3f(halfSize.x, halfSize.y, halfSize.z);
+            v[1] = origin + Vec3f(halfSize.x, halfSize.y, -halfSize.z);
+            v[2] = origin + Vec3f(halfSize.x, -halfSize.y, halfSize.z);
+            v[3] = origin + Vec3f(halfSize.x, -halfSize.y, -halfSize.z);
+            v[4] = origin + Vec3f(-halfSize.x, halfSize.y, halfSize.z);
+            v[5] = origin + Vec3f(-halfSize.x, halfSize.y, -halfSize.z);
+            v[6] = origin + Vec3f(-halfSize.x, -halfSize.y, halfSize.z);
+            v[7] = origin + Vec3f(-halfSize.x, -halfSize.y, -halfSize.z);
+
+            return v;
         }
     };
 }

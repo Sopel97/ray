@@ -22,6 +22,7 @@
 #include <ray/shape/Plane.h>
 #include <ray/shape/HalfSphere.h>
 #include <ray/shape/Sphere.h>
+#include <ray/shape/TransformedShape3.h>
 
 #include <algorithm>
 #include <cmath>
@@ -1212,6 +1213,49 @@ namespace ray
                 hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    template <typename TransformT, typename ShapeT>
+    inline bool raycast(const Ray& ray, const TransformedShape3<TransformT, ShapeT>& sh, RaycastHit& hit)
+    {
+        // We have to:
+        //   - transform the ray to shape's local coordinates
+        //     - transform origin by inverse
+        //     - transform direction by inverse of 3x3 inner matrix (disregarding translation)
+        //   - remember the length of the transformed direction - will be used to scale distance
+        //   - make a ray as if the direction was unitary
+        //   - transform the distance to the previously hit object such that it's as if it were in the same space
+        //   - if we hit the sphere:
+        //     - transform back to world
+        //   - if not:
+        //     - transform the previous hit's distance back
+
+        const Vec3f D = sh.worldToLocal.apply3(Vec3f(ray.direction()));
+        const float DLen = D.length();
+        Ray localRay(
+            sh.worldToLocal * ray.origin(),
+            D.normalized() // it's not a surface normal
+        );
+
+        const float oldHitDist = hit.dist;
+        hit.dist *= DLen;
+        if (raycast(localRay, sh.shape, hit))
+        {
+            auto inv = sh.worldToLocal.inverse();
+
+            hit.dist /= DLen;
+            hit.point = inv * hit.point;
+            hit.normal = inv * hit.normal;
+
+            return true;
+        }
+        else
+        {
+
+            hit.dist = oldHitDist;
         }
 
         return false;

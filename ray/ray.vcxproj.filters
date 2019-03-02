@@ -338,5 +338,8 @@
     <ClInclude Include="src\ray\math\ViewingFrustum3.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\shape\TransformedShape3.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

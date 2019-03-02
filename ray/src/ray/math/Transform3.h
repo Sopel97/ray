@@ -638,6 +638,11 @@ namespace ray
             return Point3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
+        Vec3<float> apply3(const Vec3<float>& rhs) const
+        {
+            return Vec3<float>(m128::mulMat3Vec3(m_columns, rhs.xmm));
+        }
+
         void invert()
         {
             m128::invertMatAffine(m_columns);

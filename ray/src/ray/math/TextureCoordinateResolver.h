@@ -15,6 +15,7 @@
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/Sphere.h>
+#include <ray/shape/TransformedShape3.h>
 
 #include <cmath>
 #include <iostream>
@@ -135,5 +136,14 @@ namespace ray
     {
         BarycentricCoords bc = tri.barycentric(hit.point);
         return tri.vertex(0).uv * bc.u + tri.vertex(1).uv * bc.v + tri.vertex(2).uv * bc.w;
+    }
+
+    template <typename TransformT, typename ShapeT>
+    inline TexCoords resolveTexCoords(const TransformedShape3<TransformT, ShapeT>& sh, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    {
+        ResolvableRaycastHit hitLocal = hit;
+        hitLocal.point = sh.worldToLocal * hitLocal.point;
+        hitLocal.normal = sh.worldToLocal * hitLocal.normal;
+        return resolveTexCoords(sh.shape, hitLocal, shapeInPackNo);
     }
 }
