@@ -274,16 +274,6 @@ int __cdecl main()
     //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
     ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f / 2.0f, &m7s, &m7m);
 
-    trSpheres.emplace_back(SceneObject<TransformedShape3<AffineTransformation3f, Sphere>>(
-        TransformedShape3<AffineTransformation3f, Sphere>{
-            Rotation3f(OrthonormalBasis3f(Normal3f(1, 2, 3), Normal3f(4, 3, 2), Handedness3::Right)) * AffineTransformation3f(
-                Basis3f(Vec3f(0.5f, 1.0f, 0), Vec3f(0, 0.9f, 0), Vec3f(0, 0, 0.6f)),
-                Vec3f(0, 0, -7)
-            ).inverse(),
-            Sphere(Point3f(0.0, 0, 0), 3.5)
-        }
-        , { { &m7s }, { &m7m } }));
-
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
     //planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
     discs.emplace_back(SceneObject<Disc3>(Disc3(Point3f(0, -4, 0), Normal3f(0.0, -1.0, 0.0), 100), { { &m1s } }));
@@ -349,6 +339,15 @@ int __cdecl main()
         };
     //obbs.emplace_back(SceneObject<OrientedBox3>(obb, { &m11 }));
 
+    auto trSphere0 = TransformedShape3<AffineTransformation3f, Sphere>{
+        Rotation3f(OrthonormalBasis3f(Normal3f(1, 2, 3), Normal3f(4, 3, 2), Handedness3::Right)) * AffineTransformation3f(
+            Basis3f(Vec3f(1.0f, 1.0f, 0), Vec3f(0, 1.0f, 0), Vec3f(0, 0, 1.0f)),
+            Vec3f(0, 0, -7)
+        ).inverse(),
+            Sphere(Point3f(0.0, 0, 0), 3.5)
+    };
+    //trSpheres.emplace_back(SceneObject<TransformedShape3<AffineTransformation3f, Sphere>>(trSphere0, { { &m7s }, { &m7m } }));
+
     auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { { &m7s }, { &m7m } });
     auto sumPart2 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -7), 3.5), { { &m7s }, { &m7m } });
     auto subPart3 = SceneObject<CsgShape>(Box3(Point3f(-1.5, -2, -7), Point3f(1.5, 2, -3.5)), { { &m7s }, { &m7m } });
@@ -370,26 +369,33 @@ int __cdecl main()
     //auto diffPart15 = SceneObject<CsgShape>(Cylinder(obb.min(), obb.max(), 2.0f), { &m7, &m4 });
     auto diffPart15 = SceneObject<CsgShape>(Capsule(obb.min(), obb.max(), 2.0f), { { &m7s, &m4s }, { &m7m } });
 
-    /*
+    auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m7s }, { &m7m } });
+
+    
     csgs.emplace_back(
         (
             (
                 (
                     (
-                        (sumPart1 | sumPart2) 
-                        - (subPart3 - subPart4)
+                        (
+                            (sumPart1 | sumPart2) 
+                            - (subPart3 - subPart4)
+                        ) 
+                        & mulPart5
                     ) 
-                    & mulPart5
-                ) 
-                | (sumPart6 | sumPart7)
-                | (subPart8 - subPart9)
-            )
-            - (subPart10 | subPart11 | subPart12 | subPart13)
-        ) 
-         - diffPart14
-        // - diffPart15
+                    | (sumPart6 | sumPart7)
+                    | (subPart8 - subPart9)
+                )
+                - (subPart10 | subPart11 | subPart12 | subPart13)
+            ) 
+            - diffPart14
+            // - diffPart15
+        )
+        | sumPart16
     );
-    */
+    
+
+    //csgs.emplace_back(sumPart16);
 
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });

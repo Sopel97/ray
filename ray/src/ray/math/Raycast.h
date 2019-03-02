@@ -1233,11 +1233,11 @@ namespace ray
         //   - if not:
         //     - transform the previous hit's distance back
 
-        const Vec3f D = sh.worldToLocal.apply3(Vec3f(ray.direction()));
+        const Vec3f D = sh.worldToLocal.apply3(Vec3f(ray.direction())); // it's not a surface normal
         const float DLen = D.length();
         Ray localRay(
             sh.worldToLocal * ray.origin(),
-            D.normalized() // it's not a surface normal
+            D.normalized()
         );
 
         const float oldHitDist = hit.dist;
@@ -1254,8 +1254,39 @@ namespace ray
         }
         else
         {
-
             hit.dist = oldHitDist;
+        }
+
+        return false;
+    }
+
+    template <typename TransformT, typename ShapeT, typename DataT>
+    inline bool raycastIntervals(const Ray& ray, const TransformedShape3<TransformT, ShapeT>& sh, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    {
+        // We have to:
+        //   - transform the ray to shape's local coordinates
+        //     - transform origin by inverse
+        //     - transform direction by inverse of 3x3 inner matrix (disregarding translation)
+        //   - remember the length of the transformed direction - will be used to scale distance
+        //   - make a ray as if the direction was unitary
+        //   - transform the distance to the previously hit object such that it's as if it were in the same space
+        //   - if we hit the sphere:
+        //     - transform back to world
+        //   - if not:
+        //     - transform the previous hit's distance back
+
+        const Vec3f D = sh.worldToLocal.apply3(Vec3f(ray.direction())); // it's not a surface normal
+        const float DLen = D.length();
+        Ray localRay(
+            sh.worldToLocal * ray.origin(),
+            D.normalized()
+        );
+
+        if (raycastIntervals(localRay, sh.shape, hitIntervals, data))
+        {
+            hitIntervals.positiveScale(1.0f / DLen);
+
+            return true;
         }
 
         return false;

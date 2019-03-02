@@ -366,7 +366,6 @@ namespace ray
                     const CsgIntervalData& data = interval.min > 0.0f ? interval.minData : interval.maxData;
                     // apply padding because we are raycasting it again, we don't want to miss it
                     const float dist = (interval.min > 0.0f ? interval.min : interval.max) - padding;
-
                     const Ray offsetRay = ray.translated(ray.direction() * dist);
                     const CsgPrimitiveBase* shape = nullptr;
                     hit.dist -= dist;

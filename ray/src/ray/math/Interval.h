@@ -94,6 +94,15 @@ namespace ray
             m_intervals.clear();
         }
 
+        void positiveScale(float s)
+        {
+            for (auto& i : m_intervals)
+            {
+                i.min *= s;
+                i.max *= s;
+            }
+        }
+
         bool operator==(const IntervalSet<DataT>& rhs) const noexcept
         {
             if (size() != rhs.size()) return false;
