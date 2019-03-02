@@ -80,6 +80,7 @@
     <ClInclude Include="src\ray\math\Vec2.h" />
     <ClInclude Include="src\ray\math\Vec3Float.h" />
     <ClInclude Include="src\ray\math\Vec3.h" />
+    <ClInclude Include="src\ray\math\Vec3x4.h" />
     <ClInclude Include="src\ray\math\ViewingFrustum3.h" />
     <ClInclude Include="src\ray\perf\PerformanceStats.h" />
     <ClInclude Include="src\ray\Raytracer.h" />

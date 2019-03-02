@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <cmath>
 
+#include "m128/M128MemberSwizzleGeneratorDef.h"
+
 namespace ray
 {
     struct Float4Mask
@@ -30,6 +32,8 @@ namespace ray
             };
             __m128 xmm;
         };
+
+        RAY_GEN_MEMBER_SWIZZLE4_DIG_ALL(Float4)
 
         static Float4 broadcast(float xyz)
         {
@@ -127,6 +131,11 @@ namespace ray
         return Float4Mask(_mm_xor_ps(lhs.xmm, rhs.xmm));
     }
 
+    inline Float4 operator-(const Float4& f)
+    {
+        return Float4(m128::neg(f.xmm));
+    }
+
     inline Float4 operator+(const Float4& lhs, const Float4& rhs)
     {
         return Float4(m128::add(lhs.xmm, rhs.xmm));
@@ -216,4 +225,26 @@ namespace ray
     {
         return Float4Mask(m128::cmpeq(rhs, lhs.xmm));
     }
+
+    inline Float4 sqrt(const Float4& f)
+    {
+        return Float4(m128::sqrt(f.xmm));
+    }
+
+    inline Float4 max(const Float4& a, const Float4& b)
+    {
+        return Float4(m128::max(a.xmm, b.xmm));
+    }
+
+    inline Float4 min(const Float4& a, const Float4& b)
+    {
+        return Float4(m128::min(a.xmm, b.xmm));
+    }
+
+    inline Float4 abs(const Float4& a)
+    {
+        return Float4(m128::abs(a.xmm));
+    }
 }
+
+#include "m128/M128MemberSwizzleGeneratorUndef.h"

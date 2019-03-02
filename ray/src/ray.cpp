@@ -15,6 +15,7 @@
 #include <ray/math/Raycast.h>
 #include <ray/math/Transform3.h>
 #include <ray/math/Vec3.h>
+#include <ray/math/Vec3x4.h>
 
 #include <ray/scene/StaticScene.h>
 #include <ray/scene/bvh/StaticBvh.h>

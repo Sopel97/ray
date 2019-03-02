@@ -344,5 +344,8 @@
     <ClInclude Include="src\ray\math\Float4.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\math\Vec3x4.h">
+      <Filter>Header Files\src\math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
