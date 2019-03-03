@@ -490,8 +490,8 @@ namespace ray
         inline __m128 mulMat2Mat2(__m128 a, __m128 b)
         {
             return _mm_add_ps(
-                _mm_mul_ps(a, perm_xxww(b)),
-                _mm_mul_ps(perm_zwxy(a), perm_yyzz(b))
+                _mm_mul_ps(a, permute_xxww(b)),
+                _mm_mul_ps(permute_zwxy(a), permute_yyzz(b))
             );
         }
 
@@ -499,8 +499,8 @@ namespace ray
         inline __m128 mulMat2AdjMat2(__m128 a, __m128 b)
         {
             return _mm_sub_ps(
-                _mm_mul_ps(perm_wxwx(a), b),
-                _mm_mul_ps(perm_zyzy(a), perm_yxwz(b))
+                _mm_mul_ps(permute_wxwx(a), b),
+                _mm_mul_ps(permute_zyzy(a), permute_yxwz(b))
             );
         }
 
@@ -508,8 +508,8 @@ namespace ray
         inline __m128 mulMat2Mat2Adj(__m128 a, __m128 b)
         {
             return _mm_sub_ps(
-                _mm_mul_ps(a, perm_wwxx(b)),
-                _mm_mul_ps(perm_zwxy(a), perm_yyzz(b))
+                _mm_mul_ps(a, permute_wwxx(b)),
+                _mm_mul_ps(permute_zwxy(a), permute_yyzz(b))
             );
         }
 
@@ -560,7 +560,7 @@ namespace ray
             detM = _mm_add_ps(detM, _mm_mul_ps(detB, detC));
 
             // tr((A#B)(D#C))
-            __m128 tr = _mm_mul_ps(A_B, perm_xzyw(D_C));
+            __m128 tr = _mm_mul_ps(A_B, permute_xzyw(D_C));
             tr = _mm_hadd_ps(tr, tr);
             tr = _mm_hadd_ps(tr, tr);
             // |M| = |A|*|D| + |B|*|C| - tr((A#B)(D#C))

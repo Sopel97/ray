@@ -104,6 +104,11 @@ namespace ray
             return *this;
         }
 
+        void insert(float x, int i)
+        {
+            v[i] = x;
+        }
+
         float max() const
         {
             return m128::hmax(xmm);

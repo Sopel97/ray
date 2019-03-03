@@ -53,9 +53,38 @@ namespace ray
         inline __m128 mask_z() { return mask<2>(); }
         inline __m128 mask_w() { return mask<3>(); }
 
-        inline __m128 mask(bool x, bool y, bool z, bool w)
+        inline __m128 makeMask(bool x, bool y, bool z, bool w)
         {
             return _mm_castsi128_ps(_mm_set_epi32(w ? 0xFFFFFFFF : 0, z ? 0xFFFFFFFF : 0, y ? 0xFFFFFFFF : 0, x ? 0xFFFFFFFF : 0));
+        }
+
+        inline const __m128 s_masks[16] = {
+            makeMask(0, 0, 0, 0),
+            makeMask(1, 0, 0, 0),
+            makeMask(0, 1, 0, 0),
+            makeMask(1, 1, 0, 0),
+            makeMask(0, 0, 1, 0),
+            makeMask(1, 0, 1, 0),
+            makeMask(0, 1, 1, 0),
+            makeMask(1, 1, 1, 0),
+            makeMask(0, 0, 0, 1),
+            makeMask(1, 0, 0, 1),
+            makeMask(0, 1, 0, 1),
+            makeMask(1, 1, 0, 1),
+            makeMask(0, 0, 1, 1),
+            makeMask(1, 0, 1, 1),
+            makeMask(0, 1, 1, 1),
+            makeMask(1, 1, 1, 1)
+        };
+
+        inline __m128 mask(bool x, bool y, bool z, bool w)
+        {
+            return s_masks[static_cast<std::size_t>(x) | (y << 1) | (z << 2) | (w << 3)];
+        }
+
+        inline __m128 mask(int i)
+        {
+            return s_masks[static_cast<std::size_t>(1) << i];
         }
 
         // for xyzw vector make it xyz0
@@ -268,18 +297,18 @@ namespace ray
             return _mm_cvtss_f32(_mm_max_ps(m1, m2));
             */
 
-            __m128 y = perm_zwxy(x); // hi <=> lo
+            __m128 y = permute_zwxy(x); // hi <=> lo
             __m128 m1 = _mm_min_ps(x, y); // m1[0] = min(x[0], x[2]), m1[1] = min(x[1], x[3]), m1[2] = min(x[2], x[0]), m1[2] = min(x[3], x[1])
-            __m128 m2 = perm_yxwz(m1); // m2[0] = m1[1], m2[1] = m1[0], m2[2] = m1[3], m2[3] = m1[2]
+            __m128 m2 = permute_yxwz(m1); // m2[0] = m1[1], m2[1] = m1[0], m2[2] = m1[3], m2[3] = m1[2]
             return _mm_cvtss_f32(_mm_min_ps(m1, m2));
         }
 
         inline float hmax(__m128 x)
         {
 
-            __m128 y = perm_zwxy(x); // hi <=> lo
+            __m128 y = permute_zwxy(x); // hi <=> lo
             __m128 m1 = _mm_max_ps(x, y); // m1[0] = max(x[0], x[2]), m1[1] = max(x[1], x[3]), m1[2] = max(x[2], x[0]), m1[2] = max(x[3], x[1])
-            __m128 m2 = perm_yxwz(m1); // m2[0] = m1[1], m2[1] = m1[0], m2[2] = m1[3], m2[3] = m1[2]
+            __m128 m2 = permute_yxwz(m1); // m2[0] = m1[1], m2[1] = m1[0], m2[2] = m1[3], m2[3] = m1[2]
             return _mm_cvtss_f32(_mm_max_ps(m1, m2));
         }
 

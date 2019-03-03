@@ -10,7 +10,7 @@ namespace ray
     namespace m128
     {
         template <unsigned X, unsigned Y, unsigned Z, unsigned W>
-        inline __m128 perm(__m128 v)
+        inline __m128 permute(__m128 v)
         {
             static_assert(X < 4 && Y < 4 && Z < 4 && W < 4);
             return _mm_shuffle_ps(v, v, _MM_SHUFFLE(W, Z, Y, X));
@@ -24,7 +24,7 @@ namespace ray
         }
 
 #define RAY_GEN_M128_SWIZZLE(X, Y, Z, W) \
-inline __m128 perm_##X##Y##Z##W(__m128 v) { return perm<m128::lane::##X, m128::lane::##Y, m128::lane::##Z, m128::lane::##W>(v); } \
+inline __m128 permute_##X##Y##Z##W(__m128 v) { return permute<m128::lane::##X, m128::lane::##Y, m128::lane::##Z, m128::lane::##W>(v); } \
 inline __m128 shuffle_##X##Y##Z##W(__m128 a, __m128 b) { return shuffle<m128::lane::##X, m128::lane::##Y, m128::lane::##Z, m128::lane::##W>(a, b); }
 
         // TODO: see if the compiler can optimize less complex shuffles into other instructions

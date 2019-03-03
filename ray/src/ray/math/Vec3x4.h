@@ -44,6 +44,16 @@ namespace ray
             z(z)
         {
         }
+
+        Vec3x4(const Vec3<float>& v0, const Vec3<float>& v1, const Vec3<float>& v2, const Vec3<float>& v3)
+        {
+            __m128 coords[4] = { v0.xmm, v1.xmm, v2.xmm, v3.xmm };
+            m128::transpose(coords);
+            x = Float4(coords[0]);
+            y = Float4(coords[1]);
+            z = Float4(coords[2]);
+        }
+
         Vec3x4(const Vec3x4<float>&) = default;
         Vec3x4(Vec3x4<float>&&) noexcept = default;
 
@@ -112,6 +122,13 @@ namespace ray
             y /= rhs;
             z /= rhs;
             return *this;
+        }
+
+        void insert(const Vec3<float>& v, int i)
+        {
+            x.insert(v.x, i);
+            y.insert(v.y, i);
+            z.insert(v.z, i);
         }
 
         Float4 length() const
