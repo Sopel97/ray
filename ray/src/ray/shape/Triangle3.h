@@ -10,7 +10,7 @@
 namespace ray
 {
     // Allows per vertex normals, but requires their directions
-    // to be coherent with direction of cross(m_e01, m_e02).
+    // to be coherent with direction of cross3(m_e01, m_e02).
     // NOTE: this assumption could be removed by doing one more dot3 in raycast
     // Size should be 128 with no precomputed data.
     struct Triangle3

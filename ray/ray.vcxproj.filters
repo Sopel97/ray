@@ -350,5 +350,8 @@
     <ClInclude Include="src\ray\math\Matrix3.h">
       <Filter>Header Files\src\math</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\math\m128\M128Mask.h">
+      <Filter>Header Files\src\math\m128</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

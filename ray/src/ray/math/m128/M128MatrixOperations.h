@@ -71,6 +71,7 @@ namespace ray
         }
 
         // column-major
+        // zeroes result[i].w
         inline void mulMat3Mat3(const __m128 lhs[3], const __m128 rhs[3], __m128 result[3])
         {
             __m128 c0 = lhs[0];
@@ -115,6 +116,8 @@ namespace ray
         }
 
         // column-major
+        // assumes that last rows of lhs and rhs are [0, 0, 0, 1]
+        // last row of result is [0, 0, 0, 1]
         inline void mulMatAffineMatAffine(const __m128 lhs[4], const __m128 rhs[4], __m128 result[4])
         {
             __m128 c0 = lhs[0];
@@ -168,62 +171,6 @@ namespace ray
                 // lhs[3] = 1 * lhs[3]
 
                 result[3] = _mm_add_ps(lhs[3], _mm_add_ps(x, _mm_add_ps(y, z)));
-            }
-        }
-
-        // column-major
-        inline void mulMat3MatAffine(const __m128 lhs[3], const __m128 rhs[4], __m128 result[4])
-        {
-            __m128 c0 = lhs[0];
-            __m128 c1 = lhs[1];
-            __m128 c2 = lhs[2];
-
-            // column 0
-            {
-                __m128 x, y, z;
-                spill3(rhs[0], x, y, z);
-
-                x = _mm_mul_ps(x, c0);
-                y = _mm_mul_ps(y, c1);
-                z = _mm_mul_ps(z, c2);
-
-                result[0] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
-            }
-
-            // column 1
-            {
-                __m128 x, y, z;
-                spill3(rhs[1], x, y, z);
-
-                x = _mm_mul_ps(x, c0);
-                y = _mm_mul_ps(y, c1);
-                z = _mm_mul_ps(z, c2);
-
-                result[1] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
-            }
-
-            // column 2
-            {
-                __m128 x, y, z;
-                spill3(rhs[2], x, y, z);
-
-                x = _mm_mul_ps(x, c0);
-                y = _mm_mul_ps(y, c1);
-                z = _mm_mul_ps(z, c2);
-
-                result[2] = truncate3(_mm_add_ps(x, _mm_add_ps(y, z)));
-            }
-
-            // column 3
-            {
-                __m128 x, y, z;
-                spill3(rhs[3], x, y, z);
-
-                x = _mm_mul_ps(x, c0);
-                y = _mm_mul_ps(y, c1);
-                z = _mm_mul_ps(z, c2);
-
-                result[3] = _mm_add_ps(x, _mm_add_ps(y, z));
             }
         }
 
@@ -282,6 +229,7 @@ namespace ray
         }
 
         // column-major
+        // leaves w component undefined
         [[nodiscard]] inline __m128 mulMat3Vec3(const __m128 lhs[3], __m128 rhs)
         {
             __m128 v0, v1, v2;
@@ -294,7 +242,8 @@ namespace ray
             return _mm_add_ps(v0, _mm_add_ps(v1, v2));
         }
 
-        // column-major, vector is in homogeneous coordinates
+        // column-major
+        // preserves rhs.w
         [[nodiscard]] inline __m128 mulMat3Vec3homo(const __m128 lhs[3], __m128 rhs)
         {
             __m128 v0, v1, v2;
@@ -311,6 +260,9 @@ namespace ray
             );
         }
 
+        // column-major
+        // behaves as if rhs.w == 1, but doesn't require it
+        // ret.w = 1
         [[nodiscard]] inline __m128 mulMatAffineVec3(const __m128 lhs[4], __m128 rhs)
         {
             __m128 v0, v1, v2;
@@ -323,6 +275,9 @@ namespace ray
             return _mm_add_ps(_mm_add_ps(v0, v1), _mm_add_ps(v2, lhs[3]));
         }
 
+        // column-major
+        // behaves as if rhs.w == 1, but doesn't require it
+        // ret.w = 1, scales back to homogeneous coordinates
         [[nodiscard]] inline __m128 mulMat4Vec3(const __m128 lhs[4], __m128 rhs)
         {
             __m128 v0, v1, v2;
@@ -339,6 +294,7 @@ namespace ray
             return _mm_div_ps(res, wwww);
         }
 
+        // assumes no shear
         inline void invertMatAffinePerpAxes(__m128 cols[4])
         {
             // column-major
@@ -397,6 +353,7 @@ namespace ray
             cols[3] = m128::neg(mulMat3Vec3homo(cols, cols[3]), mask_xyz());
         }
 
+        // assumes no shear and no transltion
         inline void invertMatAffineNoTransPerpAxes(__m128 cols[4])
         {
             // column-major
@@ -451,6 +408,7 @@ namespace ray
             cols[2] = c2;
         }
 
+        // assumes only rotation and translation
         inline void invertMatAffineNoScalePerpAxes(__m128 cols[4])
         {
             // column-major
@@ -582,6 +540,7 @@ namespace ray
             cols[3] = shuffle_zxzx(Y_, W_);
         }
 
+        // zeroes cols[i].w
         inline void invertMat3(__m128 cols[3])
         {
             // https://en.wikipedia.org/wiki/Invertible_matrix#Inversion_of_3_%C3%97_3_matrices
@@ -590,22 +549,25 @@ namespace ray
             // A^-1 = 1/det(A) * [ (c2 x c0)^T ]
             //                   [ (c0 x c1)^T ]
 
-            // our m128 cross() preserves the last component (w), so we don't have to zero it explicitly
+            // our m128 cross3() zeroes the last component (w), so we don't have to zero it explicitly
+            // but we still have to transpose with zero extension because we don't have
+            // a transposition function that preserves w components
 
             __m128 c0 = cols[0];
             __m128 c1 = cols[1];
             __m128 c2 = cols[2];
 
-            __m128 c0c1 = cross(c0, c1);
+            __m128 c0c1 = cross3(c0, c1);
             const float invDet = 1.0f / dot3(c0c1, c2);
 
-            cols[0] = mul(invDet, cross(c1, c2));
-            cols[1] = mul(invDet, cross(c2, c0));
+            cols[0] = mul(invDet, cross3(c1, c2));
+            cols[1] = mul(invDet, cross3(c2, c0));
             cols[2] = mul(invDet, c0c1);
 
             transpose3zx(cols);
         }
 
+        // zeroes cols[i].w
         inline void invertTransposeMat3(__m128 cols[3])
         {
             // same as above but don't transpose back
@@ -614,14 +576,15 @@ namespace ray
             __m128 c1 = cols[1];
             __m128 c2 = cols[2];
 
-            __m128 c0c1 = cross(c0, c1);
+            __m128 c0c1 = cross3(c0, c1);
             const float invDet = 1.0f / dot3(c0c1, c2);
 
-            cols[0] = mul(invDet, cross(c1, c2));
-            cols[1] = mul(invDet, cross(c2, c0));
+            cols[0] = mul(invDet, cross3(c1, c2));
+            cols[1] = mul(invDet, cross3(c2, c0));
             cols[2] = mul(invDet, c0c1);
         }
 
+        // zeroes out[i].w
         inline void invertTransposeMat3(const __m128 cols[3], __m128 out[3])
         {
             // same as above but don't transpose back
@@ -630,16 +593,17 @@ namespace ray
             __m128 c1 = cols[1];
             __m128 c2 = cols[2];
 
-            __m128 c0c1 = cross(c0, c1);
+            __m128 c0c1 = cross3(c0, c1);
             const float invDet = 1.0f / dot3(c0c1, c2);
 
-            out[0] = mul(invDet, cross(c1, c2));
-            out[1] = mul(invDet, cross(c2, c0));
+            out[0] = mul(invDet, cross3(c1, c2));
+            out[1] = mul(invDet, cross3(c2, c0));
             out[2] = mul(invDet, c0c1);
         }
 
         // inv(A) = [ inv(R)   -inv(R) * T ]
         //          [   0            1     ]
+        // assumes the last row to be [0, 0, 0, 1]
         inline void invertMatAffine(__m128 cols[4])
         {
             invertMat3(cols);

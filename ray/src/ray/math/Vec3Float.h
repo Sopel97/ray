@@ -572,22 +572,22 @@ namespace ray
 
     [[nodiscard]] inline Vec3<float> cross(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(m128::cross(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::cross3(lhs.xmm, rhs.xmm));
     }
 
     [[nodiscard]] inline Vec3<float> cross(const Normal3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(m128::cross(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::cross3(lhs.xmm, rhs.xmm));
     }
 
     [[nodiscard]] inline Vec3<float> cross(const Vec3<float>& lhs, const Normal3<float>& rhs)
     {
-        return Vec3<float>(m128::cross(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::cross3(lhs.xmm, rhs.xmm));
     }
 
     [[nodiscard]] inline Vec3<float> cross(const Normal3<float>& lhs, const Normal3<float>& rhs)
     {
-        return Vec3<float>(m128::cross(lhs.xmm, rhs.xmm));
+        return Vec3<float>(m128::cross3(lhs.xmm, rhs.xmm));
     }
 
 

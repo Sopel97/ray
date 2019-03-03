@@ -1,5 +1,6 @@
 #pragma once
 
+#include "M128Mask.h"
 #include "M128Shuffle.h"
 
 #include <xmmintrin.h>
@@ -22,69 +23,6 @@ namespace ray
             yyyy = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(1, 1, 1, 1));
             zzzz = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(2, 2, 2, 2));
             wwww = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(3, 3, 3, 3));
-        }
-
-        template <unsigned L0, unsigned L1 = L0, unsigned L2 = L1, unsigned L3 = L2>
-        [[nodiscard]] inline __m128 mask()
-        {
-            static_assert(L0 < 4 && L1 < 4 && L2 < 4 && L3 < 4);
-            constexpr unsigned mask = (1 << L0) | (1 << L1) | (1 << L2) | (1 << L3);
-            return _mm_castsi128_ps(_mm_set_epi32(
-                mask & 0b1000 ? 0xFFFFFFFF : 0,
-                mask & 0b0100 ? 0xFFFFFFFF : 0,
-                mask & 0b0010 ? 0xFFFFFFFF : 0,
-                mask & 0b0001 ? 0xFFFFFFFF : 0
-            ));
-        }
-
-        [[nodiscard]] inline __m128 mask_xyzw() { return mask<0, 1, 2, 3>(); }
-        [[nodiscard]] inline __m128 mask_xyz() { return mask<0, 1, 2>(); }
-        [[nodiscard]] inline __m128 mask_xyw() { return mask<0, 1, 3>(); }
-        [[nodiscard]] inline __m128 mask_xzw() { return mask<0, 2, 3>(); }
-        [[nodiscard]] inline __m128 mask_yzw() { return mask<1, 2, 3>(); }
-        [[nodiscard]] inline __m128 mask_xy() { return mask<0, 1>(); }
-        [[nodiscard]] inline __m128 mask_xz() { return mask<0, 2>(); }
-        [[nodiscard]] inline __m128 mask_xw() { return mask<0, 3>(); }
-        [[nodiscard]] inline __m128 mask_yz() { return mask<1, 2>(); }
-        [[nodiscard]] inline __m128 mask_yw() { return mask<1, 3>(); }
-        [[nodiscard]] inline __m128 mask_zw() { return mask<2, 3>(); }
-        [[nodiscard]] inline __m128 mask_x() { return mask<0>(); }
-        [[nodiscard]] inline __m128 mask_y() { return mask<1>(); }
-        [[nodiscard]] inline __m128 mask_z() { return mask<2>(); }
-        [[nodiscard]] inline __m128 mask_w() { return mask<3>(); }
-
-        [[nodiscard]] inline __m128 makeMask(bool x, bool y, bool z, bool w)
-        {
-            return _mm_castsi128_ps(_mm_set_epi32(w ? 0xFFFFFFFF : 0, z ? 0xFFFFFFFF : 0, y ? 0xFFFFFFFF : 0, x ? 0xFFFFFFFF : 0));
-        }
-
-        inline const __m128 s_masks[16] = {
-            makeMask(0, 0, 0, 0),
-            makeMask(1, 0, 0, 0),
-            makeMask(0, 1, 0, 0),
-            makeMask(1, 1, 0, 0),
-            makeMask(0, 0, 1, 0),
-            makeMask(1, 0, 1, 0),
-            makeMask(0, 1, 1, 0),
-            makeMask(1, 1, 1, 0),
-            makeMask(0, 0, 0, 1),
-            makeMask(1, 0, 0, 1),
-            makeMask(0, 1, 0, 1),
-            makeMask(1, 1, 0, 1),
-            makeMask(0, 0, 1, 1),
-            makeMask(1, 0, 1, 1),
-            makeMask(0, 1, 1, 1),
-            makeMask(1, 1, 1, 1)
-        };
-
-        [[nodiscard]] inline __m128 mask(bool x, bool y, bool z, bool w)
-        {
-            return s_masks[static_cast<std::size_t>(x) | (y << 1) | (z << 2) | (w << 3)];
-        }
-
-        [[nodiscard]] inline __m128 mask(int i)
-        {
-            return s_masks[static_cast<std::size_t>(1) << i];
         }
 
         // for xyzw vector make it xyz0
@@ -238,7 +176,9 @@ namespace ray
             return hadd(mul(a, b));
         }
 
-        [[nodiscard]] inline __m128 cross(__m128 a, __m128 b)
+        // xyz contains cross(a.xyz, b.xyz)
+        // w contains a.w*b.w - a.w*b.w ~= 0
+        [[nodiscard]] inline __m128 cross3(__m128 a, __m128 b)
         {
             // http://threadlocalmutex.com/?p=8
             __m128 a_yzx = _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1));
@@ -247,6 +187,7 @@ namespace ray
             return _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1));
         }
 
+        // out r0.w, r1.w, r2.w are undefined
         inline void transpose3(__m128& r0, __m128& r1, __m128& r2)
         {
             __m128 t0 = _mm_shuffle_ps(r0, r1, _MM_SHUFFLE(1, 0, 1, 0));
@@ -261,6 +202,7 @@ namespace ray
             _MM_TRANSPOSE4_PS(r0, r1, r2, r3);
         }
 
+        // out r0.w, r1.w, r2.w are undefined
         inline void transpose3(__m128 r[3])
         {
             __m128 t0 = _mm_shuffle_ps(r[0], r[1], _MM_SHUFFLE(1, 0, 1, 0));
@@ -270,13 +212,14 @@ namespace ray
             r[2] = _mm_shuffle_ps(t1, r[2], _MM_SHUFFLE(0, 2, 2, 0));
         }
 
-        // zero extent
+        // out r0.w, r1.w, r2.w are equal to zero
         inline void transpose3zx(__m128& r0, __m128& r1, __m128& r2)
         {
             __m128 r3 = _mm_setzero_ps();
             transpose(r0, r1, r2, r3);
         }
 
+        // out r0.w, r1.w, r2.w are equal to zero
         inline void transpose3zx(__m128 r[3])
         {
             __m128 r3 = _mm_setzero_ps();

@@ -63,6 +63,7 @@
     <ClInclude Include="src\ray\math\Handedness3.h" />
     <ClInclude Include="src\ray\math\Interval.h" />
     <ClInclude Include="src\ray\math\m128\M128.h" />
+    <ClInclude Include="src\ray\math\m128\M128Mask.h" />
     <ClInclude Include="src\ray\math\m128\M128Math.h" />
     <ClInclude Include="src\ray\math\m128\M128MatrixOperations.h" />
     <ClInclude Include="src\ray\math\m128\M128MemberSwizzleGeneratorDef.h" />

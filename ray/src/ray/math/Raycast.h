@@ -648,7 +648,7 @@ namespace ray
 
         const Vec3f v0v1 = tri.e01();
         const Vec3f v0v2 = tri.e02();
-        const Vec3f pvec = cross(dir, v0v2);
+        const Vec3f pvec = cross3(dir, v0v2);
         const float det = dot3(v0v1, pvec);
 
         // ray and triangle are parallel if det is close to 0
@@ -660,7 +660,7 @@ namespace ray
         const float u = dot3(tvec, pvec) * invDet;
         if (u < 0 || u > 1) return false;
 
-        const Vec3f qvec = cross(tvec, v0v1);
+        const Vec3f qvec = cross3(tvec, v0v1);
         const float v = dot3(dir, qvec) * invDet;
         if (v < 0 || (v + u) > 1) return false;
 
