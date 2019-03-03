@@ -891,7 +891,7 @@ namespace ray
     }
 
     // should return smallest distance (ie. smallest in absolute value)
-    [[nodiscard]] inline bool raycastDist(const Ray& ray, const HalfSphere& sphere, float& t)
+    [[nodiscard]] inline bool raycastMinMax(const Ray& ray, const HalfSphere& sphere, float& t0, float& t1)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addDistRaycast<HalfSphere>();
@@ -913,31 +913,35 @@ namespace ray
 
         float tmin = t_ca - t_hc;
         float tmax = t_ca + t_hc;
-
-        if (std::abs(tmax) < std::abs(tmin)) std::swap(tmin, tmax);
+        if (tmax < 0.0f) return false;
 
         Point3f hitPointMin = O + tmin * D;
         Point3f hitPointMax = O + tmax * D;
-        if (dot(hitPointMin - C, sphere.normal()) > 0.0f)
+        const bool minHit = dot(hitPointMin - C, sphere.normal()) > 0.0f;
+        const bool maxHit = dot(hitPointMax - C, sphere.normal()) > 0.0f;
+        if (minHit && maxHit)
         {
-#if defined(RAY_GATHER_PERF_STATS)
-            perf::gThreadLocalPerfStats.addDistRaycastHit<HalfSphere>();
-#endif
-            t = tmin;
-            return true;
+            t0 = tmin;
+            t1 = tmax;
         }
-        else if (dot(hitPointMax - C, sphere.normal()) > 0.0f)
+        else if (minHit)
         {
-#if defined(RAY_GATHER_PERF_STATS)
-            perf::gThreadLocalPerfStats.addDistRaycastHit<HalfSphere>();
-#endif
-            t = tmax;
-            return true;
+            t0 = t1 = tmin;
+        }
+        else if (maxHit)
+        {
+            t0 = t1 = tmax;
         }
         else
         {
             return false;
         }
+
+#if defined(RAY_GATHER_PERF_STATS)
+        perf::gThreadLocalPerfStats.addDistRaycastHit<HalfSphere>();
+#endif
+
+        return true;
     }
 
     template <typename DataT>
@@ -979,13 +983,30 @@ namespace ray
             float t1 = (-b + sqrtDelta) / (2.0f * a);
             if (t1 < 0.0f) return false;
 
-            {
-                const Point3f point1 = P + d * t1;
-                const float p1l = dot(point1 - A, v);
+            const Point3f point0 = P + d * t0;
+            const Point3f point1 = P + d * t1;
+            const float p0v = dot(point0 - A, v);
+            const float p1v = dot(point1 - A, v);
 
-                if (p1l < 0.0f)
+            if (p0v < 0.0f && p1v < 0.0f)
+            {
+                // we are before A
+                // both hits on one side
+                // nothing can be hit because the caps are flat
+                return false;
+            }
+            else if (p0v > cyl.length && p1v > cyl.length)
+            {
+                // we are after B
+                // both hits on one side
+                // nothing can be hit because the caps are flat
+                return false;
+            }
+            else
+            {
+                if (p1v < 0.0f)
                 {
-                    // we are before A
+                    // we are before A for the far hit
                     const Disc3 d0(A, -v, cyl.radius);
                     float dist;
                     if (raycastDist(ray, d0, dist))
@@ -998,9 +1019,9 @@ namespace ray
                         return false;
                     }
                 }
-                else if (p1l > cyl.length)
+                else if (p1v > cyl.length)
                 {
-                    // we are after B
+                    // we are after B for the far hit
                     const Disc3 d1(A + v * cyl.length, v, cyl.radius);
                     float dist;
                     if (raycastDist(ray, d1, dist))
@@ -1013,15 +1034,11 @@ namespace ray
                         return false;
                     }
                 }
-            }
 
-            {
-                const Point3f point0 = P + d * t0;
-                const float p0l = dot(point0 - A, v);
 
-                if (p0l < 0.0f)
+                if (p0v < 0.0f)
                 {
-                    // we are before A
+                    // we are before A for the near hit
                     const Disc3 d0(A, -v, cyl.radius);
                     float dist;
                     if (raycastDist(ray, d0, dist))
@@ -1033,9 +1050,9 @@ namespace ray
                         return false;
                     }
                 }
-                else if (p0l > cyl.length)
+                else if (p0v > cyl.length)
                 {
-                    // we are after B
+                    // we are after B for the near hit
                     const Disc3 d1(A + v * cyl.length, v, cyl.radius);
                     float dist;
                     if (raycastDist(ray, d1, dist))
@@ -1118,68 +1135,105 @@ namespace ray
             float t1 = (-b + sqrtDelta) / (2.0f * a);
             if (t1 < 0.0f) return false;
 
-            {
-                const Point3f point1 = P + d * t1;
-                const float p1l = dot(point1 - A, v);
+            const Point3f point0 = P + d * t0;
+            const Point3f point1 = P + d * t1;
+            const float p0v = dot(point0 - A, v);
+            const float p1v = dot(point1 - A, v);
 
-                if (p1l < 0.0f)
+            if (p0v < 0.0f && p1v < 0.0f)
+            {
+                // we are before A
+                // both hits on one side
+                const HalfSphere d0(A, -v, cyl.radius);
+                float tmin, tmax;
+                if (raycastMinMax(ray, d0, tmin, tmax))
                 {
-                    // we are before A
-                    const HalfSphere d0(A, -v, cyl.radius);
-                    float dist;
-                    if (raycastDist(ray, d0, dist))
-                    {
-                        t1 = dist;
-                        if (dist < 0.0f) return false;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    t0 = tmin;
+                    t1 = tmax;
+                    if (tmax < 0.0f) return false;
+
+                    return true;
                 }
-                else if (p1l > cyl.length)
+                else
                 {
-                    // we are after B
-                    const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
-                    float dist;
-                    if (raycastDist(ray, d1, dist))
-                    {
-                        t1 = dist;
-                        if (dist < 0.0f) return false;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
-
+            else if (p0v > cyl.length && p1v > cyl.length)
             {
-                const Point3f point0 = P + d * t0;
-                const float p0l = dot(point0 - A, v);
-
-                if (p0l < 0.0f)
+                // we are after B
+                // both hits on one side
+                const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
+                float tmin, tmax;
+                if (raycastMinMax(ray, d1, tmin, tmax))
                 {
-                    // we are before A
+                    t0 = tmin;
+                    t1 = tmax;
+                    if (tmax < 0.0f) return false;
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (p1v < 0.0f)
+                {
+                    // we are before A for the far hit
                     const HalfSphere d0(A, -v, cyl.radius);
-                    float dist;
-                    if (raycastDist(ray, d0, dist))
+                    float tmin, tmax;
+                    if (raycastMinMax(ray, d0, tmin, tmax))
                     {
-                        t0 = dist;
+                        t1 = tmax;
+                        if (tmax < 0.0f) return false;
                     }
                     else
                     {
                         return false;
                     }
                 }
-                else if (p0l > cyl.length)
+                else if (p1v > cyl.length)
                 {
-                    // we are after B
+                    // we are after B for the far hit
                     const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
-                    float dist;
-                    if (raycastDist(ray, d1, dist))
+                    float tmin, tmax;
+                    if (raycastMinMax(ray, d1, tmin, tmax))
                     {
-                        t0 = dist;
+                        t1 = tmax;
+                        if (tmax < 0.0f) return false;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+
+                if (p0v < 0.0f)
+                {
+                    // we are before A for the near hit
+                    const HalfSphere d0(A, -v, cyl.radius);
+                    float tmin, tmax;
+                    if (raycastMinMax(ray, d0, tmin, tmax))
+                    {
+                        t0 = tmin;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (p0v > cyl.length)
+                {
+                    // we are after B for the near hit
+                    const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
+                    float tmin, tmax;
+                    if (raycastMinMax(ray, d1, tmin, tmax))
+                    {
+                        t0 = tmin;
                     }
                     else
                     {
@@ -1198,11 +1252,16 @@ namespace ray
         }
         else
         {
+            // we are parallel
+            // we can only go through the caps
             const HalfSphere d0(A, -v, cyl.radius);
             const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
-            float t0, t1;
-            if (raycastDist(ray, d0, t0) && raycastDist(ray, d1, t1))
+            float t0min, t0max, t1min, t1max;
+            if (raycastMinMax(ray, d0, t0min, t0max) && raycastMinMax(ray, d1, t1min, t1max))
             {
+                // if we're here then each half sphere was hit exactly once. ie. t0min t0max are the same
+                float t0 = t0min;
+                float t1 = t1min;
                 if (t1 < t0) std::swap(t0, t1);
                 if (t1 < 0.0f) return false;
 

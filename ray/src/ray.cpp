@@ -370,7 +370,7 @@ int __cdecl main()
 
     auto diffPart14 = SceneObject<CsgShape>(obb, { { &m11s }, { &m11m } });
 
-    //auto diffPart15 = SceneObject<CsgShape>(Cylinder(obb.min(), obb.max(), 2.0f), { &m7, &m4 });
+    //auto diffPart15 = SceneObject<CsgShape>(Cylinder(obb.min(), obb.max(), 2.0f), { { &m7s, &m4s }, { &m7m } });
     auto diffPart15 = SceneObject<CsgShape>(Capsule(obb.min(), obb.max(), 2.0f), { { &m7s, &m4s }, { &m7m } });
 
     auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m7s }, { &m7m } });
@@ -391,8 +391,8 @@ int __cdecl main()
                 )
                 - (subPart10 | subPart11 | subPart12 | subPart13)
             ) 
-            - diffPart14
-            // - diffPart15
+            // - diffPart14
+            - diffPart15
         )
         | sumPart16
     );
