@@ -1139,45 +1139,6 @@ namespace ray
             const float p0v = dot(point0 - A, v);
             const float p1v = dot(point1 - A, v);
 
-            if (p0v < 0.0f && p1v < 0.0f)
-            {
-                // we are before A
-                // both hits on one side
-                const HalfSphere d0(A, -v, cyl.radius);
-                float tmin, tmax;
-                if (raycastMinMax(ray, d0, tmin, tmax))
-                {
-                    t0 = tmin;
-                    t1 = tmax;
-                    if (tmax < 0.0f) return false;
-
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else if (p0v > cyl.length && p1v > cyl.length)
-            {
-                // we are after B
-                // both hits on one side
-                const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
-                float tmin, tmax;
-                if (raycastMinMax(ray, d1, tmin, tmax))
-                {
-                    t0 = tmin;
-                    t1 = tmax;
-                    if (tmax < 0.0f) return false;
-
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
             {
                 if (p1v < 0.0f)
                 {
