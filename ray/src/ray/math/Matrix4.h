@@ -12,11 +12,16 @@
 namespace ray
 {
     template <typename T>
+    struct Matrix3;
+
+    template <typename T>
     struct Matrix4;
 
     template <>
     struct alignas(alignof(__m128)) Matrix4<float>
     {
+        friend struct Matrix3<float>;
+        
         // takes rows, transposes
         // will mostly be used in source with literals
         // so it is the most intuitive way

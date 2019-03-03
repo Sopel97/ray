@@ -1233,7 +1233,7 @@ namespace ray
         //   - if not:
         //     - transform the previous hit's distance back
 
-        const Vec3f D = sh.worldToLocal.apply3(Vec3f(ray.direction())); // it's not a surface normal
+        const Vec3f D = sh.worldToLocal.withoutTranslation() * Vec3f(ray.direction()); // it's not a surface normal
         const float DLen = D.length();
         Ray localRay(
             sh.worldToLocal * ray.origin(),
@@ -1274,7 +1274,7 @@ namespace ray
         //   - if not:
         //     - we don't have to do anything
 
-        const Vec3f D = sh.worldToLocal.apply3(Vec3f(ray.direction())); // it's not a surface normal
+        const Vec3f D = sh.worldToLocal.withoutTranslation() * Vec3f(ray.direction()); // it's not a surface normal
         const float DLen = D.length();
         Ray localRay(
             sh.worldToLocal * ray.origin(),

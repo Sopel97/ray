@@ -13,9 +13,9 @@ namespace ray
     {
         Point3f origin;
         Vec3f halfSize;
-        Rotation3f worldToLocalRot;
+        Rotation4f worldToLocalRot;
 
-        OrientedBox3(const Point3f& origin, const Vec3f& halfSize, const Rotation3f& worldToLocalRot) noexcept :
+        OrientedBox3(const Point3f& origin, const Vec3f& halfSize, const Rotation4f& worldToLocalRot) noexcept :
             origin(origin),
             halfSize(halfSize),
             worldToLocalRot(worldToLocalRot)

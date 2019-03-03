@@ -12,6 +12,8 @@
 #include <ray/material/TextureDatabase.h>
 
 #include <ray/math/Angle2.h>
+#include <ray/math/Matrix3.h>
+#include <ray/math/Matrix4.h>
 #include <ray/math/Raycast.h>
 #include <ray/math/Transform3.h>
 #include <ray/math/Vec3.h>
@@ -175,37 +177,37 @@ void matrixTests()
 {
     Vec3f v1(-1.0f, 0.5f, 0.0f);
     Vec3f v2(1.0f, 2.0f, 1.0f);
-    RotationScale3f rs0(Basis3f(v1, v2, cross(v1, v2)));
+    RotationScale4f rs0(Basis3f(v1, v2, cross(v1, v2)));
     std::cout << (rs0 * rs0.inverse()).isAlmostIdentity() << '\n';
 
     Basis3f basis(Vec3f(1, 0, 0), Vec3f(2, 3, 1), Vec3f(3, 4, -2));
-    RotationScale3f rs1(basis);
+    RotationScale4f rs1(basis);
     std::cout << (rs1 * rs1.inverse()).isAlmostIdentity() << '\n';
 
     auto ob = OrthonormalBasis3f(Normal3f(1, 0, 3), Normal3f(2, -3, 1), Normal3f(-1, 4, -2));
-    RotationTranslation3f rs2(ob, Vec3f(10, -10, 13));
+    RotationTranslation4f rs2(ob, Vec3f(10, -10, 13));
     // std::cout << dot(ob.x(), ob.y()) << '\n';
     // std::cout << dot(ob.x(), ob.z()) << '\n';
     // std::cout << dot(ob.z(), ob.y()) << '\n';
     std::cout << (rs2 * rs2.inverse()).isAlmostIdentity() << '\n';
 
-    AffineTransformation3f aff = rs1 * rs0 * rs2;
+    AffineTransformation4f aff = rs1 * rs0 * rs2;
     std::cout << (aff * aff.inverse()).isAlmostIdentity() << '\n';
 
     Matrix4f m4 = aff;
     std::cout << (m4 * m4.inverse()).isAlmostIdentity() << '\n';
 
-    Translation3f tra(Vec3f(12.3, -33, 3));
+    Translation4f tra(Vec3f(12.3, -33, 3));
     std::cout << (tra * tra.inverse()).isAlmostIdentity() << '\n';
 
-    Scale3f sca(2.0f, -0.4f, 12.0f);
+    Scale4f sca(2.0f, -0.4f, 12.0f);
     std::cout << (sca * sca.inverse()).isAlmostIdentity() << '\n';
 
-    ScaleTranslation3f scatra(2.0f, -0.4f, 12.0f, Vec3f(10.0f, -2.0f, -12.2f));
+    ScaleTranslation4f scatra(2.0f, -0.4f, 12.0f, Vec3f(10.0f, -2.0f, -12.2f));
     std::cout << (scatra * scatra.inverse()).isAlmostIdentity() << '\n';
 
     auto ob2 = OrthonormalBasis3f(Normal3f(-1, 0, 3), Normal3f(2, -3, -1), Normal3f(-1, -4, -2));
-    Rotation3f r2(ob2);
+    Rotation4f r2(ob2);
     std::cout << (r2 * r2.inverse()).isAlmostIdentity() << '\n';
 }
 
@@ -270,7 +272,7 @@ int __cdecl main()
     std::vector<SceneObject<Cylinder>> cylinders;
     std::vector<SceneObject<Capsule>> capsules;
     std::vector<SceneObject<OrientedBox3>> obbs;
-    std::vector<SceneObject<TransformedShape3<AffineTransformation3f, Sphere>>> trSpheres;
+    std::vector<SceneObject<TransformedShape3<AffineTransformation4f, Sphere>>> trSpheres;
 
     //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
     ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f / 2.0f, &m7s, &m7m);
@@ -336,19 +338,19 @@ int __cdecl main()
     auto obb = OrientedBox3{
         Point3f(0, 0, -7),
         Vec3f(1, 2, 3),
-        Rotation3f(OrthonormalBasis3f(n1, n2, Handedness3::Right))
+        Rotation4f(OrthonormalBasis3f(n1, n2, Handedness3::Right))
         };
     //obbs.emplace_back(SceneObject<OrientedBox3>(obb, { &m11 }));
 
-    auto trSphere0 = TransformedShape3<AffineTransformation3f, Sphere>(
-        Rotation3f(OrthonormalBasis3f(Normal3f(1, 2, 3), Normal3f(4, 3, 2), Handedness3::Right)) 
-        * AffineTransformation3f(
+    auto trSphere0 = TransformedShape3<AffineTransformation4f, Sphere>(
+        Rotation4f(OrthonormalBasis3f(Normal3f(1, 2, 3), Normal3f(4, 3, 2), Handedness3::Right)) 
+        * AffineTransformation4f(
             Basis3f(Vec3f(1.0f, 1.0f, 0), Vec3f(0, 1.0f, 0), Vec3f(0, 0, 1.0f)),
             Vec3f(0, 0, -7)
         ).inverse(),
         Sphere(Point3f(0.0, 0, 0), 3.5)
     );
-    //trSpheres.emplace_back(SceneObject<TransformedShape3<AffineTransformation3f, Sphere>>(trSphere0, { { &m7s }, { &m7m } }));
+    //trSpheres.emplace_back(SceneObject<TransformedShape3<AffineTransformation4f, Sphere>>(trSphere0, { { &m7s }, { &m7m } }));
 
     auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { { &m7s }, { &m7m } });
     auto sumPart2 = SceneObject<CsgShape>(Sphere(Point3f(1.5, 0, -7), 3.5), { { &m7s }, { &m7m } });
@@ -401,7 +403,7 @@ int __cdecl main()
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
 
-    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation3f, Sphere>>;
+    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
     using PartitionerType = StaticBvhObjectMeanPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
     RawSceneObjectBlob<ShapesT> shapes(std::move(trSpheres), std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
