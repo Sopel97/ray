@@ -10,6 +10,7 @@
 
 #include <ray/math/BoundingVolume.h>
 
+#include <ray/scene/LightHandle.h>
 #include <ray/scene/SceneRaycastHit.h>
 #include <ray/scene/object/RawSceneObjectBlob.h>
 #include <ray/scene/object/SceneObjectBlob.h>
@@ -88,6 +89,11 @@ namespace ray
             while (!queue.empty()) queue.pop();
 
             return anyHit;
+        }
+
+        void gatherLights(std::vector<LightHandle>& lights) const
+        {
+            m_root->gatherLights(lights);
         }
 
     private:

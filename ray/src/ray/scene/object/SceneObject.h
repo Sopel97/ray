@@ -31,16 +31,6 @@ namespace ray
         ShapeTraits<ShapeT>::numMediumMaterialsPerShape
     >;
 
-    template <int N, int M>
-    [[nodiscard]] inline bool isEmissive(const MaterialPtrStorage<N, M>& mats)
-    {
-        for (int i = 0; i < N; ++i)
-        {
-            if (mats.surfaceMaterial(i).emissionColor.total() > 0.0001f) return true;
-        }
-        return false;
-    }
-
     namespace detail
     {
         static inline std::atomic<SceneObjectId> gNextSceneObjectId = 0;
@@ -54,6 +44,7 @@ namespace ray
         using ShapeTraits = ShapeTraits<ShapeType>;
         using BaseShapeType = typename ShapeTraits::BaseShapeType;
         static constexpr bool isPack = ShapeTraits::numShapes > 1;
+        static constexpr bool isBounded = ShapeTraits::isBounded;
         using MaterialStorageType = MaterialPtrStorageType<ShapeType>;
         using MaterialStorageViewType = MaterialPtrStorageView;
 
@@ -99,7 +90,7 @@ namespace ray
 
         [[nodiscard]] bool isLight() const
         {
-            return isEmissive(m_materials);
+            return isBounded && m_materials.isEmissive();
         }
 
         [[nodiscard]] SceneObjectId id() const
@@ -199,7 +190,7 @@ namespace ray
             }
             [[nodiscard]] bool isLight() const override
             {
-                return isEmissive(m_materials);
+                return m_materials.isEmissive();
             }
             [[nodiscard]] SceneObjectId id() const override
             {
@@ -528,7 +519,7 @@ namespace ray
             }
             [[nodiscard]] bool isLight() const override
             {
-                return isEmissive(m_materials);
+                return m_materials.isEmissive();
             }
             [[nodiscard]] SceneObjectId id() const override
             {
@@ -685,7 +676,7 @@ namespace ray
             }
             [[nodiscard]] bool isLight() const override
             {
-                return isEmissive(m_materials);
+                return m_materials.isEmissive();
             }
             [[nodiscard]] SceneObjectId id() const override
             {
@@ -780,7 +771,6 @@ namespace ray
             [[nodiscard]] virtual bool hasVolume() const = 0;
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
-            [[nodiscard]] virtual bool isLight() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
         };
 
@@ -827,10 +817,6 @@ namespace ray
             [[nodiscard]] MaterialStorageViewType material() const override
             {
                 return m_materials.view();
-            }
-            [[nodiscard]] bool isLight() const override
-            {
-                return isEmissive(m_materials);
             }
             [[nodiscard]] SceneObjectId id() const override
             {
@@ -898,7 +884,8 @@ namespace ray
 
         [[nodiscard]] bool isLight() const
         {
-            return m_obj->isLight();
+            // unbounded objects cannot be light emitters
+            return false;
         }
 
     private:
@@ -921,7 +908,6 @@ namespace ray
             [[nodiscard]] virtual bool hasVolume() const = 0;
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
-            [[nodiscard]] virtual bool isLight() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
         };
 
@@ -964,10 +950,6 @@ namespace ray
             [[nodiscard]] MaterialStorageViewType materials() const override
             {
                 return m_materials.view();
-            }
-            [[nodiscard]] bool isLight() const override
-            {
-                return isEmissive(m_materials);
             }
             [[nodiscard]] SceneObjectId id() const override
             {
@@ -1027,7 +1009,8 @@ namespace ray
 
         [[nodiscard]] bool isLight() const
         {
-            return m_obj->isLight();
+            // unbounded objects cannot be light emitters
+            return false;
         }
 
     private:

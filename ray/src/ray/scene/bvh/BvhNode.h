@@ -6,6 +6,7 @@
 #include <ray/math/Raycast.h>
 #include <ray/math/RaycastHit.h>
 
+#include <ray/scene/LightHandle.h>
 #include <ray/scene/SceneRaycastHit.h>
 #include <ray/scene/object/SceneObjectBlob.h>
 
@@ -35,25 +36,7 @@ namespace ray
     struct StaticBvhNode
     {
         [[nodiscard]] virtual bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, ResolvableRaycastHit& hit) const = 0;
-    };
-
-    template <typename BvShapeT>
-    struct BoundedStaticBvhNode
-    {
-        BoundedStaticBvhNode(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, const BvShapeT& bv) :
-            node(std::move(node)),
-            boundingVolume(bv)
-        {
-        }
-
-        BoundedStaticBvhNode(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, BvShapeT&& bv) :
-            node(std::move(node)),
-            boundingVolume(std::move(bv))
-        {
-        }
-
-        std::unique_ptr<StaticBvhNode<BvShapeT>> node;
-        BvShapeT boundingVolume;
+        virtual void gatherLights(std::vector<LightHandle>& lights) const = 0;
     };
 
     template <typename BvShapeT>
@@ -105,13 +88,37 @@ namespace ray
             return m_objects.queryNearest(ray, hit);
         }
 
+        void gatherLights(std::vector<LightHandle>& lights) const override
+        {
+            m_objects.gatherLights(lights);
+        }
+
     private:
         SceneObjectBlob<AllShapes, StorageProviderT> m_objects;
     };
 
+
     template <typename BvShapeT>
     struct StaticBvhPartitionNode : StaticBvhNode<BvShapeT>
     {
+        struct Child
+        {
+            Child(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, const BvShapeT& bv) :
+                node(std::move(node)),
+                boundingVolume(bv)
+            {
+            }
+
+            Child(std::unique_ptr<StaticBvhNode<BvShapeT>>&& node, BvShapeT&& bv) :
+                node(std::move(node)),
+                boundingVolume(std::move(bv))
+            {
+            }
+
+            std::unique_ptr<StaticBvhNode<BvShapeT>> node;
+            BvShapeT boundingVolume;
+        };
+
         // provide memory from outside to prevent a lot of small allocations
         [[nodiscard]] bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& hits, ResolvableRaycastHit& hit) const override
         {
@@ -136,7 +143,15 @@ namespace ray
             m_children.emplace_back(std::move(node), std::move(bv));
         }
 
+        void gatherLights(std::vector<LightHandle>& lights) const override
+        {
+            for (const auto& child : m_children)
+            {
+                child.node->gatherLights(lights);
+            }
+        }
+
     private:
-        std::vector<BoundedStaticBvhNode<BvShapeT>> m_children;
+        std::vector<Child> m_children;
     };
 }

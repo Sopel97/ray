@@ -9,6 +9,7 @@
 #include <ray/math/RaycastHit.h>
 #include <ray/math/TextureCoordinateResolver.h>
 
+#include <ray/scene/LightHandle.h>
 #include <ray/scene/SceneRaycastHit.h>
 
 #include <ray/shape/ShapeTraits.h>
@@ -122,6 +123,7 @@ namespace ray
         static constexpr int numShapesInPack = ShapeTraits::numShapes;
         static constexpr bool isPack = numShapesInPack > 1;
         static constexpr bool hasVolume = ShapeTraits::hasVolume;
+        static constexpr bool isBounded = ShapeTraits::isBounded;
         static constexpr bool isLocallyContinuable = ShapeTraits::isLocallyContinuable;
         using ShapeStorageType = std::vector<ShapePackType>;
         using MaterialStorageType = std::vector<MaterialPtrStorageType<BaseShapeType>>;
@@ -232,6 +234,20 @@ namespace ray
             return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, hasVolume, isLocallyContinuable);
         }
 
+        void gatherLights(std::vector<LightHandle>& lights) const
+        {
+            if constexpr (isBounded)
+            {
+                for (int i = 0; i < m_size; ++i)
+                {
+                    if (m_materials[i].isEmissive())
+                    {
+                        lights.emplace_back(shape(i).center(), m_ids[i]);
+                    }
+                }
+            }
+        }
+
     private:
         ShapeStorageType m_shapePacks;
         MaterialStorageType m_materials;
@@ -329,6 +345,17 @@ namespace ray
             return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, 
                 true, // hasVolume
                 true); // isLocallyContinuable
+        }
+
+        void gatherLights(std::vector<LightHandle>& lights) const
+        {
+            for (const auto& obj : m_objects)
+            {
+                if (obj.isLight())
+                {
+                    lights.emplace_back(obj.center(), obj.id());
+                }
+            }
         }
 
     private:

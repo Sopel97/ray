@@ -19,14 +19,18 @@ namespace ray
     {
     private:
     public:
-        // TODO: think how to do a move from RawSceneObjectBlob.
-        //       problematic since we first have to populate storage
-        //       and later get lights
         template <typename... ShapeTs, typename... ArgTs>
         StaticScene(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection, ArgTs&&... args) :
             m_storage(collection, std::forward<ArgTs>(args)...)
         {
-            rememberLights(collection);
+            m_storage.gatherLights(m_lights);
+        }
+
+        template <typename... ShapeTs, typename... ArgTs>
+        StaticScene(RawSceneObjectBlob<Shapes<ShapeTs...>>&& collection, ArgTs&&... args) :
+            m_storage(std::move(collection), std::forward<ArgTs>(args)...)
+        {
+            m_storage.gatherLights(m_lights);
         }
 
         [[nodiscard]] bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const override
@@ -77,22 +81,6 @@ namespace ray
         ColorRGBf m_backgroundColor;
         float m_backgroundDistance;
         const MediumMaterial* m_mediumMaterial;
-
-        template <typename... ShapeTs>
-        void rememberLights(const RawSceneObjectBlob<Shapes<ShapeTs...>>& collection)
-        {
-            collection.forEach([&](const auto& object) {
-                using ObjectType = remove_cvref_t<decltype(object)>;
-                using ShapeType = typename ObjectType::ShapeType;
-                if constexpr (ShapeTraits<ShapeType>::isBounded)
-                {
-                    if (object.isLight())
-                    {
-                        m_lights.emplace_back(object.center(), object.id());
-                    }
-                }
-            });
-        }
     };
 
     template <typename ShapesT>

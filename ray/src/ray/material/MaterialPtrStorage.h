@@ -84,6 +84,16 @@ namespace ray
             return MaterialPtrStorageView(m_surfaceMaterials.data(), m_mediumMaterials.data());
         }
 
+        [[nodiscard]] bool isEmissive() const
+        {
+            for (const auto& mat : m_surfaceMaterials)
+            {
+                if (mat->emissionColor.total() > 0.00001f) return true;
+            }
+
+            return false;
+        }
+
     private:
         SurfaceMaterialStorage m_surfaceMaterials;
         MediumMaterialStorage m_mediumMaterials;
@@ -110,6 +120,16 @@ namespace ray
         [[nodiscard]] MaterialPtrStorageView view() const
         {
             return MaterialPtrStorageView(m_surfaceMaterials.data(), nullptr);
+        }
+
+        [[nodiscard]] bool isEmissive() const
+        {
+            for (const auto& mat : m_surfaceMaterials)
+            {
+                if (mat->emissionColor.total() > 0.00001f) return true;
+            }
+
+            return false;
         }
 
     private:

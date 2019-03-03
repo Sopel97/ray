@@ -4,6 +4,7 @@
 #include "SceneObjectCollection.h"
 #include "SceneObjectStorageProvider.h"
 
+#include <ray/scene/LightHandle.h>
 #include <ray/scene/SceneRaycastHit.h>
 
 #include <ray/shape/Shapes.h>
@@ -76,6 +77,13 @@ namespace ray
             });
 
             return anyHit;
+        }
+
+        void gatherLights(std::vector<LightHandle>& lights) const
+        {
+            for_each(m_objects, [&](const auto& objects) {
+                objects.gatherLights(lights);
+            });
         }
 
     private:
