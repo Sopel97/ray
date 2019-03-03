@@ -373,7 +373,7 @@ int __cdecl main()
     //auto diffPart15 = SceneObject<CsgShape>(Cylinder(obb.min(), obb.max(), 2.0f), { { &m7s, &m4s }, { &m7m } });
     auto diffPart15 = SceneObject<CsgShape>(Capsule(obb.min(), obb.max(), 2.0f), { { &m7s, &m4s }, { &m7m } });
 
-    auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m7s }, { &m7m } });
+    auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m4s }, { &m4m } });
 
     csgs.emplace_back(
         (
@@ -392,7 +392,7 @@ int __cdecl main()
                 - (subPart10 | subPart11 | subPart12 | subPart13)
             ) 
             // - diffPart14
-            - diffPart15
+            // - diffPart15
         )
         | sumPart16
     );
@@ -464,10 +464,10 @@ int __cdecl main()
     //auto sampler = UniformGridMultisampler(1);
     //auto sampler = JitteredMultisampler(1, 256, 0.66f);
     //auto sampler = QuincunxMultisampler();
-    //auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(3, 256, 0.66f));
+    auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(3, 256, 0.66f));
     //auto sampler = AdaptiveMultisampler(0.05f, QuincunxMultisampler());
     //auto sampler = AdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
-    auto sampler = Sampler{};
+    //auto sampler = Sampler{};
     Image img = raytracer.capture(camera, sampler);
     //Image img = raytracer.capture(camera);
 
