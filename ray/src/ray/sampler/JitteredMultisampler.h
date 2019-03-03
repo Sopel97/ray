@@ -80,7 +80,7 @@ namespace ray
         int m_order;
         std::vector<float> m_offsets;
         
-        float chooseOffset(std::uint64_t idx) const
+        [[nodiscard]] float chooseOffset(std::uint64_t idx) const
         {
             idx = (idx ^ (idx >> 30)) * 0xbf58476d1ce4e5b9ull;
             idx = (idx ^ (idx >> 27)) * 0x94d049bb133111ebull;
@@ -88,21 +88,21 @@ namespace ray
             return m_offsets[idx % m_offsets.size()];
         }
 
-        float chooseOffsetX(std::uint64_t x, std::uint64_t y, std::uint64_t dx, std::uint64_t dy) const
+        [[nodiscard]] float chooseOffsetX(std::uint64_t x, std::uint64_t y, std::uint64_t dx, std::uint64_t dy) const
         {
             const std::uint64_t xx = x * static_cast<std::uint64_t>(m_order) + dx;
             const std::uint64_t yy = y * static_cast<std::uint64_t>(m_order) + dy;
             return chooseOffset(((xx & 0xFFFFFFFFu) << 32u) | (yy & 0xFFFFFFFFu));
         }
 
-        float chooseOffsetY(std::uint64_t x, std::uint64_t y, std::uint64_t dx, std::uint64_t dy) const
+        [[nodiscard]] float chooseOffsetY(std::uint64_t x, std::uint64_t y, std::uint64_t dx, std::uint64_t dy) const
         {
             const std::uint64_t xx = x * static_cast<std::uint64_t>(m_order) + dx;
             const std::uint64_t yy = y * static_cast<std::uint64_t>(m_order) + dy;
             return chooseOffset(~(((yy & 0xFFFFFFFFu) << 32u) | (xx & 0xFFFFFFFFu)));
         }
 
-        Vec2f chooseOffset(const Point2i& pixel, const Point2i& subpoint) const
+        [[nodiscard]] Vec2f chooseOffset(const Point2i& pixel, const Point2i& subpoint) const
         {
             return Vec2f(
                 chooseOffsetX(pixel.x, pixel.y, subpoint.x, subpoint.y),

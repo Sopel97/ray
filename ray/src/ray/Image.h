@@ -21,17 +21,17 @@ namespace ray
 
         }
 
-        const ColorType& operator()(int x, int y) const
+        [[nodiscard]] const ColorType& operator()(int x, int y) const
         {
             return m_pixelColors(x, y);
         }
 
-        ColorType& operator()(int x, int y)
+        [[nodiscard]] ColorType& operator()(int x, int y)
         {
             return m_pixelColors(x, y);
         }
 
-        sf::Image toSfImage() const
+        [[nodiscard]] sf::Image toSfImage() const
         {
             auto pixels = rawRGBAi();
 
@@ -41,7 +41,7 @@ namespace ray
             return img;
         }
 
-        std::vector<std::uint8_t> rawRGBAi() const
+        [[nodiscard]] std::vector<std::uint8_t> rawRGBAi() const
         {
             std::vector<std::uint8_t> data;
             const int w = width();
@@ -63,12 +63,12 @@ namespace ray
             return data;
         }
 
-        int width() const
+        [[nodiscard]] int width() const
         {
             return m_pixelColors.width();
         }
 
-        int height() const
+        [[nodiscard]] int height() const
         {
             return m_pixelColors.height();
         }

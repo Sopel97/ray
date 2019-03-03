@@ -12,7 +12,7 @@ namespace ray
             const Vec3<T>& x,
             const Vec3<T>& y,
             const Vec3<T>& z
-        ) :
+        ) noexcept :
             m_x(x),
             m_y(y),
             m_z(z)
@@ -20,7 +20,7 @@ namespace ray
 
         }
 
-        OrthonormalBasis3<T> assumeOrthonormal() const
+        [[nodiscard]] OrthonormalBasis3<T> assumeOrthonormal() const
         {
             return OrthonormalBasis3<T>(
                 AssumeOrthogonal{},
@@ -30,17 +30,17 @@ namespace ray
             );
         }
 
-        const Vec3<T>& x() const
+        [[nodiscard]] const Vec3<T>& x() const
         {
             return m_x;
         }
 
-        const Vec3<T>& y() const
+        [[nodiscard]] const Vec3<T>& y() const
         {
             return m_y;
         }
 
-        const Vec3<T>& z() const
+        [[nodiscard]] const Vec3<T>& z() const
         {
             return m_z;
         }

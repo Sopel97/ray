@@ -25,9 +25,9 @@ namespace ray
         const HomogeneousSceneObjectCollection* owner;
         const void* additionalData = nullptr;
 
-        ResolvedRaycastHit resolve() const;
+        [[nodiscard]] ResolvedRaycastHit resolve() const;
 
-        SceneObjectId objectId() const;
+        [[nodiscard]] SceneObjectId objectId() const;
     };
 
     struct ResolvedRaycastHit
@@ -72,8 +72,8 @@ namespace ray
         bool hasVolume;
         bool isLocallyContinuable;
 
-        bool next(const Ray& ray, ResolvableRaycastHit& hit) const;
+        [[nodiscard]] bool next(const Ray& ray, ResolvableRaycastHit& hit) const;
 
-        SceneObjectId objectId() const;
+        [[nodiscard]] SceneObjectId objectId() const;
     };
 }

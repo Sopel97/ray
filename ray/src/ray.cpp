@@ -340,13 +340,14 @@ int __cdecl main()
         };
     //obbs.emplace_back(SceneObject<OrientedBox3>(obb, { &m11 }));
 
-    auto trSphere0 = TransformedShape3<AffineTransformation3f, Sphere>{
-        Rotation3f(OrthonormalBasis3f(Normal3f(1, 2, 3), Normal3f(4, 3, 2), Handedness3::Right)) * AffineTransformation3f(
+    auto trSphere0 = TransformedShape3<AffineTransformation3f, Sphere>(
+        Rotation3f(OrthonormalBasis3f(Normal3f(1, 2, 3), Normal3f(4, 3, 2), Handedness3::Right)) 
+        * AffineTransformation3f(
             Basis3f(Vec3f(1.0f, 1.0f, 0), Vec3f(0, 1.0f, 0), Vec3f(0, 0, 1.0f)),
             Vec3f(0, 0, -7)
         ).inverse(),
-            Sphere(Point3f(0.0, 0, 0), 3.5)
-    };
+        Sphere(Point3f(0.0, 0, 0), 3.5)
+    );
     //trSpheres.emplace_back(SceneObject<TransformedShape3<AffineTransformation3f, Sphere>>(trSphere0, { { &m7s }, { &m7m } }));
 
     auto sumPart1 = SceneObject<CsgShape>(Sphere(Point3f(-1.5, 0, -7), 3.5), { { &m7s }, { &m7m } });

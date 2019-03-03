@@ -25,7 +25,7 @@ namespace ray
             float m01, float m11, float m21, float m31,
             float m02, float m12, float m22, float m32,
             float m03, float m13, float m23, float m33
-        ) :
+        ) noexcept :
             m_values{
                 m00, m01, m02, m03,
                 m10, m11, m12, m13,
@@ -35,7 +35,7 @@ namespace ray
         {
         }
 
-        Matrix4(const ViewingFrustum3<float>& f) :
+        Matrix4(const ViewingFrustum3<float>& f) noexcept :
             Matrix4()
         {
             // http://learnwebgl.brown37.net/lib/learn_webgl_matrix.js
@@ -69,24 +69,24 @@ namespace ray
             m_values[3][3] = 0.0f;
         }
 
-        friend Matrix4<float> operator*(const Matrix4<float>& lhs, const Matrix4<float>& rhs)
+        [[nodiscard]] friend Matrix4<float> operator*(const Matrix4<float>& lhs, const Matrix4<float>& rhs)
         {
             Matrix4<float> ret{};
             m128::mulMat4Mat4(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
-        friend Vec3<float> operator*(const Matrix4<float>& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const Matrix4<float>& lhs, const Vec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMat4Vec3(lhs.m_columns, rhs.xmm));
         }
 
-        friend Point3<float> operator*(const Matrix4<float>& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const Matrix4<float>& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(m128::mulMat4Vec3(lhs.m_columns, rhs.xmm));
         }
 
-        bool isAlmostIdentity() const
+        [[nodiscard]] bool isAlmostIdentity() const
         {
             static constexpr float eps = 1e-5;
             for (int r = 0; r < 4; ++r)
@@ -109,7 +109,7 @@ namespace ray
             m128::transpose3zx(m_columns);
         }
 
-        Matrix4 transposed() const
+        [[nodiscard]] Matrix4 transposed() const
         {
             Matrix4 m(*this);
             m.transpose();
@@ -121,7 +121,7 @@ namespace ray
             m128::invertMat4(m_columns);
         }
 
-        Matrix4<float> inverse() const
+        [[nodiscard]] Matrix4<float> inverse() const
         {
             Matrix4<float> c(*this);
             c.invert();
@@ -148,19 +148,19 @@ namespace ray
             float m_values[4][4];
         };
 
-        Matrix4(__m128 c0, __m128 c1, __m128 c2, __m128 c3) :
+        Matrix4(__m128 c0, __m128 c1, __m128 c2, __m128 c3) noexcept :
             m_columns{ c0, c1, c2, c3 }
         {
 
         }
 
-        Matrix4(__m128 c0, __m128 c1, __m128 c2) :
+        Matrix4(__m128 c0, __m128 c1, __m128 c2) noexcept :
             m_columns{ c0, c1, c2, _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f) }
         {
 
         }
 
-        Matrix4(float xs, float ys, float zs) :
+        Matrix4(float xs, float ys, float zs) noexcept :
             Matrix4(
                 xs, 0.0f, 0.0f, 0.0f,
                 0.0f, ys, 0.0f, 0.0f,
@@ -170,7 +170,7 @@ namespace ray
         {
         }
 
-        Matrix4(float xs, float ys, float zs, const Vec3<float>& t) :
+        Matrix4(float xs, float ys, float zs, const Vec3<float>& t) noexcept :
             Matrix4(
                 xs, 0.0f, 0.0f, t.x,
                 0.0f, ys, 0.0f, t.y,
@@ -180,7 +180,7 @@ namespace ray
         {
         }
 
-        Matrix4() :
+        Matrix4() noexcept :
             Matrix4(
                 1.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 1.0f, 0.0f, 0.0f,
@@ -190,7 +190,7 @@ namespace ray
         {
         }
 
-        explicit Matrix4(const Vec3<float>& t) :
+        explicit Matrix4(const Vec3<float>& t) noexcept :
             Matrix4(
                 1.0f, 0.0f, 0.0f, t.x,
                 0.0f, 1.0f, 0.0f, t.y,
@@ -200,7 +200,7 @@ namespace ray
         {
         }
 
-        explicit Matrix4(const OrthonormalBasis3<float>& basis) :
+        explicit Matrix4(const OrthonormalBasis3<float>& basis) noexcept:
             Matrix4(
                 m128::truncate3(basis.x().xmm),
                 m128::truncate3(basis.y().xmm),
@@ -210,7 +210,7 @@ namespace ray
             transpose3zx();
         }
 
-        explicit Matrix4(const Basis3<float>& basis) :
+        explicit Matrix4(const Basis3<float>& basis) noexcept :
             Matrix4(
                 m128::truncate3(basis.x().xmm),
                 m128::truncate3(basis.y().xmm),
@@ -220,7 +220,7 @@ namespace ray
             transpose3zx();
         }
 
-        Matrix4(const OrthonormalBasis3<float>& basis, const Vec3<float>& t) :
+        Matrix4(const OrthonormalBasis3<float>& basis, const Vec3<float>& t) noexcept :
             Matrix4(
                 m128::truncate3(basis.x().xmm),
                 m128::truncate3(basis.y().xmm),
@@ -231,7 +231,7 @@ namespace ray
             transpose3zx();
         }
 
-        Matrix4(const Basis3<float>& basis, const Vec3<float>& t) :
+        Matrix4(const Basis3<float>& basis, const Vec3<float>& t) noexcept :
             Matrix4(
                 m128::truncate3(basis.x().xmm),
                 m128::truncate3(basis.y().xmm),
@@ -242,7 +242,7 @@ namespace ray
             transpose3zx();
         }
 
-        explicit Matrix4(const Quat4<float>& q) :
+        explicit Matrix4(const Quat4<float>& q) noexcept :
             Matrix4()
         {
             const float x2 = q.x*q.x;
@@ -265,7 +265,7 @@ namespace ray
             m_values[2][2] = 1.0f - 2.0f * (x2 + y2);
         }
 
-        Matrix4(const Quat4<float>& q, const Vec3<float>& t) :
+        Matrix4(const Quat4<float>& q, const Vec3<float>& t) noexcept :
             Matrix4(q)
         {
             m_values[3][0] = t.x;
@@ -273,7 +273,7 @@ namespace ray
             m_values[3][2] = t.z;
         }
 
-        Matrix4(const Quat4<float>& q, const Point3<float>& origin) :
+        Matrix4(const Quat4<float>& q, const Point3<float>& origin) noexcept :
             Matrix4(q, Vec3<float>(origin))
         {
             // (TR)T^-1

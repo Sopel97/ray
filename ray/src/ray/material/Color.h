@@ -8,14 +8,14 @@ namespace ray
 {
     struct ColorRGBf
     {
-        constexpr ColorRGBf() :
+        constexpr ColorRGBf() noexcept :
             r{},
             g{},
             b{}
         {
         }
 
-        constexpr ColorRGBf(float r, float g, float b) :
+        constexpr ColorRGBf(float r, float g, float b) noexcept :
             r(r),
             g(g),
             b(b)
@@ -23,10 +23,10 @@ namespace ray
 
         }
 
-        constexpr ColorRGBf(const ColorRGBf&) = default;
-        constexpr ColorRGBf(ColorRGBf&&) = default;
-        constexpr ColorRGBf& operator=(const ColorRGBf&) = default;
-        constexpr ColorRGBf& operator=(ColorRGBf&&) = default;
+        constexpr ColorRGBf(const ColorRGBf&) noexcept = default;
+        constexpr ColorRGBf(ColorRGBf&&) noexcept = default;
+        constexpr ColorRGBf& operator=(const ColorRGBf&) noexcept = default;
+        constexpr ColorRGBf& operator=(ColorRGBf&&) noexcept = default;
 
         ColorRGBf& operator+=(const ColorRGBf& rhs)
         {
@@ -36,12 +36,12 @@ namespace ray
             return *this;
         }
 
-        constexpr float total() const
+        [[nodiscard]] constexpr float total() const
         {
             return r + g + b;
         }
 
-        constexpr float max() const
+        [[nodiscard]] constexpr float max() const
         {
             return std::max(std::max(r, g), b);
         }
@@ -49,37 +49,37 @@ namespace ray
         float r, g, b;
     };
 
-    constexpr ColorRGBf operator*(const ColorRGBf& lhs, float rhs)
+    [[nodiscard]] constexpr ColorRGBf operator*(const ColorRGBf& lhs, float rhs)
     {
         return ColorRGBf(lhs.r * rhs, lhs.g * rhs, lhs.b * rhs);
     }
 
-    constexpr ColorRGBf operator/(const ColorRGBf& lhs, float rhs)
+    [[nodiscard]] constexpr ColorRGBf operator/(const ColorRGBf& lhs, float rhs)
     {
         return ColorRGBf(lhs.r / rhs, lhs.g / rhs, lhs.b / rhs);
     }
 
-    constexpr ColorRGBf operator*(float lhs, const ColorRGBf& rhs)
+    [[nodiscard]] constexpr ColorRGBf operator*(float lhs, const ColorRGBf& rhs)
     {
         return ColorRGBf(lhs * rhs.r, lhs * rhs.g, lhs * rhs.b);
     }
 
-    constexpr ColorRGBf operator+(const ColorRGBf& lhs, const ColorRGBf& rhs)
+    [[nodiscard]] constexpr ColorRGBf operator+(const ColorRGBf& lhs, const ColorRGBf& rhs)
     {
         return ColorRGBf(lhs.r + rhs.r, lhs.g + rhs.g, lhs.b + rhs.b);
     }
 
-    constexpr ColorRGBf operator-(const ColorRGBf& lhs, const ColorRGBf& rhs)
+    [[nodiscard]] constexpr ColorRGBf operator-(const ColorRGBf& lhs, const ColorRGBf& rhs)
     {
         return ColorRGBf(lhs.r - rhs.r, lhs.g - rhs.g, lhs.b - rhs.b);
     }
 
-    constexpr ColorRGBf operator*(const ColorRGBf& lhs, const ColorRGBf& rhs)
+    [[nodiscard]] constexpr ColorRGBf operator*(const ColorRGBf& lhs, const ColorRGBf& rhs)
     {
         return ColorRGBf(lhs.r * rhs.r, lhs.g * rhs.g, lhs.b * rhs.b);
     }
 
-    inline ColorRGBf operator^(const ColorRGBf& lhs, float gamma)
+    [[nodiscard]] inline ColorRGBf operator^(const ColorRGBf& lhs, float gamma)
     {
         return ColorRGBf(
             std::pow(lhs.r, gamma),
@@ -88,7 +88,7 @@ namespace ray
         );
     }
 
-    constexpr ColorRGBf operator-(const ColorRGBf& lhs)
+    [[nodiscard]] constexpr ColorRGBf operator-(const ColorRGBf& lhs)
     {
         return ColorRGBf(
             -lhs.r,
@@ -97,7 +97,7 @@ namespace ray
         );
     }
 
-    inline ColorRGBf exp(const ColorRGBf& lhs)
+    [[nodiscard]] inline ColorRGBf exp(const ColorRGBf& lhs)
     {
         return ColorRGBf(
             std::exp(lhs.r),
@@ -108,14 +108,14 @@ namespace ray
 
     struct ColorRGBi
     {
-        constexpr ColorRGBi() :
+        constexpr ColorRGBi() noexcept :
             r{},
             g{},
             b{}
         {
         }
 
-        constexpr ColorRGBi(std::uint8_t r, std::uint8_t g, std::uint8_t b) :
+        constexpr ColorRGBi(std::uint8_t r, std::uint8_t g, std::uint8_t b) noexcept :
             r(r),
             g(g),
             b(b)
@@ -124,7 +124,7 @@ namespace ray
         }
 
         // gamma correction temporarily here
-        explicit ColorRGBi(const ColorRGBf& other) :
+        explicit ColorRGBi(const ColorRGBf& other) noexcept :
             r(static_cast<std::uint8_t>(std::clamp(other.r, 0.0f, 1.0f) * 255.0f + 0.5f)),
             g(static_cast<std::uint8_t>(std::clamp(other.g, 0.0f, 1.0f) * 255.0f + 0.5f)),
             b(static_cast<std::uint8_t>(std::clamp(other.b, 0.0f, 1.0f) * 255.0f + 0.5f))
@@ -132,10 +132,10 @@ namespace ray
 
         }
 
-        constexpr ColorRGBi(const ColorRGBi&) = default;
-        constexpr ColorRGBi(ColorRGBi&&) = default;
-        constexpr ColorRGBi& operator=(const ColorRGBi&) = default;
-        constexpr ColorRGBi& operator=(ColorRGBi&&) = default;
+        constexpr ColorRGBi(const ColorRGBi&) noexcept = default;
+        constexpr ColorRGBi(ColorRGBi&&) noexcept = default;
+        constexpr ColorRGBi& operator=(const ColorRGBi&) noexcept = default;
+        constexpr ColorRGBi& operator=(ColorRGBi&&) noexcept = default;
 
         std::uint8_t r, g, b;
     };

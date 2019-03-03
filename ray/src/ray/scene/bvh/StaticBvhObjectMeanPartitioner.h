@@ -39,12 +39,12 @@ namespace ray
 
             // must include last
             // can assume that distance(first, last) > 1
-            std::vector<BoundedBvhObjectVectorIterator> partition(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
+            [[nodiscard]] std::vector<BoundedBvhObjectVectorIterator> partition(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
                 return partition(first, last, m_numParts);
             }
 
-            Box3 aabb(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
+            [[nodiscard]] Box3 aabb(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
                 if (first == last) return {};
                 Box3 bb = (*first)->aabb();
@@ -57,7 +57,7 @@ namespace ray
                 return bb;
             }
 
-            Point3fMemberPtr biggestExtentAxis(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
+            [[nodiscard]] Point3fMemberPtr biggestExtentAxis(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
                 const Vec3f extent = aabb(first, last).extent();
                 if (extent.x > extent.y && extent.x > extent.z) return &Point3f::x;
@@ -69,7 +69,7 @@ namespace ray
             int m_numParts;
 
             // must include last
-            std::vector<BoundedBvhObjectVectorIterator> partition(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int p) const
+            [[nodiscard]] std::vector<BoundedBvhObjectVectorIterator> partition(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int p) const
             {
                 auto flp2 = [](int x) {
                     int y;
@@ -98,7 +98,7 @@ namespace ray
                 }
             }
 
-            BoundedBvhObjectVectorIterator partitionHalf(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
+            [[nodiscard]] BoundedBvhObjectVectorIterator partitionHalf(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
                 const Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
 

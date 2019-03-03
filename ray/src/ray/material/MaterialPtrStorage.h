@@ -11,30 +11,30 @@ namespace ray
     // size is not stored as it is not needed, should be resolved from other sources
     struct MaterialPtrStorageView
     {
-        MaterialPtrStorageView(const SurfaceMaterial* const * surfaceMaterials, const MediumMaterial* const * mediumMaterials) :
+        MaterialPtrStorageView(const SurfaceMaterial* const * surfaceMaterials, const MediumMaterial* const * mediumMaterials) noexcept :
             m_surfaceMaterials(surfaceMaterials),
             m_mediumMaterials(mediumMaterials)
         {
 
         }
 
-        MaterialPtrStorageView(const MaterialPtrStorageView&) = default;
-        MaterialPtrStorageView(MaterialPtrStorageView&&) = default;
+        MaterialPtrStorageView(const MaterialPtrStorageView&) noexcept = default;
+        MaterialPtrStorageView(MaterialPtrStorageView&&) noexcept = default;
 
-        MaterialPtrStorageView& operator=(const MaterialPtrStorageView&) = default;
-        MaterialPtrStorageView& operator=(MaterialPtrStorageView&&) = default;
+        MaterialPtrStorageView& operator=(const MaterialPtrStorageView&) noexcept = default;
+        MaterialPtrStorageView& operator=(MaterialPtrStorageView&&) noexcept = default;
 
-        const SurfaceMaterial& surfaceMaterial(int i) const
+        [[nodiscard]] const SurfaceMaterial& surfaceMaterial(int i) const
         {
             return *m_surfaceMaterials[i];
         }
 
-        const MediumMaterial& mediumMaterial(int i) const
+        [[nodiscard]] const MediumMaterial& mediumMaterial(int i) const
         {
             return *m_mediumMaterials[i];
         }
 
-        std::pair<const SurfaceMaterial*, const MediumMaterial*> material(const MaterialIndex& idx) const
+        [[nodiscard]] std::pair<const SurfaceMaterial*, const MediumMaterial*> material(const MaterialIndex& idx) const
         {
             const int s = idx.surfaceMaterialNo();
             const int m = idx.mediumMaterialNo();
@@ -62,24 +62,24 @@ namespace ray
         using SurfaceMaterialStorage = std::array<const SurfaceMaterial*, NumSurfaceMaterialsV>;
         using MediumMaterialStorage = std::array<const MediumMaterial*, NumMediumMaterialsV>;
 
-        MaterialPtrStorage(const SurfaceMaterialStorage& surfaceMaterials, const MediumMaterialStorage& mediumMaterials) :
+        MaterialPtrStorage(const SurfaceMaterialStorage& surfaceMaterials, const MediumMaterialStorage& mediumMaterials) noexcept :
             m_surfaceMaterials(surfaceMaterials),
             m_mediumMaterials(mediumMaterials)
         {
 
         }
 
-        const SurfaceMaterial& surfaceMaterial(int i) const
+        [[nodiscard]] const SurfaceMaterial& surfaceMaterial(int i) const
         {
             return *m_surfaceMaterials[i];
         }
 
-        const MediumMaterial& mediumMaterial(int i) const
+        [[nodiscard]] const MediumMaterial& mediumMaterial(int i) const
         {
             return *m_mediumMaterials[i];
         }
 
-        MaterialPtrStorageView view() const
+        [[nodiscard]] MaterialPtrStorageView view() const
         {
             return MaterialPtrStorageView(m_surfaceMaterials.data(), m_mediumMaterials.data());
         }
@@ -96,18 +96,18 @@ namespace ray
 
         using SurfaceMaterialStorage = std::array<const SurfaceMaterial*, NumSurfaceMaterialsV>;
 
-        MaterialPtrStorage(const SurfaceMaterialStorage& surfaceMaterials) :
+        MaterialPtrStorage(const SurfaceMaterialStorage& surfaceMaterials) noexcept :
             m_surfaceMaterials(surfaceMaterials)
         {
 
         }
 
-        const SurfaceMaterial& surfaceMaterial(int i) const
+        [[nodiscard]] const SurfaceMaterial& surfaceMaterial(int i) const
         {
             return *m_surfaceMaterials[i];
         }
 
-        MaterialPtrStorageView view() const
+        [[nodiscard]] MaterialPtrStorageView view() const
         {
             return MaterialPtrStorageView(m_surfaceMaterials.data(), nullptr);
         }

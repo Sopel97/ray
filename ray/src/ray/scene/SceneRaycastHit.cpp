@@ -5,23 +5,23 @@
 
 namespace ray
 {
-    ResolvedRaycastHit ResolvableRaycastHit::resolve() const
+    [[nodiscard]] ResolvedRaycastHit ResolvableRaycastHit::resolve() const
     {
         return owner->resolveHit(*this);
     }
-    SceneObjectId ResolvableRaycastHit::objectId() const
+    [[nodiscard]] SceneObjectId ResolvableRaycastHit::objectId() const
     {
         return owner->id(shapeNo);
     }
 
-    bool ResolvedRaycastHit::next(const Ray& ray, ResolvableRaycastHit& hit) const
+    [[nodiscard]] bool ResolvedRaycastHit::next(const Ray& ray, ResolvableRaycastHit& hit) const
     {
         if (!owner || !isLocallyContinuable) return false;
 
         return owner->queryLocal(ray, shapeNo, hit);
     }
 
-    SceneObjectId ResolvedRaycastHit::objectId() const
+    [[nodiscard]] SceneObjectId ResolvedRaycastHit::objectId() const
     {
         return owner->id(shapeNo);
     }

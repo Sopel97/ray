@@ -65,7 +65,7 @@ namespace ray
             objectsOfType<ShapeT>().add(std::move(so));
         }
 
-        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
+        [[nodiscard]] bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
         {
             bool anyHit = false;
             for_each(m_objects, [&](const auto& objects) {
@@ -84,13 +84,13 @@ namespace ray
         > m_objects;
 
         template <typename ShapeT>
-        ObjectStorageType<ShapeT>& objectsOfType()
+        [[nodiscard]] ObjectStorageType<ShapeT>& objectsOfType()
         {
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }
 
         template <typename ShapeT>
-        const ObjectStorageType<ShapeT>& objectsOfType() const
+        [[nodiscard]] const ObjectStorageType<ShapeT>& objectsOfType() const
         {
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }

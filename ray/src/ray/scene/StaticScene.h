@@ -29,17 +29,17 @@ namespace ray
             rememberLights(collection);
         }
 
-        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const override
+        [[nodiscard]] bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const override
         {
             return m_storage.queryNearest(ray, hit);
         }
 
-        const std::vector<LightHandle>& lights() const override
+        [[nodiscard]] const std::vector<LightHandle>& lights() const override
         {
             return m_lights;
         }
 
-        const ColorRGBf& backgroundColor() const
+        [[nodiscard]] const ColorRGBf& backgroundColor() const
         {
             return m_backgroundColor;
         }
@@ -49,7 +49,7 @@ namespace ray
             m_backgroundColor = color;
         }
 
-        float backgroundDistance() const override
+        [[nodiscard]] float backgroundDistance() const override
         {
             return m_backgroundDistance;
         }
@@ -64,7 +64,7 @@ namespace ray
             m_mediumMaterial = mediumMaterial;
         }
 
-        const MediumMaterial* mediumMaterial() const override
+        [[nodiscard]] const MediumMaterial* mediumMaterial() const override
         {
             return m_mediumMaterial;
         }

@@ -32,7 +32,7 @@ namespace ray
     >;
 
     template <int N, int M>
-    bool isEmissive(const MaterialPtrStorage<N, M>& mats)
+    [[nodiscard]] inline bool isEmissive(const MaterialPtrStorage<N, M>& mats)
     {
         for (int i = 0; i < N; ++i)
         {
@@ -67,37 +67,42 @@ namespace ray
 
         }
 
-        decltype(auto) center() const
+        SceneObject(const SceneObject&) = default;
+        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject& operator=(const SceneObject&) = default;
+        SceneObject& operator=(SceneObject&&) noexcept = default;
+
+        [[nodiscard]] decltype(auto) center() const
         {
             return m_shape.center();
         }
 
-        decltype(auto) aabb() const
+        [[nodiscard]] decltype(auto) aabb() const
         {
             return boundingVolume<Box3>(m_shape);
         }
 
-        const MaterialStorageType& materials() const
+        [[nodiscard]] const MaterialStorageType& materials() const
         {
             return m_materials;
         }
 
-        MaterialStorageViewType materialsView() const
+        [[nodiscard]] MaterialStorageViewType materialsView() const
         {
             return m_materials.view();
         }
 
-        const ShapeType& shape() const
+        [[nodiscard]] const ShapeType& shape() const
         {
             return m_shape;
         }
 
-        bool isLight() const
+        [[nodiscard]] bool isLight() const
         {
             return isEmissive(m_materials);
         }
 
-        SceneObjectId id() const
+        [[nodiscard]] SceneObjectId id() const
         {
             return m_id;
         }
@@ -130,9 +135,9 @@ namespace ray
 
         struct CsgNode
         {
-            virtual bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const = 0;
-            virtual Box3 aabb() const = 0;
-            virtual int depth() const = 0;
+            [[nodiscard]] virtual bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const = 0;
+            [[nodiscard]] virtual Box3 aabb() const = 0;
+            [[nodiscard]] virtual int depth() const = 0;
         };
 
     public:
@@ -140,11 +145,11 @@ namespace ray
         {
             using MaterialStorageViewType = MaterialPtrStorageView;
 
-            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
-            virtual MaterialStorageViewType materialsView() const = 0;
-            virtual bool isLight() const = 0;
-            virtual SceneObjectId id() const = 0;
+            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
+            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual MaterialStorageViewType materialsView() const = 0;
+            [[nodiscard]] virtual bool isLight() const = 0;
+            [[nodiscard]] virtual SceneObjectId id() const = 0;
         };
 
     private:
@@ -171,37 +176,37 @@ namespace ray
             {
 
             }
-            Box3 aabb() const override
+            [[nodiscard]] Box3 aabb() const override
             {
                 return boundingVolume<Box3>(m_shape);
             }
-            bool raycast(const Ray& ray, RaycastHit& hit) const override
+            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
+            [[nodiscard]] bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
                 hitIntervals.clear();
                 return ray::raycastIntervals(ray, m_shape, hitIntervals, CsgIntervalData{ this, invert });
             }
-            TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
                 return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
-            MaterialStorageViewType materialsView() const override
+            [[nodiscard]] MaterialStorageViewType materialsView() const override
             {
                 return m_materials.view();
             }
-            bool isLight() const override
+            [[nodiscard]] bool isLight() const override
             {
                 return isEmissive(m_materials);
             }
-            SceneObjectId id() const override
+            [[nodiscard]] SceneObjectId id() const override
             {
                 return m_id;
             }
 
-            int depth() const override
+            [[nodiscard]] int depth() const override
             {
                 return 1;
             }
@@ -222,14 +227,14 @@ namespace ray
             {
             }
 
-            Box3 aabb() const override
+            [[nodiscard]] Box3 aabb() const override
             {
                 Box3 b = m_lhs->aabb();
                 b.extend(m_rhs->aabb());
                 return b;
             }
 
-            int depth() const override
+            [[nodiscard]] int depth() const override
             {
                 return m_depth;
             }
@@ -245,7 +250,7 @@ namespace ray
         {
             using CsgBinaryOperation::CsgBinaryOperation;
 
-            bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
+            [[nodiscard]] bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
                 RaycastBvHit bvHit;
                 if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
@@ -255,7 +260,7 @@ namespace ray
                 }
                 if (!m_lhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert))
                 {
-                    m_rhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
+                    return m_rhs->raycastIntervals(ray, hitIntervals, std::next(scratchHitIntervals), invert);
                 }
                 else if(m_rhs->raycastIntervals(ray, *scratchHitIntervals, std::next(scratchHitIntervals), invert))
                 {
@@ -269,7 +274,7 @@ namespace ray
         {
             using CsgBinaryOperation::CsgBinaryOperation;
 
-            bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
+            [[nodiscard]] bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
                 RaycastBvHit bvHit;
                 if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
@@ -296,7 +301,7 @@ namespace ray
         {
             using CsgBinaryOperation::CsgBinaryOperation;
 
-            bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
+            [[nodiscard]] bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
                 RaycastBvHit bvHit;
                 if (!ray::raycastBv(ray, m_aabb, std::numeric_limits<float>::max(), bvHit))
@@ -334,7 +339,12 @@ namespace ray
 
         }
 
-        const CsgPrimitiveBase* raycast(const Ray& ray, RaycastHit& hit) const
+        SceneObject(const SceneObject&) = default;
+        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject& operator=(const SceneObject&) = default;
+        SceneObject& operator=(SceneObject&&) noexcept = default;
+
+        [[nodiscard]] const CsgPrimitiveBase* raycast(const Ray& ray, RaycastHit& hit) const
         {
             thread_local CsgHitIntervalsStack allHitIntervals;
 
@@ -347,7 +357,7 @@ namespace ray
             auto& hitIntervals = allHitIntervals[0];
             auto scratchHitIntervalsIter = std::next(allHitIntervals.begin());
             hitIntervals.clear();
-            m_obj->raycastIntervals(ray, hitIntervals, scratchHitIntervalsIter);
+            const bool anyHit = m_obj->raycastIntervals(ray, hitIntervals, scratchHitIntervalsIter);
 
             for (const auto& interval : hitIntervals)
             {
@@ -387,48 +397,48 @@ namespace ray
             return nullptr;
         }
 
-        decltype(auto) aabb() const
+        [[nodiscard]] decltype(auto) aabb() const
         {
             return m_obj->aabb();
         }
 
-        decltype(auto) center() const
+        [[nodiscard]] decltype(auto) center() const
         {
             return aabb().center();
         }
 
-        bool hasVolume() const
+        [[nodiscard]] bool hasVolume() const
         {
             return true;
         }
 
-        bool isLocallyContinuable() const
+        [[nodiscard]] bool isLocallyContinuable() const
         {
             return true;
         }
 
         // TODO: maybe this properly
-        bool isLight() const
+        [[nodiscard]] bool isLight() const
         {
             return false;
         }
 
-        SceneObjectId id() const
+        [[nodiscard]] SceneObjectId id() const
         {
             return m_id;
         }
 
-        friend SceneObject<CsgShape> operator|(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
+        [[nodiscard]] friend SceneObject<CsgShape> operator|(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
         {
             return SceneObject<CsgShape>(std::make_shared<CsgUnion>(lhs.m_obj, rhs.m_obj));
         }
 
-        friend SceneObject<CsgShape> operator&(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
+        [[nodiscard]] friend SceneObject<CsgShape> operator&(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
         {
             return SceneObject<CsgShape>(std::make_shared<CsgIntersection>(lhs.m_obj, rhs.m_obj));
         }
 
-        friend SceneObject<CsgShape> operator-(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
+        [[nodiscard]] friend SceneObject<CsgShape> operator-(const SceneObject<CsgShape>& lhs, const SceneObject<CsgShape>& rhs)
         {
             return SceneObject<CsgShape>(std::make_shared<CsgDifference>(lhs.m_obj, rhs.m_obj));
         }
@@ -451,16 +461,16 @@ namespace ray
         {
             using MaterialStorageViewType = MaterialPtrStorageView;
 
-            virtual Point3f center() const = 0;
-            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
-            virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
-            virtual bool hasVolume() const = 0;
-            virtual bool isLocallyContinuable() const = 0;
-            virtual Box3 aabb() const = 0;
-            virtual MaterialStorageViewType materials() const = 0;
-            virtual bool isLight() const = 0;
-            virtual SceneObjectId id() const = 0;
+            [[nodiscard]] virtual Point3f center() const = 0;
+            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
+            [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
+            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual bool hasVolume() const = 0;
+            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
+            [[nodiscard]] virtual Box3 aabb() const = 0;
+            [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
+            [[nodiscard]] virtual bool isLight() const = 0;
+            [[nodiscard]] virtual SceneObjectId id() const = 0;
         };
 
         template <typename ShapeT>
@@ -484,43 +494,43 @@ namespace ray
 
             }
 
-            Point3f center() const override
+            [[nodiscard]] Point3f center() const override
             {
                 return m_shape.center();
             }
-            Box3 aabb() const override
+            [[nodiscard]] Box3 aabb() const override
             {
                 return boundingVolume<Box3>(m_shape);
             }
-            bool raycast(const Ray& ray, RaycastHit& hit) const override
+            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
+            [[nodiscard]] std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
             {
                 return std::make_unique<PolymorphicSceneObject<ShapeT>>(*this);
             }
-            TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
                 return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
-            bool hasVolume() const override
+            [[nodiscard]] bool hasVolume() const override
             {
                 return ShapeTraits<ShapeT>::hasVolume;
             }
-            bool isLocallyContinuable() const override
+            [[nodiscard]] bool isLocallyContinuable() const override
             {
                 return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
-            MaterialStorageViewType material() const override
+            [[nodiscard]] MaterialStorageViewType material() const override
             {
                 return m_materials.view();
             }
-            bool isLight() const override
+            [[nodiscard]] bool isLight() const override
             {
                 return isEmissive(m_materials);
             }
-            SceneObjectId id() const override
+            [[nodiscard]] SceneObjectId id() const override
             {
                 return m_id;
             }
@@ -546,47 +556,54 @@ namespace ray
         {
 
         }
+        SceneObject& operator=(const SceneObject& other)
+        {
+            m_obj = other.m_obj->clone();
+        }
 
-        SceneObjectId id() const
+        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject& operator=(SceneObject&&) noexcept = default;
+
+        [[nodiscard]] SceneObjectId id() const
         {
             return m_obj->id();
         }
 
-        Point3f center() const
+        [[nodiscard]] Point3f center() const
         {
             return m_obj->center();
         }
 
-        Box3 aabb() const
+        [[nodiscard]] Box3 aabb() const
         {
             return m_obj->aabb();
         }
 
-        bool raycast(const Ray& ray, RaycastHit& hit) const
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
         {
             return m_obj->raycast(ray, hit);
         }
 
-        TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
         {
             return m_obj->resolveTexCoords(hit, shapeInPackNo);
         }
 
-        bool hasVolume() const
+        [[nodiscard]] bool hasVolume() const
         {
             return m_obj->hasVolume();
         }
-        bool isLocallyContinuable() const
+        [[nodiscard]] bool isLocallyContinuable() const
         {
             return m_obj->isLocallyContinuable();
         }
 
-        MaterialPtrStorageView materialsView() const
+        [[nodiscard]] MaterialPtrStorageView materialsView() const
         {
             return m_obj->materials();
         }
 
-        bool isLight() const
+        [[nodiscard]] bool isLight() const
         {
             return m_obj->isLight();
         }
@@ -606,15 +623,15 @@ namespace ray
         {
             using MaterialStorageViewType = MaterialPtrStorageView;
 
-            virtual Point3f center() const = 0;
-            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
-            virtual bool hasVolume() const = 0;
-            virtual bool isLocallyContinuable() const = 0;
-            virtual Box3 aabb() const = 0;
-            virtual MaterialStorageViewType materials() const = 0;
-            virtual bool isLight() const = 0;
-            virtual SceneObjectId id() const = 0;
+            [[nodiscard]] virtual Point3f center() const = 0;
+            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
+            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual bool hasVolume() const = 0;
+            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
+            [[nodiscard]] virtual Box3 aabb() const = 0;
+            [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
+            [[nodiscard]] virtual bool isLight() const = 0;
+            [[nodiscard]] virtual SceneObjectId id() const = 0;
         };
 
         template <typename ShapeT>
@@ -638,39 +655,39 @@ namespace ray
 
             }
 
-            Point3f center() const override
+            [[nodiscard]] Point3f center() const override
             {
                 return m_shape.center();
             }
-            Box3 aabb() const override
+            [[nodiscard]] Box3 aabb() const override
             {
                 return boundingVolume<Box3>(m_shape);
             }
-            bool raycast(const Ray& ray, RaycastHit& hit) const override
+            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
                 return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
-            bool hasVolume() const override
+            [[nodiscard]] bool hasVolume() const override
             {
                 return ShapeTraits<ShapeT>::hasVolume;
             }
-            bool isLocallyContinuable() const override
+            [[nodiscard]] bool isLocallyContinuable() const override
             {
                 return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
-            MaterialStorageViewType materials() const override
+            [[nodiscard]] MaterialStorageViewType materials() const override
             {
                 return m_materials.view();
             }
-            bool isLight() const override
+            [[nodiscard]] bool isLight() const override
             {
                 return isEmissive(m_materials);
             }
-            SceneObjectId id() const override
+            [[nodiscard]] SceneObjectId id() const override
             {
                 return m_id;
             }
@@ -691,47 +708,52 @@ namespace ray
 
         }
 
-        SceneObjectId id() const
+        SceneObject(const SceneObject&) = default;
+        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject& operator=(const SceneObject&) = default;
+        SceneObject& operator=(SceneObject&&) noexcept = default;
+
+        [[nodiscard]] SceneObjectId id() const
         {
             return m_obj->id();
         }
 
-        Point3f center() const
+        [[nodiscard]] Point3f center() const
         {
             return m_obj->center();
         }
 
-        Box3 aabb() const
+        [[nodiscard]] Box3 aabb() const
         {
             return m_obj->aabb();
         }
 
-        bool raycast(const Ray& ray, RaycastHit& hit) const
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
         {
             return m_obj->raycast(ray, hit);
         }
 
-        TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
         {
             return m_obj->resolveTexCoords(hit, shapeInPackNo);
         }
 
-        bool hasVolume() const
+        [[nodiscard]] bool hasVolume() const
         {
             return m_obj->hasVolume();
         }
 
-        bool isLocallyContinuable() const
+        [[nodiscard]] bool isLocallyContinuable() const
         {
             return m_obj->isLocallyContinuable();
         }
 
-        MaterialPtrStorageView materialsView() const
+        [[nodiscard]] MaterialPtrStorageView materialsView() const
         {
             return m_obj->materials();
         }
 
-        bool isLight() const
+        [[nodiscard]] bool isLight() const
         {
             return m_obj->isLight();
         }
@@ -752,14 +774,14 @@ namespace ray
         {
             using MaterialStorageViewType = MaterialPtrStorageView;
 
-            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
-            virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
-            virtual bool hasVolume() const = 0;
-            virtual bool isLocallyContinuable() const = 0;
-            virtual MaterialStorageViewType materials() const = 0;
-            virtual bool isLight() const = 0;
-            virtual SceneObjectId id() const = 0;
+            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
+            [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
+            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual bool hasVolume() const = 0;
+            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
+            [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
+            [[nodiscard]] virtual bool isLight() const = 0;
+            [[nodiscard]] virtual SceneObjectId id() const = 0;
         };
 
         template <typename ShapeT>
@@ -782,35 +804,35 @@ namespace ray
             {
 
             }
-            bool raycast(const Ray& ray, RaycastHit& hit) const override
+            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
+            [[nodiscard]] std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
             {
                 return std::make_unique<PolymorphicSceneObject<ShapeT>>(*this);
             }
-            TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
                 return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
-            bool hasVolume() const override
+            [[nodiscard]] bool hasVolume() const override
             {
                 return ShapeTraits<ShapeT>::hasVolume;
             }
-            bool isLocallyContinuable() const override
+            [[nodiscard]] bool isLocallyContinuable() const override
             {
                 return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
-            MaterialStorageViewType material() const override
+            [[nodiscard]] MaterialStorageViewType material() const override
             {
                 return m_materials.view();
             }
-            bool isLight() const override
+            [[nodiscard]] bool isLight() const override
             {
                 return isEmissive(m_materials);
             }
-            SceneObjectId id() const override
+            [[nodiscard]] SceneObjectId id() const override
             {
                 return m_id;
             }
@@ -836,38 +858,45 @@ namespace ray
         {
 
         }
+        SceneObject& operator=(const SceneObject& other)
+        {
+            m_obj = other.m_obj->clone();
+        }
 
-        SceneObjectId id() const
+        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject& operator=(SceneObject&&) noexcept = default;
+
+        [[nodiscard]] SceneObjectId id() const
         {
             return m_obj->id();
         }
 
-        bool raycast(const Ray& ray, RaycastHit& hit) const
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
         {
             return m_obj->raycast(ray, hit);
         }
 
-        TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
         {
             return m_obj->resolveTexCoords(hit, shapeInPackNo);
         }
 
-        bool hasVolume() const
+        [[nodiscard]] bool hasVolume() const
         {
             return m_obj->hasVolume();
         }
 
-        bool isLocallyContinuable() const
+        [[nodiscard]] bool isLocallyContinuable() const
         {
             return m_obj->isLocallyContinuable();
         }
 
-        MaterialPtrStorageView materialsView() const
+        [[nodiscard]] MaterialPtrStorageView materialsView() const
         {
             return m_obj->materials();
         }
 
-        bool isLight() const
+        [[nodiscard]] bool isLight() const
         {
             return m_obj->isLight();
         }
@@ -887,13 +916,13 @@ namespace ray
         {
             using MaterialStorageViewType = MaterialPtrStorageView;
 
-            virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
-            virtual bool hasVolume() const = 0;
-            virtual bool isLocallyContinuable() const = 0;
-            virtual MaterialStorageViewType materials() const = 0;
-            virtual bool isLight() const = 0;
-            virtual SceneObjectId id() const = 0;
+            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
+            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual bool hasVolume() const = 0;
+            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
+            [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
+            [[nodiscard]] virtual bool isLight() const = 0;
+            [[nodiscard]] virtual SceneObjectId id() const = 0;
         };
 
         template <typename ShapeT>
@@ -916,31 +945,31 @@ namespace ray
             {
 
             }
-            bool raycast(const Ray& ray, RaycastHit& hit) const override
+            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {
                 return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
             }
-            bool hasVolume() const override
+            [[nodiscard]] bool hasVolume() const override
             {
                 return ShapeTraits<ShapeT>::hasVolume;
             }
-            bool isLocallyContinuable() const override
+            [[nodiscard]] bool isLocallyContinuable() const override
             {
                 return ShapeTraits<ShapeT>::isLocallyContinuable;
             }
-            MaterialStorageViewType materials() const override
+            [[nodiscard]] MaterialStorageViewType materials() const override
             {
                 return m_materials.view();
             }
-            bool isLight() const override
+            [[nodiscard]] bool isLight() const override
             {
                 return isEmissive(m_materials);
             }
-            SceneObjectId id() const override
+            [[nodiscard]] SceneObjectId id() const override
             {
                 return m_id;
             }
@@ -961,37 +990,42 @@ namespace ray
 
         }
 
-        SceneObjectId id() const
+        SceneObject(const SceneObject&) = default;
+        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject& operator=(const SceneObject&) = default;
+        SceneObject& operator=(SceneObject&&) noexcept = default;
+
+        [[nodiscard]] SceneObjectId id() const
         {
             return m_obj->id();
         }
 
-        bool raycast(const Ray& ray, RaycastHit& hit) const
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
         {
             return m_obj->raycast(ray, hit);
         }
 
-        TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
         {
             return m_obj->resolveTexCoords(hit, shapeInPackNo);
         }
 
-        bool hasVolume() const
+        [[nodiscard]] bool hasVolume() const
         {
             return m_obj->hasVolume();
         }
 
-        bool isLocallyContinuable() const
+        [[nodiscard]] bool isLocallyContinuable() const
         {
             return m_obj->isLocallyContinuable();
         }
 
-        MaterialPtrStorageView materialsView() const
+        [[nodiscard]] MaterialPtrStorageView materialsView() const
         {
             return m_obj->materials();
         }
 
-        bool isLight() const
+        [[nodiscard]] bool isLight() const
         {
             return m_obj->isLight();
         }

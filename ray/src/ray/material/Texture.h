@@ -7,6 +7,6 @@ namespace ray
 
     struct Texture
     {
-        virtual ColorRGBf sample(const TexCoords& coords) const = 0;
+        [[nodiscard]] virtual ColorRGBf sample(const TexCoords& coords) const = 0;
     };
 }

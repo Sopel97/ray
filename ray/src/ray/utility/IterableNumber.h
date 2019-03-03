@@ -29,22 +29,22 @@ namespace ray
         IterableNumber& operator++ () { ++m_value; return *this; }
         IterableNumber& operator-- () { --m_value; return *this; }
 
-        IterableNumber  operator+  (int n) const { IterableNumber i = *this; i += n; return i; }
-        IterableNumber  operator-  (int n) const { IterableNumber i = *this; i -= n; return i; }
+        [[nodiscard]] IterableNumber  operator+  (int n) const { IterableNumber i = *this; i += n; return i; }
+        [[nodiscard]] IterableNumber  operator-  (int n) const { IterableNumber i = *this; i -= n; return i; }
         IterableNumber& operator+= (int n) { m_value += n; return *this; }
         IterableNumber& operator-= (int n) { m_value -= n; return *this; }
 
-        difference_type operator-  (const IterableNumber& rhs) const { return m_value - rhs.value; }
+        [[nodiscard]] difference_type operator-  (const IterableNumber& rhs) const { return m_value - rhs.value; }
 
-        value_type      operator[] (int n) const { return m_value + n; }
-        value_type      operator*  () const { return m_value; }
+        [[nodiscard]] value_type      operator[] (int n) const { return m_value + n; }
+        [[nodiscard]] value_type      operator*  () const { return m_value; }
 
-        bool            operator== (const IterableNumber& rhs) const noexcept { return m_value == rhs.m_value; }
-        bool            operator<  (const IterableNumber& rhs) const noexcept { return m_value < rhs.m_value; }
-        bool            operator>  (const IterableNumber& rhs) const noexcept { return m_value > rhs.m_value; }
-        bool            operator<= (const IterableNumber& rhs) const noexcept { return m_value <= rhs.m_value; }
-        bool            operator>= (const IterableNumber& rhs) const noexcept { return m_value >= rhs.m_value; }
-        bool            operator!= (const IterableNumber& rhs) const noexcept { return m_value != rhs.m_value; }
+        [[nodiscard]] bool            operator== (const IterableNumber& rhs) const noexcept { return m_value == rhs.m_value; }
+        [[nodiscard]] bool            operator<  (const IterableNumber& rhs) const noexcept { return m_value < rhs.m_value; }
+        [[nodiscard]] bool            operator>  (const IterableNumber& rhs) const noexcept { return m_value > rhs.m_value; }
+        [[nodiscard]] bool            operator<= (const IterableNumber& rhs) const noexcept { return m_value <= rhs.m_value; }
+        [[nodiscard]] bool            operator>= (const IterableNumber& rhs) const noexcept { return m_value >= rhs.m_value; }
+        [[nodiscard]] bool            operator!= (const IterableNumber& rhs) const noexcept { return m_value != rhs.m_value; }
 
     private:
         IntT m_value;

@@ -12,7 +12,7 @@ namespace ray
         float near;
         float far;
 
-        ViewingFrustum3(const Angle2<T>& fovy, float aspect, float near, float far) :
+        ViewingFrustum3(const Angle2<T>& fovy, float aspect, float near, float far) noexcept :
             fovy(fovy),
             aspect(aspect),
             near(near),

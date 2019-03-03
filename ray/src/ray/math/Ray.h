@@ -9,12 +9,12 @@ namespace ray
 {
     struct Ray
     {
-        static Ray between(const Point3f& from, const Point3f& to)
+        [[nodiscard]] static Ray between(const Point3f& from, const Point3f& to) noexcept
         {
             return Ray(from, (to - from).normalized());
         }
 
-        Ray(const Point3f& origin, const Normal3f& direction) :
+        Ray(const Point3f& origin, const Normal3f& direction) noexcept :
             m_origin(origin),
             m_direction(direction),
             m_invDirection(safeInv(m_direction)),
@@ -23,22 +23,22 @@ namespace ray
 
         }
 
-        constexpr const Point3f& origin() const
+        [[nodiscard]] constexpr const Point3f& origin() const
         {
             return m_origin;
         }
 
-        constexpr const Normal3f& direction() const
+        [[nodiscard]] constexpr const Normal3f& direction() const
         {
             return m_direction;
         }
 
-        constexpr const Vec3f& invDirection() const
+        [[nodiscard]] constexpr const Vec3f& invDirection() const
         {
             return m_invDirection;
         }
 
-        Vec3Mask<float> signs() const
+        [[nodiscard]] Vec3Mask<float> signs() const
         {
             return m_signs;
         }
@@ -60,7 +60,7 @@ namespace ray
             m_origin += v;
         }
 
-        Ray translated(const Vec3f& v) const
+        [[nodiscard]] Ray translated(const Vec3f& v) const
         {
             return Ray(m_origin + v, m_direction);
         }
@@ -71,7 +71,7 @@ namespace ray
         Vec3f m_invDirection;
         Vec3Mask<float> m_signs;
 
-        Vec3f safeInv(const Normal3f& n) const
+        [[nodiscard]] Vec3f safeInv(const Normal3f& n) const
         {
             Vec3f nv(n);
             if (std::abs(nv.x) < 0.00001f) nv.x = 0.00001f;

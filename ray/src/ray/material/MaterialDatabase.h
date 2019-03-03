@@ -12,11 +12,11 @@ namespace ray
 {
     struct MaterialDatabase
     {
-        MaterialDatabase() {}
+        MaterialDatabase() noexcept {}
         MaterialDatabase(const MaterialDatabase&) = delete;
-        MaterialDatabase(MaterialDatabase&&) = default;
+        MaterialDatabase(MaterialDatabase&&) noexcept = default;
         MaterialDatabase& operator=(const MaterialDatabase&) = delete;
-        MaterialDatabase& operator=(MaterialDatabase&&) = default;
+        MaterialDatabase& operator=(MaterialDatabase&&) noexcept = default;
 
         template <typename... ArgsTs>
         const SurfaceMaterial& emplaceSurface(std::string name, ArgsTs&&... args)
@@ -29,12 +29,12 @@ namespace ray
             return *(m_mediums.try_emplace(std::move(name), std::make_unique<MediumMaterial>(std::forward<ArgsTs>(args)...)).first->second);
         }
 
-        const SurfaceMaterial& getSurface(std::string_view name) const
+        [[nodiscard]] const SurfaceMaterial& getSurface(std::string_view name) const
         {
             return *(m_surfaces.find(name)->second);
         }
 
-        const MediumMaterial& get(std::string_view name) const
+        [[nodiscard]] const MediumMaterial& get(std::string_view name) const
         {
             return *(m_mediums.find(name)->second);
         }

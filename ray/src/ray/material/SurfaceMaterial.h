@@ -15,7 +15,7 @@ namespace ray
         float diffuse;
         const Texture* texture;
 
-        SurfaceMaterial() :
+        SurfaceMaterial() noexcept :
             surfaceColor{},
             emissionColor{},
             transparency{},
@@ -32,7 +32,7 @@ namespace ray
             float reflectivity,
             float diffuse,
             const Texture* texture = nullptr
-        ) :
+        ) noexcept :
             surfaceColor(surfaceColor),
             emissionColor(emissionColor),
             transparency(transparency),
@@ -42,10 +42,10 @@ namespace ray
         {
         }
 
-        SurfaceMaterial(const SurfaceMaterial&) = default;
-        SurfaceMaterial(SurfaceMaterial&&) = default;
-        SurfaceMaterial& operator=(const SurfaceMaterial&) = default;
-        SurfaceMaterial& operator=(SurfaceMaterial&&) = default;
+        SurfaceMaterial(const SurfaceMaterial&) noexcept = default;
+        SurfaceMaterial(SurfaceMaterial&&) noexcept = default;
+        SurfaceMaterial& operator=(const SurfaceMaterial&) noexcept = default;
+        SurfaceMaterial& operator=(SurfaceMaterial&&) noexcept = default;
 
         SurfaceMaterial& withSurfaceColor(const ColorRGBf& color)
         {
@@ -82,7 +82,7 @@ namespace ray
             texture = &tex;
         }
 
-        ColorRGBf sampleTexture(const TexCoords& coords) const
+        [[nodiscard]] ColorRGBf sampleTexture(const TexCoords& coords) const
         {
             if (!texture) return ColorRGBf(1.0f, 1.0f, 1.0f);
 

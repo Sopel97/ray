@@ -34,12 +34,13 @@ namespace ray
         // provides same operations as atomic, but only exchange is atomic
         struct Count
         {
-            void operator+=(std::uint64_t d)
+            Count& operator+=(std::uint64_t d)
             {
                 m_value += d;
+                return *this;
             }
 
-            std::uint64_t load() const
+            [[nodiscard]] std::uint64_t load() const
             {
                 return m_value;
             }
@@ -60,9 +61,10 @@ namespace ray
 
         struct AtomicCount : std::atomic<std::uint64_t>
         {
-            void operator+=(std::uint64_t d)
+            AtomicCount& operator+=(std::uint64_t d)
             {
                 std::atomic<std::uint64_t>::fetch_add(d, std::memory_order_relaxed);
+                return *this;
             }
         };
 
@@ -70,13 +72,14 @@ namespace ray
         {
             using Base = std::atomic<std::chrono::nanoseconds>;
 
-            void operator+=(std::chrono::nanoseconds c)
+            AtomicDuration& operator+=(std::chrono::nanoseconds c)
             {
                 std::chrono::nanoseconds s = Base::load();
                 std::chrono::nanoseconds new_s;
                 do {
                     new_s = s + c;
                 } while (!Base::compare_exchange_strong(s, new_s));
+                return *this;
             }
         };
 
@@ -213,7 +216,7 @@ namespace ray
 
             friend struct ThreadLocalPerformanceStats;
 
-            AtomicPerformanceStats() = default;
+            AtomicPerformanceStats() noexcept = default;
 
             AtomicPerformanceStats(const AtomicPerformanceStats&) = delete;
             AtomicPerformanceStats(AtomicPerformanceStats&&) = delete;
@@ -302,7 +305,7 @@ namespace ray
                 m_constructionDuration.time += dur;
             }
 
-            std::string summary() const
+            [[nodiscard]] std::string summary() const
             {
                 std::string out;
 
@@ -340,25 +343,25 @@ namespace ray
             }
 
             template <typename ShapeT>
-            decltype(auto) objectRaycasts() const
+            [[nodiscard]] decltype(auto) objectRaycasts() const
             {
                 return std::get<ObjectRaycastStats<ShapeT, true>>(m_raycasts);
             }
 
             template <typename BvShapeT>
-            decltype(auto) bvRaycasts() const
+            [[nodiscard]] decltype(auto) bvRaycasts() const
             {
                 return std::get<BvRaycastStats<BvShapeT, true>>(m_raycasts);
             }
 
             template <typename ShapeT>
-            decltype(auto) intervalRaycasts() const
+            [[nodiscard]] decltype(auto) intervalRaycasts() const
             {
                 return std::get<IntervalRaycastStats<ShapeT, true>>(m_raycasts);
             }
 
             template <typename ShapeT>
-            decltype(auto) distRaycasts() const
+            [[nodiscard]] decltype(auto) distRaycasts() const
             {
                 return std::get<DistRaycastStats<ShapeT, true>>(m_raycasts);
             }
@@ -372,31 +375,31 @@ namespace ray
             std::mutex m_childrenMutex;
 
             template <typename ShapeT>
-            decltype(auto) objectRaycasts()
+            [[nodiscard]] decltype(auto) objectRaycasts()
             {
                 return std::get<ObjectRaycastStats<ShapeT, true>>(m_raycasts);
             }
 
             template <typename BvShapeT>
-            decltype(auto) bvRaycasts()
+            [[nodiscard]] decltype(auto) bvRaycasts()
             {
                 return std::get<BvRaycastStats<BvShapeT, true>>(m_raycasts);
             }
 
             template <typename ShapeT>
-            decltype(auto) intervalRaycasts()
+            [[nodiscard]] decltype(auto) intervalRaycasts()
             {
                 return std::get<IntervalRaycastStats<ShapeT, true>>(m_raycasts);
             }
 
             template <typename ShapeT>
-            decltype(auto) distRaycasts()
+            [[nodiscard]] decltype(auto) distRaycasts()
             {
                 return std::get<DistRaycastStats<ShapeT, true>>(m_raycasts);
             }
 
 
-            TraceStatsTotal total(const std::array<TraceStats, maxDepth + 1>& stats) const
+            [[nodiscard]] TraceStatsTotal total(const std::array<TraceStats, maxDepth + 1>& stats) const
             {
                 TraceStatsTotal tot{};
 
@@ -437,7 +440,7 @@ namespace ray
 
             friend struct AtomicPerformanceStats;
 
-            explicit ThreadLocalPerformanceStats(AtomicPerformanceStats* parent = nullptr) :
+            explicit ThreadLocalPerformanceStats(AtomicPerformanceStats* parent = nullptr) noexcept :
                 m_tracesByDepth{},
                 m_raycasts{},
                 m_traceDuration{},
@@ -537,25 +540,25 @@ namespace ray
             }
 
             template <typename ShapeT>
-            decltype(auto) objectRaycasts() const
+            [[nodiscard]] decltype(auto) objectRaycasts() const
             {
                 return std::get<ObjectRaycastStats<ShapeT, false>>(m_raycasts);
             }
 
             template <typename BvShapeT>
-            decltype(auto) bvRaycasts() const
+            [[nodiscard]] decltype(auto) bvRaycasts() const
             {
                 return std::get<BvRaycastStats<BvShapeT, false>>(m_raycasts);
             }
 
             template <typename ShapeT>
-            decltype(auto) intervalRaycasts() const
+            [[nodiscard]] decltype(auto) intervalRaycasts() const
             {
                 return std::get<IntervalRaycastStats<ShapeT, false>>(m_raycasts);
             }
 
             template <typename ShapeT>
-            decltype(auto) distRaycasts() const
+            [[nodiscard]] decltype(auto) distRaycasts() const
             {
                 return std::get<DistRaycastStats<ShapeT, false>>(m_raycasts);
             }
@@ -569,25 +572,25 @@ namespace ray
             std::mutex m_childrenMutex;
 
             template <typename ShapeT>
-            decltype(auto) objectRaycasts()
+            [[nodiscard]] decltype(auto) objectRaycasts()
             {
                 return std::get<ObjectRaycastStats<ShapeT, false>>(m_raycasts);
             }
 
             template <typename BvShapeT>
-            decltype(auto) bvRaycasts()
+            [[nodiscard]] decltype(auto) bvRaycasts()
             {
                 return std::get<BvRaycastStats<BvShapeT, false>>(m_raycasts);
             }
 
             template <typename ShapeT>
-            decltype(auto) intervalRaycasts()
+            [[nodiscard]] decltype(auto) intervalRaycasts()
             {
                 return std::get<IntervalRaycastStats<ShapeT, false>>(m_raycasts);
             }
 
             template <typename ShapeT>
-            decltype(auto) distRaycasts()
+            [[nodiscard]] decltype(auto) distRaycasts()
             {
                 return std::get<DistRaycastStats<ShapeT, false>>(m_raycasts);
             }

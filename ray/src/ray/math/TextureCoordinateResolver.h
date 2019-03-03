@@ -22,7 +22,7 @@
 
 namespace ray
 {
-    inline TexCoords resolveTexCoords(const Sphere& sphere, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const Sphere& sphere, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         const Normal3f normal = hit.isInside ? -hit.normal : hit.normal;
 
@@ -38,27 +38,27 @@ namespace ray
     }
 
     // TODO: the following 3 functions
-    inline TexCoords resolveTexCoords(const Plane& plane, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const Plane& plane, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         return { hit.point.x, hit.point.z };
     }
 
-    inline TexCoords resolveTexCoords(const Disc3& plane, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const Disc3& plane, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         return { hit.point.x, hit.point.z };
     }
 
-    inline TexCoords resolveTexCoords(const Cylinder& cyl, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const Cylinder& cyl, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         return { hit.point.x, hit.point.z };
     }
 
-    inline TexCoords resolveTexCoords(const Capsule& cap, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const Capsule& cap, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         return { hit.point.x, hit.point.z };
     }
 
-    inline TexCoords resolveTexCoords(const Box3& box, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const Box3& box, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         const Vec3f extent = box.extent();
         const Normal3f normal = hit.normal;
@@ -91,7 +91,7 @@ namespace ray
         return { diff.x, diff.y };
     }
 
-    inline TexCoords resolveTexCoords(const OrientedBox3& obb, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const OrientedBox3& obb, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         const Vec3f extent = obb.halfSize * 2.0f;
         const Normal3f normal = obb.worldToLocalRot * hit.normal;
@@ -126,20 +126,20 @@ namespace ray
         return { diff.x, diff.y };
     }
 
-    inline TexCoords resolveTexCoords(const Triangle3& tri, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const Triangle3& tri, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         BarycentricCoords bc = tri.barycentric(hit.point);
         return tri.uv(0) * bc.u + tri.uv(1) * bc.v + tri.uv(2) * bc.w;
     }
 
-    inline TexCoords resolveTexCoords(const ClosedTriangleMeshFace& tri, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const ClosedTriangleMeshFace& tri, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         BarycentricCoords bc = tri.barycentric(hit.point);
         return tri.vertex(0).uv * bc.u + tri.vertex(1).uv * bc.v + tri.vertex(2).uv * bc.w;
     }
 
     template <typename TransformT, typename ShapeT>
-    inline TexCoords resolveTexCoords(const TransformedShape3<TransformT, ShapeT>& sh, const ResolvableRaycastHit& hit, int shapeInPackNo)
+    [[nodiscard]] inline TexCoords resolveTexCoords(const TransformedShape3<TransformT, ShapeT>& sh, const ResolvableRaycastHit& hit, int shapeInPackNo)
     {
         ResolvableRaycastHit hitLocal = hit;
         hitLocal.point = sh.worldToLocal * hitLocal.point;

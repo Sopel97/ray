@@ -11,12 +11,12 @@ namespace ray
         {
             friend OwnerT;
 
-            constexpr operator const T&() const
+            [[nodiscard]] constexpr operator const T&() const
             {
                 return m_value;
             }
 
-            void negate()
+            constexpr void negate()
             {
                 m_value = -m_value;
             }
@@ -24,30 +24,30 @@ namespace ray
         private:
             T m_value;
 
-            constexpr OwnedReadOnlyProperty(const T& value) :
+            constexpr OwnedReadOnlyProperty(const T& value) noexcept :
                 m_value(value)
             {
 
             }
 
-            constexpr OwnedReadOnlyProperty(T&& value) :
+            constexpr OwnedReadOnlyProperty(T&& value) noexcept :
                 m_value(std::move(value))
             {
 
             }
 
-            constexpr OwnedReadOnlyProperty(const OwnedReadOnlyProperty&) = default;
-            constexpr OwnedReadOnlyProperty(OwnedReadOnlyProperty&&) = default;
+            constexpr OwnedReadOnlyProperty(const OwnedReadOnlyProperty&) noexcept = default;
+            constexpr OwnedReadOnlyProperty(OwnedReadOnlyProperty&&) noexcept = default;
 
-            constexpr OwnedReadOnlyProperty& operator=(const OwnedReadOnlyProperty&) = default;
-            constexpr OwnedReadOnlyProperty& operator=(OwnedReadOnlyProperty&&) = default;
+            constexpr OwnedReadOnlyProperty& operator=(const OwnedReadOnlyProperty&) noexcept = default;
+            constexpr OwnedReadOnlyProperty& operator=(OwnedReadOnlyProperty&&) noexcept = default;
 
-            constexpr T& operator=(const T& value)
+            constexpr T& operator=(const T& value) noexcept
             {
                 return m_value = value;
             }
 
-            constexpr T& operator=(T&& value)
+            constexpr T& operator=(T&& value) noexcept
             {
                 return m_value = std::move(value);
             }

@@ -15,7 +15,7 @@ namespace ray
     };
 
     template <typename DataT>
-    bool operator==(const Interval<DataT>& lhs, const Interval<DataT>& rhs) noexcept
+    [[nodiscard]] bool operator==(const Interval<DataT>& lhs, const Interval<DataT>& rhs) noexcept
     {
         return lhs.min == rhs.min
             && lhs.max == rhs.max
@@ -26,12 +26,17 @@ namespace ray
     template <typename DataT>
     struct IntervalSet
     {
-        IntervalSet() = default;
+        IntervalSet() noexcept = default;
 
         IntervalSet(Interval<DataT> interval)
         {
             m_intervals.emplace_back(std::move(interval));
         }
+
+        IntervalSet(const IntervalSet<DataT>&) = default;
+        IntervalSet(IntervalSet<DataT>&&) noexcept = default;
+        IntervalSet& operator=(const IntervalSet<DataT>&) = default;
+        IntervalSet& operator=(IntervalSet<DataT>&&) noexcept = default;
 
         // assumes that it can safely be inserted at the end
         void pushBack(Interval<DataT> interval)
@@ -44,47 +49,47 @@ namespace ray
             m_intervals.reserve(n);
         }
 
-        int size() const
+        [[nodiscard]] int size() const
         {
             return static_cast<int>(m_intervals.size());
         }
 
-        bool isEmpty() const
+        [[nodiscard]] bool isEmpty() const
         {
             return m_intervals.empty();
         }
 
-        float min() const
+        [[nodiscard]] float min() const
         {
             return m_intervals.front().min;
         }
 
-        float max() const
+        [[nodiscard]] float max() const
         {
             return m_intervals.back().max;
         }
 
-        const Interval<DataT>& operator[](int i) const
+        [[nodiscard]] const Interval<DataT>& operator[](int i) const
         {
             return m_intervals[i];
         }
 
-        const Interval<DataT>& front() const
+        [[nodiscard]] const Interval<DataT>& front() const
         {
             return m_intervals.front();
         }
 
-        const Interval<DataT>& back() const
+        [[nodiscard]] const Interval<DataT>& back() const
         {
             return m_intervals.back();
         }
 
-        auto begin() const
+        [[nodiscard]] auto begin() const
         {
             return m_intervals.cbegin();
         }
 
-        auto end() const
+        [[nodiscard]] auto end() const
         {
             return m_intervals.cend();
         }
@@ -103,7 +108,7 @@ namespace ray
             }
         }
 
-        bool operator==(const IntervalSet<DataT>& rhs) const noexcept
+        [[nodiscard]] bool operator==(const IntervalSet<DataT>& rhs) const noexcept
         {
             if (size() != rhs.size()) return false;
             return std::equal(begin(), end(), rhs.begin());
@@ -309,64 +314,64 @@ namespace ray
     };
 
     template <typename DataT>
-    IntervalSet<DataT> operator|(const IntervalSet<DataT>& lhs, const IntervalSet<DataT>& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator|(const IntervalSet<DataT>& lhs, const IntervalSet<DataT>& rhs)
     {
         auto result = lhs;
         result |= rhs;
         return result;
     }
     template <typename DataT>
-    IntervalSet<DataT> operator|(IntervalSet<DataT>&& lhs, const IntervalSet<DataT>& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator|(IntervalSet<DataT>&& lhs, const IntervalSet<DataT>& rhs)
     {
         lhs |= rhs;
         return std::move(lhs);
     }
     template <typename DataT>
-    IntervalSet<DataT> operator|(const IntervalSet<DataT>& lhs, IntervalSet<DataT>&& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator|(const IntervalSet<DataT>& lhs, IntervalSet<DataT>&& rhs)
     {
         return rhs | lhs;
     }
     template <typename DataT>
-    IntervalSet<DataT> operator|(IntervalSet<DataT>&& lhs, IntervalSet<DataT>&& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator|(IntervalSet<DataT>&& lhs, IntervalSet<DataT>&& rhs)
     {
         lhs |= rhs;
         return std::move(lhs);
     }
 
     template <typename DataT>
-    IntervalSet<DataT> operator&(const IntervalSet<DataT>& lhs, const IntervalSet<DataT>& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator&(const IntervalSet<DataT>& lhs, const IntervalSet<DataT>& rhs)
     {
         auto result = lhs;
         result &= rhs;
         return result;
     }
     template <typename DataT>
-    IntervalSet<DataT> operator&(IntervalSet<DataT>&& lhs, const IntervalSet<DataT>& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator&(IntervalSet<DataT>&& lhs, const IntervalSet<DataT>& rhs)
     {
         lhs &= rhs;
         return std::move(lhs);
     }
     template <typename DataT>
-    IntervalSet<DataT> operator&(const IntervalSet<DataT>& lhs, IntervalSet<DataT>&& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator&(const IntervalSet<DataT>& lhs, IntervalSet<DataT>&& rhs)
     {
         return rhs & lhs;
     }
     template <typename DataT>
-    IntervalSet<DataT> operator&(IntervalSet<DataT>&& lhs, IntervalSet<DataT>&& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator&(IntervalSet<DataT>&& lhs, IntervalSet<DataT>&& rhs)
     {
         lhs &= rhs;
         return std::move(lhs);
     }
 
     template <typename DataT>
-    IntervalSet<DataT> operator-(const IntervalSet<DataT>& lhs, const IntervalSet<DataT>& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator-(const IntervalSet<DataT>& lhs, const IntervalSet<DataT>& rhs)
     {
         auto result = lhs;
         result -= rhs;
         return result;
     }
     template <typename DataT>
-    IntervalSet<DataT> operator-(IntervalSet<DataT>&& lhs, const IntervalSet<DataT>& rhs)
+    [[nodiscard]] IntervalSet<DataT> operator-(IntervalSet<DataT>&& lhs, const IntervalSet<DataT>& rhs)
     {
         lhs -= rhs;
         return std::move(lhs);

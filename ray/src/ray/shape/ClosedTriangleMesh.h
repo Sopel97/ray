@@ -28,14 +28,14 @@ namespace ray
     {
         ClosedTriangleMeshFace(const ClosedTriangleMesh& mesh, int i0, int i1, int i2);
 
-        const ClosedTriangleMeshVertex& vertex(int i) const
+        [[nodiscard]] const ClosedTriangleMeshVertex& vertex(int i) const
         {
             return *m_vertices[i];
         }
 
         // only used when calculating uv, not in raycast
         // don't do precomputation to save space
-        BarycentricCoords barycentric(const Point3f& p) const
+        [[nodiscard]] BarycentricCoords barycentric(const Point3f& p) const
         {
             const Point3f v0 = vertex(0).point;
             const Vec3f v0p = p - v0;
@@ -53,12 +53,12 @@ namespace ray
             return { u, v, w };
         }
 
-        Point3f center() const
+        [[nodiscard]] Point3f center() const
         {
             return Point3f::origin() + (Vec3f(vertex(0).point) + Vec3f(vertex(1).point) + Vec3f(vertex(2).point)) * 0.333333333333333f;
         }
 
-        Box3 aabb() const
+        [[nodiscard]] Box3 aabb() const
         {
             const Point3f v0 = vertex(0).point;
             const Point3f v1 = vertex(1).point;
@@ -80,7 +80,7 @@ namespace ray
         using MaterialStorageType = MaterialPtrStorage<1, 1>;
 
     public:
-        explicit ClosedTriangleMesh(const MediumMaterial* medium = nullptr) :
+        explicit ClosedTriangleMesh(const MediumMaterial* medium = nullptr) noexcept :
             m_mediumMaterial(medium)
         {
         }
@@ -100,23 +100,23 @@ namespace ray
             return idx;
         }
 
-        const ClosedTriangleMeshVertex& vertex(int i) const
+        [[nodiscard]] const ClosedTriangleMeshVertex& vertex(int i) const
         {
             return m_vertexPool[i];
         }
 
-        const ClosedTriangleMeshFace& face(int i) const
+        [[nodiscard]] const ClosedTriangleMeshFace& face(int i) const
         {
             return m_faces[i];
         }
 
-        const MaterialStorageType& material(int i) const
+        [[nodiscard]] const MaterialStorageType& material(int i) const
         {
             return m_materials[i];
         }
 
         // loses volume
-        Triangle3 faceAsTriangle(int i) const
+        [[nodiscard]] Triangle3 faceAsTriangle(int i) const
         {
             const auto& v0 = m_faces[i].vertex(0);
             const auto& v1 = m_faces[i].vertex(1);
@@ -127,7 +127,7 @@ namespace ray
                 v0.uv, v1.uv, v2.uv);
         }
 
-        int numFaces() const
+        [[nodiscard]] int numFaces() const
         {
             return static_cast<int>(m_faces.size());
         }

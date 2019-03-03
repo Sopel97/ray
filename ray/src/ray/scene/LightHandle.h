@@ -8,19 +8,19 @@ namespace ray
 {
     struct LightHandle
     {
-        LightHandle(const Point3f& center, SceneObjectId id) :
+        LightHandle(const Point3f& center, SceneObjectId id) noexcept :
             m_center(center),
             m_id(id)
         {
 
         }
 
-        const Point3f& center() const
+        [[nodiscard]] const Point3f& center() const
         {
             return m_center;
         }
 
-        SceneObjectId id() const
+        [[nodiscard]] SceneObjectId id() const
         {
             return m_id;
         }

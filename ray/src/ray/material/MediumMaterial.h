@@ -11,7 +11,7 @@ namespace ray
         ColorRGBf absorbtion;
         float refractiveIndex;
 
-        MediumMaterial() :
+        MediumMaterial() noexcept :
             absorbtion{},
             refractiveIndex(1.0f)
         {
@@ -20,16 +20,16 @@ namespace ray
         MediumMaterial(
             const ColorRGBf& absorbtion,
             float refractiveIndex
-        ) :
+        ) noexcept :
             absorbtion(absorbtion),
             refractiveIndex(refractiveIndex)
         {
         }
 
-        MediumMaterial(const MediumMaterial&) = default;
-        MediumMaterial(MediumMaterial&&) = default;
-        MediumMaterial& operator=(const MediumMaterial&) = default;
-        MediumMaterial& operator=(MediumMaterial&&) = default;
+        MediumMaterial(const MediumMaterial&) noexcept = default;
+        MediumMaterial(MediumMaterial&&) noexcept = default;
+        MediumMaterial& operator=(const MediumMaterial&) noexcept = default;
+        MediumMaterial& operator=(MediumMaterial&&) noexcept = default;
 
         MediumMaterial& withRefractiveIndex(float f)
         {

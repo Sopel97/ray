@@ -34,7 +34,7 @@
 
 namespace ray
 {
-    inline bool contains(const Box3& box, const Point3f& point)
+    [[nodiscard]] inline bool contains(const Box3& box, const Point3f& point)
     {
         return (((point <= box.max) & (box.min <= point)).packed() & 0b0111) == 0b0111;
 
@@ -49,7 +49,7 @@ namespace ray
     }
 
     // tNearest is the nearest object (not BV) so we don't update it here
-    inline bool raycastBv(const Ray& ray, const Box3& box, float tNearest, RaycastBvHit& hit)
+    [[nodiscard]] inline bool raycastBv(const Ray& ray, const Box3& box, float tNearest, RaycastBvHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addBvRaycast<Box3>();
@@ -115,7 +115,7 @@ namespace ray
         //*/
     }
 
-    inline bool raycast(const Ray& ray, const Sphere& sphere, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const Sphere& sphere, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<Sphere>();
@@ -233,7 +233,7 @@ namespace ray
         return true;
     }
 
-    inline bool raycast(const Ray& ray, const OrientedBox3& obb, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const OrientedBox3& obb, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<OrientedBox3>();
@@ -277,7 +277,7 @@ namespace ray
     }
 
     // half sphere is only surface
-    inline bool raycast(const Ray& ray, const HalfSphere& sphere, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const HalfSphere& sphere, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<HalfSphere>();
@@ -341,7 +341,7 @@ namespace ray
 
     }
 
-    inline bool raycast(const Ray& ray, const Plane& plane, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const Plane& plane, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<Plane>();
@@ -371,7 +371,7 @@ namespace ray
         return false;
     }
 
-    inline bool raycast(const Ray& ray, const Disc3& disc, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const Disc3& disc, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<Disc3>();
@@ -405,7 +405,7 @@ namespace ray
         return false;
     }
 
-    inline bool raycast(const Ray& ray, const Box3& box, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const Box3& box, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<Box3>();
@@ -448,7 +448,7 @@ namespace ray
         return true;
     }
 
-    inline bool raycast(const Ray& ray, const Cylinder& cyl, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const Cylinder& cyl, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<Cylinder>();
@@ -535,7 +535,7 @@ namespace ray
         return false;
     }
 
-    inline bool raycast(const Ray& ray, const Capsule& cyl, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const Capsule& cyl, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<Capsule>();
@@ -682,7 +682,7 @@ namespace ray
     }
     */
 
-    inline bool raycast(const Ray& ray, const Triangle3& tri, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const Triangle3& tri, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<Triangle3>();
@@ -727,7 +727,7 @@ namespace ray
         return true;
     }
 
-    inline bool raycast(const Ray& ray, const ClosedTriangleMeshFace& tri, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const ClosedTriangleMeshFace& tri, RaycastHit& hit)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addObjectRaycast<ClosedTriangleMeshFace>();
@@ -779,7 +779,7 @@ namespace ray
 
     // TODO: somehow make the data be assigned elsewhere
     template <typename DataT>
-    inline bool raycastIntervals(const Ray& ray, const Sphere& sphere, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Sphere& sphere, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<Sphere>();
@@ -810,7 +810,7 @@ namespace ray
     }
 
     template <typename DataT>
-    inline bool raycastIntervals(const Ray& ray, const Box3& box, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Box3& box, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<Box3>();
@@ -837,7 +837,7 @@ namespace ray
     }
 
     template <typename DataT>
-    inline bool raycastIntervals(const Ray& ray, const OrientedBox3& obb, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const OrientedBox3& obb, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<OrientedBox3>();
@@ -869,7 +869,7 @@ namespace ray
         return false;
     }
 
-    inline bool raycastDist(const Ray& ray, const Disc3& disc, float& t)
+    [[nodiscard]] inline bool raycastDist(const Ray& ray, const Disc3& disc, float& t)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addDistRaycast<Disc3>();
@@ -891,7 +891,7 @@ namespace ray
     }
 
     // should return smallest distance (ie. smallest in absolute value)
-    inline bool raycastDist(const Ray& ray, const HalfSphere& sphere, float& t)
+    [[nodiscard]] inline bool raycastDist(const Ray& ray, const HalfSphere& sphere, float& t)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addDistRaycast<HalfSphere>();
@@ -941,7 +941,7 @@ namespace ray
     }
 
     template <typename DataT>
-    inline bool raycastIntervals(const Ray& ray, const Cylinder& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Cylinder& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<Cylinder>();
@@ -1080,7 +1080,7 @@ namespace ray
     }
 
     template <typename DataT>
-    inline bool raycastIntervals(const Ray& ray, const Capsule& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Capsule& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<Capsule>();
@@ -1219,7 +1219,7 @@ namespace ray
     }
 
     template <typename TransformT, typename ShapeT>
-    inline bool raycast(const Ray& ray, const TransformedShape3<TransformT, ShapeT>& sh, RaycastHit& hit)
+    [[nodiscard]] inline bool raycast(const Ray& ray, const TransformedShape3<TransformT, ShapeT>& sh, RaycastHit& hit)
     {
         // We have to:
         //   - transform the ray to shape's local coordinates
@@ -1261,7 +1261,7 @@ namespace ray
     }
 
     template <typename TransformT, typename ShapeT, typename DataT>
-    inline bool raycastIntervals(const Ray& ray, const TransformedShape3<TransformT, ShapeT>& sh, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const TransformedShape3<TransformT, ShapeT>& sh, IntervalSet<DataT>& hitIntervals, const DataT& data)
     {
         // We have to:
         //   - transform the ray to shape's local coordinates

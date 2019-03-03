@@ -51,14 +51,14 @@ namespace ray
             bool assumeNoVolumeIntersections = false;
         };
 
-        Raytracer(const Scene& scene, const Options& options = {}) :
+        Raytracer(const Scene& scene, const Options& options = {}) noexcept :
             m_scene(&scene),
             m_options(options)
         {
         }
 
         template <typename SamplerT = Sampler>
-        Image capture(const Camera& camera, const SamplerT& sampler = SamplerT{}) const
+        [[nodiscard]] Image capture(const Camera& camera, const SamplerT& sampler = SamplerT{}) const
         {
             Image img(camera.width(), camera.height());
 
@@ -95,7 +95,7 @@ namespace ray
         const Scene* m_scene;
         Options m_options;
 
-        ColorRGBf trace(const Ray& ray, const ColorRGBf& contribution, int depth = 0, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
+        [[nodiscard]] ColorRGBf trace(const Ray& ray, const ColorRGBf& contribution, int depth = 0, const ResolvedRaycastHit* prevHit = nullptr, bool isInside = false) const
         {
 
 #if defined(RAY_GATHER_PERF_STATS)
@@ -175,7 +175,7 @@ namespace ray
             return color * unabsorbed;
         }
 
-        ColorRGBf combine(
+        [[nodiscard]] ColorRGBf combine(
             const ResolvedRaycastHit& hit, 
             const ColorRGBf& refractionColor, 
             const ColorRGBf& reflectionColor, 
@@ -190,7 +190,7 @@ namespace ray
                 + diffusionColor) + hit.surfaceMaterial->emissionColor;
         }
         
-        float fresnelReflectAmount(const Ray& ray, const ResolvedRaycastHit& hit) const
+        [[nodiscard]] float fresnelReflectAmount(const Ray& ray, const ResolvedRaycastHit& hit) const
         {
             auto sqr = [](float f) {return f * f; };
 
@@ -223,7 +223,7 @@ namespace ray
             return (reflectivity + (1.0f - reflectivity) * ret);
         }
 
-        ColorRGBf computeDiffusionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
+        [[nodiscard]] ColorRGBf computeDiffusionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
             // TODO: handle transparency?
             if (!isDiffusive(*hit.surfaceMaterial) && !hit.isInside) // if inside we could potentially do it wrong
@@ -270,7 +270,7 @@ namespace ray
             return color * hit.surfaceMaterial->diffuse;
         }
 
-        ColorRGBf computeReflectionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
+        [[nodiscard]] ColorRGBf computeReflectionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
             if (!isReflective(*hit.surfaceMaterial) || depth > m_options.maxRayDepth)
                 return {};
@@ -282,7 +282,7 @@ namespace ray
             return trace(nextRay, contribution, depth + 1, &hit, hit.isInside);
         }
 
-        ColorRGBf computeRefractionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
+        [[nodiscard]] ColorRGBf computeRefractionColor(const Ray& ray, const ColorRGBf& contribution, const ResolvedRaycastHit* prevHit, const ResolvedRaycastHit& hit, int depth) const
         {
             if (!isTransparent(*hit.surfaceMaterial) || depth > m_options.maxRayDepth)
                 return {};
@@ -310,22 +310,22 @@ namespace ray
             }
         }
 
-        ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const
+        [[nodiscard]] ColorRGBi resolveColor(const ResolvedRaycastHit& hit) const
         {
             return ColorRGBi(hit.surfaceMaterial->surfaceColor);
         }
 
-        bool isTransparent(const SurfaceMaterial& material) const
+        [[nodiscard]] bool isTransparent(const SurfaceMaterial& material) const
         {
             return material.transparency >= m_options.transparencyThreshold;
         }
 
-        bool isReflective(const SurfaceMaterial& material) const
+        [[nodiscard]] bool isReflective(const SurfaceMaterial& material) const
         {
             return material.reflectivity >= m_options.reflectivityThreshold;
         }
 
-        bool isDiffusive(const SurfaceMaterial& material) const
+        [[nodiscard]] bool isDiffusive(const SurfaceMaterial& material) const
         {
             return material.diffuse >= m_options.diffuseThreshold;
         }

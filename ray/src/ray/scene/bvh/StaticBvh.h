@@ -66,7 +66,7 @@ namespace ray
 #endif
         }
 
-        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
+        [[nodiscard]] bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
         {
             thread_local BvhNodeHitQueue<BvShapeT> queue = []() {
                 std::vector<StaticBvhNodeHit<BvShapeT>> vec;
@@ -112,22 +112,22 @@ namespace ray
                 leaf.add(object());
             }
 
-            const SceneObject<ShapeT>& object() const
+            [[nodiscard]] const SceneObject<ShapeT>& object() const
             {
                 return *m_object;
             }
 
-            const BvShapeT& boundingVolume() const override
+            [[nodiscard]] const BvShapeT& boundingVolume() const override
             {
                 return m_boundingVolume;
             }
 
-            const Box3& aabb() const override
+            [[nodiscard]] const Box3& aabb() const override
             {
                 return m_aabb;
             }
 
-            const Point3f& center() const override
+            [[nodiscard]] const Point3f& center() const override
             {
                 return m_center;
             }
@@ -159,7 +159,7 @@ namespace ray
             m_root = makeNode(allObjects.begin(), allObjects.end());
         }
 
-        BvShapeT boundingVolume(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
+        [[nodiscard]] BvShapeT boundingVolume(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
         {
             if (first == last) return {};
             BvShapeT bb = (*first)->boundingVolume();
@@ -172,7 +172,7 @@ namespace ray
             return bb;
         }
 
-        std::unique_ptr<LeafNodeType> makeLeafNode(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
+        [[nodiscard]] std::unique_ptr<LeafNodeType> makeLeafNode(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
         {
             auto leaf = std::make_unique<LeafNodeType>();
             while (first != last)
@@ -183,7 +183,7 @@ namespace ray
             return leaf;
         }
 
-        std::unique_ptr<PartitionNodeType> makePartitionNode(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int depth) const
+        [[nodiscard]] std::unique_ptr<PartitionNodeType> makePartitionNode(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int depth) const
         {
             // call recucively
             std::vector<BoundedBvhObjectVectorIterator> ends = m_partitioner.partition(first, last);
@@ -197,7 +197,7 @@ namespace ray
             return node;
         }
 
-        std::unique_ptr<StaticBvhNode<BvShapeT>> makeNode(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int depth = 0) const
+        [[nodiscard]] std::unique_ptr<StaticBvhNode<BvShapeT>> makeNode(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last, int depth = 0) const
         {
             const int size = static_cast<int>(std::distance(first, last));
             if (size <= maxObjectsPerNode || depth >= maxDepth)

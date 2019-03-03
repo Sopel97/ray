@@ -14,9 +14,9 @@ namespace ray
         float length;
         float radius;
 
-        Cylinder() = default;
+        Cylinder() noexcept = default;
 
-        Cylinder(const Point3f& begin, const Point3f& end, float radius) :
+        Cylinder(const Point3f& begin, const Point3f& end, float radius) noexcept :
             begin(begin),
             axis((end - begin).normalized()),
             length((end - begin).length()),
@@ -24,12 +24,12 @@ namespace ray
         {
         }
 
-        Point3f center() const
+        [[nodiscard]] Point3f center() const
         {
             return begin + axis * (0.5f * length);
         }
 
-        Vec3f extent() const
+        [[nodiscard]] Vec3f extent() const
         {
             return axis * length;
         }

@@ -8,26 +8,26 @@ namespace ray
 {
     struct Sphere
     {
-        Sphere() :
+        Sphere() noexcept :
             m_center{},
             m_radius{}
         {
 
         }
 
-        Sphere(const Point3f& center, float radius) :
+        Sphere(const Point3f& center, float radius) noexcept :
             m_center(center),
             m_radius(radius)
         {
 
         }
 
-        const Point3f& center() const
+        [[nodiscard]] const Point3f& center() const
         {
             return m_center;
         }
 
-        float radius() const
+        [[nodiscard]] float radius() const
         {
             return m_radius;
         }
@@ -47,7 +47,7 @@ namespace ray
             m_center += v;
         }
 
-        Sphere translated(const Vec3f& v) const
+        [[nodiscard]] Sphere translated(const Vec3f& v) const
         {
             return Sphere(m_center + v, m_radius);
         }

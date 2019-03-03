@@ -19,7 +19,7 @@ namespace ray
 {
     struct QuincunxMultisampler
     {
-        int numSampleOffsets() const
+        [[nodiscard]] int numSampleOffsets() const
         {
             return 5;
         }

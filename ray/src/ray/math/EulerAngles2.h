@@ -13,16 +13,16 @@ namespace ray
         Angle2<T> roll;
 
         constexpr EulerAngles3() noexcept = default;
-        constexpr EulerAngles3(const Angle2<T>& pitch, const Angle2<T>& yaw, const Angle2<T>& roll) :
+        constexpr EulerAngles3(const Angle2<T>& pitch, const Angle2<T>& yaw, const Angle2<T>& roll) noexcept :
             pitch(pitch),
             yaw(yaw),
             roll(roll)
         {
 
         }
-        constexpr EulerAngles3(const EulerAngles3<T>&) = default;
+        constexpr EulerAngles3(const EulerAngles3<T>&) noexcept = default;
         constexpr EulerAngles3(EulerAngles3<T>&&) noexcept = default;
-        constexpr EulerAngles3<T>& operator=(const EulerAngles3<T>&) = default;
+        constexpr EulerAngles3<T>& operator=(const EulerAngles3<T>&) noexcept = default;
         constexpr EulerAngles3<T>& operator=(EulerAngles3<T>&&) noexcept = default;
     };
 

@@ -282,7 +282,7 @@ namespace ray
         }
 
         // column-major
-        inline __m128 mulMat3Vec3(const __m128 lhs[3], __m128 rhs)
+        [[nodiscard]] inline __m128 mulMat3Vec3(const __m128 lhs[3], __m128 rhs)
         {
             __m128 v0, v1, v2;
             spill3(rhs, v0, v1, v2);
@@ -295,7 +295,7 @@ namespace ray
         }
 
         // column-major, vector is in homogeneous coordinates
-        inline __m128 mulMat3Vec3homo(const __m128 lhs[3], __m128 rhs)
+        [[nodiscard]] inline __m128 mulMat3Vec3homo(const __m128 lhs[3], __m128 rhs)
         {
             __m128 v0, v1, v2;
             spill3(rhs, v0, v1, v2);
@@ -311,7 +311,7 @@ namespace ray
             );
         }
 
-        inline __m128 mulMatAffineVec3(const __m128 lhs[4], __m128 rhs)
+        [[nodiscard]] inline __m128 mulMatAffineVec3(const __m128 lhs[4], __m128 rhs)
         {
             __m128 v0, v1, v2;
             spill3(rhs, v0, v1, v2);
@@ -323,7 +323,7 @@ namespace ray
             return _mm_add_ps(_mm_add_ps(v0, v1), _mm_add_ps(v2, lhs[3]));
         }
 
-        inline __m128 mulMat4Vec3(const __m128 lhs[4], __m128 rhs)
+        [[nodiscard]] inline __m128 mulMat4Vec3(const __m128 lhs[4], __m128 rhs)
         {
             __m128 v0, v1, v2;
             spill3(rhs, v0, v1, v2);
@@ -487,7 +487,7 @@ namespace ray
         // __m128 mapped to
         // | A0  A2 |
         // | A1  A3 |
-        inline __m128 mulMat2Mat2(__m128 a, __m128 b)
+        [[nodiscard]] inline __m128 mulMat2Mat2(__m128 a, __m128 b)
         {
             return _mm_add_ps(
                 _mm_mul_ps(a, permute_xxww(b)),
@@ -496,7 +496,7 @@ namespace ray
         }
 
         // (A#)*B
-        inline __m128 mulMat2AdjMat2(__m128 a, __m128 b)
+        [[nodiscard]] inline __m128 mulMat2AdjMat2(__m128 a, __m128 b)
         {
             return _mm_sub_ps(
                 _mm_mul_ps(permute_wxwx(a), b),
@@ -505,7 +505,7 @@ namespace ray
         }
 
         // A*(B#)
-        inline __m128 mulMat2Mat2Adj(__m128 a, __m128 b)
+        [[nodiscard]] inline __m128 mulMat2Mat2Adj(__m128 a, __m128 b)
         {
             return _mm_sub_ps(
                 _mm_mul_ps(a, permute_wwxx(b)),

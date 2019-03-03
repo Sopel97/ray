@@ -18,7 +18,7 @@ namespace ray
     {
         constexpr static float viewportDistance = 1.0f;
 
-        Camera(const Point3f& position, const Normal3f& direction, const Normal3f& up, int width, int height, Angle2f fov) :
+        Camera(const Point3f& position, const Normal3f& direction, const Normal3f& up, int width, int height, Angle2f fov) noexcept :
             m_position(position),
             m_direction(direction),
             m_up(up),
@@ -29,7 +29,7 @@ namespace ray
 
         }
 
-        Viewport viewport() const
+        [[nodiscard]] Viewport viewport() const
         {
             Viewport vp;
 
@@ -66,42 +66,42 @@ namespace ray
             });
         }
 
-        float viewportHeight() const
+        [[nodiscard]] float viewportHeight() const
         {
             return 2.0f * viewportDistance * m_fov.tan();
         }
 
-        float viewportWidth() const
+        [[nodiscard]] float viewportWidth() const
         {
             return viewportHeight() * aspectRatio();
         }
 
-        float aspectRatio() const
+        [[nodiscard]] float aspectRatio() const
         {
             return static_cast<float>(m_width) / static_cast<float>(m_height);
         }
 
-        int width() const
+        [[nodiscard]] int width() const
         {
             return m_width;
         }
 
-        int height() const
+        [[nodiscard]] int height() const
         {
             return m_height;
         }
 
-        const Point3f& position() const
+        [[nodiscard]] const Point3f& position() const
         {
             return m_position;
         }
 
-        const Normal3f& direction() const
+        [[nodiscard]] const Normal3f& direction() const
         {
             return m_direction;
         }
 
-        const Normal3f& up() const
+        [[nodiscard]] const Normal3f& up() const
         {
             return m_up;
         }

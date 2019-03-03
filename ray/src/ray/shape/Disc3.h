@@ -13,9 +13,9 @@ namespace ray
         float distance; // distance to (0, 0, 0)
         float radius;
 
-        Disc3() = default;
+        Disc3() noexcept = default;
 
-        Disc3(const Point3f& point, const Normal3f& normal, float radius) :
+        Disc3(const Point3f& point, const Normal3f& normal, float radius) noexcept :
             origin(point),
             normal(normal),
             distance(dot(normal, Vec3f(point))),
@@ -23,7 +23,7 @@ namespace ray
         {
         }
 
-        Disc3(const Point3f& p, const Vec3f& v1, const Vec3f& v2, float radius) :
+        Disc3(const Point3f& p, const Vec3f& v1, const Vec3f& v2, float radius) noexcept :
             origin(p),
             normal(cross(v1, v2).normalized()),
             distance(dot(normal, Vec3f(p))),
@@ -31,7 +31,7 @@ namespace ray
         {
         }
 
-        const Point3f& center() const
+        [[nodiscard]] const Point3f& center() const
         {
             return origin;
         }

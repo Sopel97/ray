@@ -19,19 +19,19 @@ namespace ray
         Point3f topLeft;
         Point3f origin;
 
-        Point3f at(const Point2f& coords) const
+        [[nodiscard]] Point3f at(const Point2f& coords) const
         {
             return (topLeft
                    + coords.x * pixelWidth * right
                    + coords.y * pixelHeight * down);
         }
 
-        Normal3f directionAt(const Point2f& coords) const
+        [[nodiscard]] Normal3f directionAt(const Point2f& coords) const
         {
             return (at(coords) - origin).normalized();
         }
 
-        Ray rayAt(const Point2f& coords) const
+        [[nodiscard]] Ray rayAt(const Point2f& coords) const
         {
             return Ray(origin, directionAt(coords));
         }

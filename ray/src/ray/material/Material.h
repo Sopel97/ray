@@ -13,21 +13,21 @@ namespace ray
     {
         static constexpr int none = -1;
 
-        MaterialIndex() = default;
+        MaterialIndex() noexcept = default;
 
-        explicit MaterialIndex(int s, int m = none) :
+        explicit MaterialIndex(int s, int m = none) noexcept :
             m_surfaceMaterialNo(s),
             m_mediumMaterialNo(m)
         {
 
         }
 
-        int surfaceMaterialNo() const
+        [[nodiscard]] int surfaceMaterialNo() const
         {
             return m_surfaceMaterialNo;
         }
 
-        int mediumMaterialNo() const
+        [[nodiscard]] int mediumMaterialNo() const
         {
             return m_mediumMaterialNo;
         }

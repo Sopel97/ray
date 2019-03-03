@@ -8,7 +8,13 @@ namespace ray
         TransformT worldToLocal;
         ShapeT shape;
 
-        decltype(auto) center() const
+        TransformedShape3(const TransformT& worldToLocal, const ShapeT& shape) :
+            worldToLocal(worldToLocal),
+            shape(shape)
+        {
+        }
+
+        [[nodiscard]] decltype(auto) center() const
         {
             return worldToLocal.inverse() * shape.center();
         }

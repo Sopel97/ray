@@ -24,22 +24,22 @@ namespace ray
             std::fill(m_data.get(), m_data.get() + width * height, v);
         }
 
-        const T& operator()(int x, int y) const
+        [[nodiscard]] const T& operator()(int x, int y) const
         {
             return m_data[x * m_height + y];
         }
 
-        T& operator()(int x, int y)
+        [[nodiscard]] T& operator()(int x, int y)
         {
             return m_data[x * m_height + y];
         }
 
-        int width() const
+        [[nodiscard]] int width() const
         {
             return m_width;
         }
 
-        int height() const
+        [[nodiscard]] int height() const
         {
             return m_height;
         }

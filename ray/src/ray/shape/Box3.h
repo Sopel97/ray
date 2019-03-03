@@ -10,24 +10,24 @@ namespace ray
     {
         Point3f min, max;
 
-        Box3() :
+        Box3() noexcept :
             min{},
             max{}
         {
         }
 
-        Box3(const Point3f& min, const Point3f& max) :
+        Box3(const Point3f& min, const Point3f& max) noexcept :
             min(min),
             max(max)
         {
         }
 
-        Point3f center() const
+        [[nodiscard]] Point3f center() const
         {
             return (min + (max - min) * 0.5f);
         }
 
-        Vec3f extent() const
+        [[nodiscard]] Vec3f extent() const
         {
             return max - min;
         }
@@ -54,7 +54,7 @@ namespace ray
             if (box.max.z > max.z) max.z = box.max.z;
         }
 
-        std::array<Point3f, 8> vertices() const
+        [[nodiscard]] std::array<Point3f, 8> vertices() const
         {
             std::array<Point3f, 8> v;
             Point3f origin = center();

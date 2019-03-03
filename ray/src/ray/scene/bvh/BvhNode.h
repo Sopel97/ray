@@ -34,7 +34,7 @@ namespace ray
     template <typename BvShapeT>
     struct StaticBvhNode
     {
-        virtual bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, ResolvableRaycastHit& hit) const = 0;
+        [[nodiscard]] virtual bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, ResolvableRaycastHit& hit) const = 0;
     };
 
     template <typename BvShapeT>
@@ -68,11 +68,11 @@ namespace ray
         float dist;
         const StaticBvhNode<BvShapeT>* node;
 
-        friend bool operator<(const StaticBvhNodeHit& lhs, const StaticBvhNodeHit& rhs) noexcept
+        [[nodiscard]] friend bool operator<(const StaticBvhNodeHit& lhs, const StaticBvhNodeHit& rhs) noexcept
         {
             return lhs.dist < rhs.dist;
         }
-        friend bool operator>(const StaticBvhNodeHit& lhs, const StaticBvhNodeHit& rhs) noexcept
+        [[nodiscard]] friend bool operator>(const StaticBvhNodeHit& lhs, const StaticBvhNodeHit& rhs) noexcept
         {
             return lhs.dist > rhs.dist;
         }
@@ -100,7 +100,7 @@ namespace ray
             m_objects.add(std::move(so));
         }
 
-        bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, ResolvableRaycastHit& hit) const override
+        [[nodiscard]] bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, ResolvableRaycastHit& hit) const override
         {
             return m_objects.queryNearest(ray, hit);
         }
@@ -113,7 +113,7 @@ namespace ray
     struct StaticBvhPartitionNode : StaticBvhNode<BvShapeT>
     {
         // provide memory from outside to prevent a lot of small allocations
-        bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& hits, ResolvableRaycastHit& hit) const override
+        [[nodiscard]] bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& hits, ResolvableRaycastHit& hit) const override
         {
             RaycastBvHit bvhit;
             for (const auto& child : m_children)

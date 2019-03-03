@@ -28,7 +28,7 @@ namespace ray
 
         RAY_GEN_MEMBER_SWIZZLE4_ALL(Quat4<float>)
 
-        static Quat4<float> identity()
+        [[nodiscard]] static Quat4<float> identity() noexcept
         {
             return {};
         }
@@ -48,7 +48,7 @@ namespace ray
 
         }
 
-        Quat4(float x, float y, float z, float w) :
+        Quat4(float x, float y, float z, float w) noexcept :
             x(x),
             y(y),
             z(z),
@@ -57,7 +57,7 @@ namespace ray
 
         }
 
-        explicit Quat4(EulerAngles3<float> a)
+        explicit Quat4(EulerAngles3<float> a) noexcept
         {
             a.pitch *= 0.5f;
             a.yaw *= 0.5f;
@@ -73,7 +73,7 @@ namespace ray
             w = cp * cy * cr + sp * sy * sr;
         }
 
-        explicit Quat4(const AxisAngle3<float>& a)
+        explicit Quat4(const AxisAngle3<float>& a) noexcept
         {
             const Angle2<float> halfAngle = a.angle() * 0.5f;
 
@@ -85,9 +85,9 @@ namespace ray
             z = a.axis().z * s;
         }
 
-        Quat4(const Quat4<float>&) = default;
+        Quat4(const Quat4<float>&) noexcept = default;
         Quat4(Quat4<float>&&) noexcept = default;
-        Quat4<float>& operator=(const Quat4<float>&) = default;
+        Quat4<float>& operator=(const Quat4<float>&) noexcept = default;
         Quat4<float>& operator=(Quat4<float>&&) noexcept = default;
 
         Quat4<float>& operator+=(const Quat4<float>& rhs)
@@ -141,7 +141,7 @@ namespace ray
             return *this;
         }
 
-        Quat4<float> normalized() const
+        [[nodiscard]] Quat4<float> normalized() const
         {
             Quat4<float> result(*this);
             result.normalize();
@@ -153,7 +153,7 @@ namespace ray
             (*this) *= invLength();
         }
 
-        Quat4<float> conjugate() const
+        [[nodiscard]] Quat4<float> conjugate() const
         {
             return Quat4<float>(m128::neg(xmm, m128::mask(true, true, true, false)));
         }
@@ -165,20 +165,20 @@ namespace ray
             (*this) *= invLen; // conjugate doesn't change it but we don't need to have a dependency
         }
 
-        Quat4<float> inverse() const
+        [[nodiscard]] Quat4<float> inverse() const
         {
             Quat4<float> result(*this);
             result.invert();
             return result;
         }
 
-        float dot(const Quat4<float>& rhs) const
+        [[nodiscard]] float dot(const Quat4<float>& rhs) const
         {
             return m128::dot(xmm, rhs.xmm);
         }
 
         // http://people.csail.mit.edu/bkph/articles/Quaternions.pdf
-        Vec3<float> apply(const Vec3<float>& v) const
+        [[nodiscard]] Vec3<float> apply(const Vec3<float>& v) const
         {
             const Vec3<float> q(x, y, z);
             const Vec3<float> t = 2.0f * cross(q, v);
@@ -186,22 +186,22 @@ namespace ray
             return r;
         }
 
-        float lengthSqr() const
+        [[nodiscard]] float lengthSqr() const
         {
             return m128::dot(xmm, xmm);
         }
 
-        float length() const
+        [[nodiscard]] float length() const
         {
             return std::sqrt(lengthSqr());
         }
 
-        float length3() const
+        [[nodiscard]] float length3() const
         {
             return std::sqrt(m128::dot3(xmm, xmm));
         }
 
-        float invLength() const
+        [[nodiscard]] float invLength() const
         {
             return 1.0f / std::sqrt(m128::dot(xmm, xmm));
         }
@@ -212,35 +212,35 @@ namespace ray
     using Quat3f = Quat4<float>;
 
     template <typename T>
-    Quat4<T> operator+(const Quat4<T>& lhs, const Quat4<T>& rhs)
+    [[nodiscard]] Quat4<T> operator+(const Quat4<T>& lhs, const Quat4<T>& rhs)
     {
         Quat4<T> result(lhs);
         return (result += rhs);
     }
 
     template <typename T>
-    Quat4<T> operator-(const Quat4<T>& lhs, const Quat4<T>& rhs)
+    [[nodiscard]] Quat4<T> operator-(const Quat4<T>& lhs, const Quat4<T>& rhs)
     {
         Quat4<T> result(lhs);
         return (result -= rhs);
     }
 
     template <typename T>
-    Quat4<T> operator*(const Quat4<T>& lhs, const Quat4<T>& rhs)
+    [[nodiscard]] Quat4<T> operator*(const Quat4<T>& lhs, const Quat4<T>& rhs)
     {
         Quat4<T> result(lhs);
         return (result *= rhs);
     }
 
     template <typename T>
-    Quat4<T> operator*(const Quat4<T>& lhs, const T& rhs)
+    [[nodiscard]] Quat4<T> operator*(const Quat4<T>& lhs, const T& rhs)
     {
         Quat4<T> result(lhs);
         return (result *= rhs);
     }
 
     template <typename T>
-    Quat4<T> operator/(const Quat4<T>& lhs, const T& rhs)
+    [[nodiscard]] Quat4<T> operator/(const Quat4<T>& lhs, const T& rhs)
     {
         Quat4<T> result(lhs);
         return (result /= rhs);
@@ -248,7 +248,7 @@ namespace ray
 
     // e^q
     template <typename T>
-    Quat4<T> exp(const Quat4<T>& q)
+    [[nodiscard]] Quat4<T> exp(const Quat4<T>& q)
     {
         static constexpr T eps = T(0.00001);
 
@@ -277,7 +277,7 @@ namespace ray
     }
 
     template <typename T>
-    Quat4<T> log(const Quat4<T>& q)
+    [[nodiscard]] Quat4<T> log(const Quat4<T>& q)
     {
         using std::atan2;
         using std::log;
@@ -318,7 +318,7 @@ namespace ray
 
     // https://en.wikipedia.org/wiki/Slerp
     template <typename T>
-    constexpr Quat4<T> slerp(const Quat4<T>& lhs, const Quat4<T>& rhs, const T& t)
+    [[nodiscard]] constexpr Quat4<T> slerp(const Quat4<T>& lhs, const Quat4<T>& rhs, const T& t)
     {
         using std::sin;
         using std::cos;

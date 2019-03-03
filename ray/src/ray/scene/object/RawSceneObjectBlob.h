@@ -65,13 +65,13 @@ namespace ray
         > m_objects;
 
         template <typename ShapeT>
-        ObjectStorageType<ShapeT>& objectsOfType()
+        [[nodiscard]] ObjectStorageType<ShapeT>& objectsOfType()
         {
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }
 
         template <typename ShapeT>
-        const ObjectStorageType<ShapeT>& objectsOfType() const 
+        [[nodiscard]] const ObjectStorageType<ShapeT>& objectsOfType() const
         {
             return std::get<ObjectStorageType<ShapeT>>(m_objects);
         }

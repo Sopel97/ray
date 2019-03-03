@@ -15,12 +15,12 @@ namespace ray
         Float4 y;
         Float4 z;
 
-        static Vec3x4<float> broadcast(const Float4& xyz)
+        [[nodiscard]] static Vec3x4<float> broadcast(const Float4& xyz) noexcept
         {
             return Vec3x4<float>(xyz, xyz, xyz);
         }
 
-        static Vec3x4<float> broadcast(const Vec3<float>& v)
+        [[nodiscard]] static Vec3x4<float> broadcast(const Vec3<float>& v) noexcept
         {
             return Vec3x4<float>(
                 _mm_set1_ps(v.x),
@@ -29,23 +29,23 @@ namespace ray
             );
         }
 
-        Vec3x4() = default;
+        Vec3x4() noexcept = default;
 
-        Vec3x4(__m128 x, __m128 y, __m128 z) :
+        Vec3x4(__m128 x, __m128 y, __m128 z) noexcept :
             x(x),
             y(y),
             z(z)
         {
         }
 
-        Vec3x4(const Float4& x, const Float4& y, const Float4& z) :
+        Vec3x4(const Float4& x, const Float4& y, const Float4& z) noexcept :
             x(x),
             y(y),
             z(z)
         {
         }
 
-        Vec3x4(const Vec3<float>& v0, const Vec3<float>& v1, const Vec3<float>& v2, const Vec3<float>& v3)
+        Vec3x4(const Vec3<float>& v0, const Vec3<float>& v1, const Vec3<float>& v2, const Vec3<float>& v3) noexcept
         {
             __m128 coords[4] = { v0.xmm, v1.xmm, v2.xmm, v3.xmm };
             m128::transpose(coords);
@@ -54,10 +54,10 @@ namespace ray
             z = Float4(coords[2]);
         }
 
-        Vec3x4(const Vec3x4<float>&) = default;
+        Vec3x4(const Vec3x4<float>&) noexcept = default;
         Vec3x4(Vec3x4<float>&&) noexcept = default;
 
-        Vec3x4<float>& operator=(const Vec3x4<float>&) = default;
+        Vec3x4<float>& operator=(const Vec3x4<float>&) noexcept = default;
         Vec3x4<float>& operator=(Vec3x4<float>&&) noexcept = default;
 
         Vec3x4<float>& operator+=(const Vec3x4<float>& rhs)
@@ -131,17 +131,17 @@ namespace ray
             z.insert(v.z, i);
         }
 
-        Float4 length() const
+        [[nodiscard]] Float4 length() const
         {
             return sqrt(lengthSqr());
         }
 
-        Float4 lengthSqr() const
+        [[nodiscard]] Float4 lengthSqr() const
         {
             return x*x + y*y + z*z;
         }
 
-        Float4 invLength() const
+        [[nodiscard]] Float4 invLength() const
         {
             return 1.0f / length();
         }
@@ -151,25 +151,25 @@ namespace ray
             *this *= invLength();
         }
 
-        Vec3x4<float> normalized() const
+        [[nodiscard]] Vec3x4<float> normalized() const
         {
             Vec3x4<float> c(*this);
             c.normalize();
             return c;
         }
 
-        Float4 max() const
+        [[nodiscard]] Float4 max() const
         {
             return ray::max(ray::max(x, y), z);
         }
 
-        Float4 min() const
+        [[nodiscard]] Float4 min() const
         {
             return ray::min(ray::min(x, y), z);
         }
     };
 
-    inline Vec3x4<float> operator-(const Vec3x4<float>& v)
+    [[nodiscard]] inline Vec3x4<float> operator-(const Vec3x4<float>& v)
     {
         return Vec3x4<float>(
             -v.x,
@@ -178,7 +178,7 @@ namespace ray
         );
     }
 
-    inline Vec3x4<float> operator+(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
+    [[nodiscard]] inline Vec3x4<float> operator+(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
     {
         return Vec3x4<float>(
             lhs.x + rhs.x,
@@ -187,7 +187,7 @@ namespace ray
         );
     }
 
-    inline Vec3x4<float> operator-(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
+    [[nodiscard]] inline Vec3x4<float> operator-(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
     {
         return Vec3x4<float>(
             lhs.x - rhs.x,
@@ -196,7 +196,7 @@ namespace ray
             );
     }
 
-    inline Vec3x4<float> operator*(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
+    [[nodiscard]] inline Vec3x4<float> operator*(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
     {
         return Vec3x4<float>(
             lhs.x * rhs.x,
@@ -205,7 +205,7 @@ namespace ray
             );
     }
 
-    inline Vec3x4<float> operator*(const Vec3x4<float>& lhs, const Float4& rhs)
+    [[nodiscard]] inline Vec3x4<float> operator*(const Vec3x4<float>& lhs, const Float4& rhs)
     {
         return Vec3x4<float>(
             lhs.x * rhs,
@@ -214,7 +214,7 @@ namespace ray
             );
     }
 
-    inline Vec3x4<float> operator/(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
+    [[nodiscard]] inline Vec3x4<float> operator/(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
     {
         return Vec3x4<float>(
             lhs.x / rhs.x,
@@ -223,7 +223,7 @@ namespace ray
         );
     }
 
-    inline Vec3x4<float> operator/(const Vec3x4<float>& lhs, const Float4& rhs)
+    [[nodiscard]] inline Vec3x4<float> operator/(const Vec3x4<float>& lhs, const Float4& rhs)
     {
         return Vec3x4<float>(
             lhs.x / rhs,
@@ -232,7 +232,7 @@ namespace ray
         );
     }
 
-    inline Vec3x4<float> abs(const Vec3x4<float>& v)
+    [[nodiscard]] inline Vec3x4<float> abs(const Vec3x4<float>& v)
     {
         return Vec3x4<float>(
             abs(v.x),
@@ -241,12 +241,12 @@ namespace ray
         );
     }
 
-    inline Float4 dot(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
+    [[nodiscard]] inline Float4 dot(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
     {
         return lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z;
     }
 
-    inline Vec3x4<float> cross(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
+    [[nodiscard]] inline Vec3x4<float> cross(const Vec3x4<float>& lhs, const Vec3x4<float>& rhs)
     {
         return Vec3x4<float>(
             lhs.y*rhs.z - lhs.z*rhs.y,

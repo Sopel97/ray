@@ -11,7 +11,7 @@ namespace ray
     // Sphere is solid, HalfSphere is hollow - just surface
     struct HalfSphere
     {
-        HalfSphere() :
+        HalfSphere() noexcept :
             m_center{},
             m_normal{},
             m_radius{}
@@ -19,7 +19,7 @@ namespace ray
 
         }
 
-        HalfSphere(const Point3f& center, const Normal3f& normal, float radius) :
+        HalfSphere(const Point3f& center, const Normal3f& normal, float radius) noexcept :
             m_center(center),
             m_normal(normal),
             m_radius(radius)
@@ -27,17 +27,17 @@ namespace ray
 
         }
 
-        const Point3f& center() const
+        [[nodiscard]] const Point3f& center() const
         {
             return m_center;
         }
 
-        const Normal3f& normal() const
+        [[nodiscard]] const Normal3f& normal() const
         {
             return m_normal;
         }
 
-        float radius() const
+        [[nodiscard]] float radius() const
         {
             return m_radius;
         }
@@ -57,7 +57,7 @@ namespace ray
             m_center += v;
         }
 
-        HalfSphere translated(const Vec3f& v) const
+        [[nodiscard]] HalfSphere translated(const Vec3f& v) const
         {
             return HalfSphere(m_center + v, m_normal, m_radius);
         }

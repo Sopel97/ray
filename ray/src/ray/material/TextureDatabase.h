@@ -2,6 +2,7 @@
 
 #include "Texture.h"
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -11,11 +12,11 @@ namespace ray
 {
     struct TextureDatabase
     {
-        TextureDatabase() {}
+        TextureDatabase() noexcept {}
         TextureDatabase(const TextureDatabase&) = delete;
-        TextureDatabase(TextureDatabase&&) = default;
+        TextureDatabase(TextureDatabase&&) noexcept = default;
         TextureDatabase& operator=(const TextureDatabase&) = delete;
-        TextureDatabase& operator=(TextureDatabase&&) = default;
+        TextureDatabase& operator=(TextureDatabase&&) noexcept = default;
 
         template <typename TexT, typename... ArgsTs>
         const Texture& emplace(std::string name, ArgsTs&&... args)
@@ -23,7 +24,7 @@ namespace ray
             return *(m_textures.try_emplace(std::move(name), std::make_unique<TexT>(std::forward<ArgsTs>(args)...)).first->second);
         }
 
-        const Texture& get(std::string_view name) const
+        [[nodiscard]] const Texture& get(std::string_view name) const
         {
             return *(m_textures.find(name)->second);
         }

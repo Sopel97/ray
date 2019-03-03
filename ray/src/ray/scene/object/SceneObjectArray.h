@@ -29,10 +29,15 @@ namespace ray
         {
             using ShapeStorageType = std::vector<SceneObject<AnyShapeT>>;
 
-            PolymorphicSceneObjectArray()
+            PolymorphicSceneObjectArray() noexcept
             {
 
             }
+
+            PolymorphicSceneObjectArray(const PolymorphicSceneObjectArray&) = default;
+            PolymorphicSceneObjectArray(PolymorphicSceneObjectArray&&) noexcept = default;
+            PolymorphicSceneObjectArray& operator=(const PolymorphicSceneObjectArray&) = default;
+            PolymorphicSceneObjectArray& operator=(PolymorphicSceneObjectArray&&) noexcept = default;
 
             void add(const SceneObject<AnyShapeT>& so)
             {
@@ -44,22 +49,22 @@ namespace ray
                 m_objects.emplace_back(std::move(so));
             }
 
-            MaterialPtrStorageView materialsView(int shapeNo) const
+            [[nodiscard]] MaterialPtrStorageView materialsView(int shapeNo) const
             {
                 return m_objects[shapeNo].materialsView();
             }
 
-            SceneObjectId id(int shapeNo) const
+            [[nodiscard]] SceneObjectId id(int shapeNo) const
             {
                 return m_objects[shapeNo].id();
             }
 
-            int size() const
+            [[nodiscard]] int size() const
             {
                 return static_cast<int>(m_objects.size());
             }
 
-            bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
+            [[nodiscard]] bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
             {
                 const int size = static_cast<int>(m_objects.size());
                 bool anyHit = false;
@@ -80,7 +85,7 @@ namespace ray
                 return anyHit;
             }
 
-            bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
+            [[nodiscard]] bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
             {
                 if (m_objects[shapeNo].raycast(ray, hit))
                 {
@@ -92,7 +97,7 @@ namespace ray
                 return false;
             }
 
-            ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
             {
                 const auto& obj = m_objects[hit.shapeNo];
                 auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
@@ -122,11 +127,16 @@ namespace ray
         using MaterialStorageType = std::vector<MaterialPtrStorageType<BaseShapeType>>;
         using IdStorageType = std::vector<SceneObjectId>;
 
-        SceneObjectArray() :
+        SceneObjectArray() noexcept :
             m_size(0)
         {
 
         }
+
+        SceneObjectArray(const SceneObjectArray&) = default;
+        SceneObjectArray(SceneObjectArray&&) noexcept = default;
+        SceneObjectArray& operator=(const SceneObjectArray&) = default;
+        SceneObjectArray& operator=(SceneObjectArray&&) noexcept = default;
 
         void add(const SceneObject<BaseShapeType>& so)
         {
@@ -148,7 +158,7 @@ namespace ray
             }
         }
 
-        decltype(auto) shape(int shapeNo) const
+        [[nodiscard]] decltype(auto) shape(int shapeNo) const
         {
             if constexpr (isPack)
             {
@@ -161,22 +171,22 @@ namespace ray
             }
         }
 
-        MaterialPtrStorageView materialsView(int shapeNo) const
+        [[nodiscard]] MaterialPtrStorageView materialsView(int shapeNo) const
         {
             return m_materials[shapeNo].view();
         }
 
-        SceneObjectId id(int shapeNo) const
+        [[nodiscard]] SceneObjectId id(int shapeNo) const
         {
             return m_ids[shapeNo];
         }
 
-        int size() const
+        [[nodiscard]] int size() const
         {
             return m_size;
         }
 
-        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
+        [[nodiscard]] bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
         {
             const int size = static_cast<int>(m_shapePacks.size());
             int nearestHitPackNo{};
@@ -200,7 +210,7 @@ namespace ray
             return anyHit;
         }
 
-        bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
+        [[nodiscard]] bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
         {
             const int packNo = shapeNo / numShapesInPack;
             if (raycast(ray, m_shapePacks[packNo], hit))
@@ -213,7 +223,7 @@ namespace ray
             return false;
         }
 
-        ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
             const int packNo = hit.shapeNo / numShapesInPack;
             const int shapeInPackNo = hit.shapeNo % numShapesInPack;
@@ -251,6 +261,11 @@ namespace ray
 
         }
 
+        SceneObjectArray(const SceneObjectArray&) = default;
+        SceneObjectArray(SceneObjectArray&&) noexcept = default;
+        SceneObjectArray& operator=(const SceneObjectArray&) = default;
+        SceneObjectArray& operator=(SceneObjectArray&&) noexcept = default;
+
         void add(const SceneObject<CsgShape>& so)
         {
             m_objects.emplace_back(so);
@@ -261,17 +276,17 @@ namespace ray
             m_objects.emplace_back(std::move(so));
         }
 
-        int size() const
+        [[nodiscard]] int size() const
         {
             return static_cast<int>(m_objects.size());
         }
 
-        SceneObjectId id(int shapeNo) const
+        [[nodiscard]] SceneObjectId id(int shapeNo) const
         {
             return m_objects[shapeNo].id();
         }
 
-        bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
+        [[nodiscard]] bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
         {
             const int size = static_cast<int>(m_objects.size());
             bool anyHit = false;
@@ -293,7 +308,7 @@ namespace ray
             return anyHit;
         }
 
-        bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
+        [[nodiscard]] bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
         {
             if (ShapePtrType shapePtr = m_objects[shapeNo].raycast(ray, hit))
             {
@@ -306,7 +321,7 @@ namespace ray
             return false;
         }
 
-        ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
             ShapePtrType obj = static_cast<ShapePtrType>(hit.additionalData);
             auto [surface, medium] = obj->materialsView().material(hit.materialIndex);

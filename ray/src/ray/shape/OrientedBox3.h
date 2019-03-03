@@ -15,27 +15,34 @@ namespace ray
         Vec3f halfSize;
         Rotation3f worldToLocalRot;
 
-        const Point3f& center() const
+        OrientedBox3(const Point3f& origin, const Vec3f& halfSize, const Rotation3f& worldToLocalRot) noexcept :
+            origin(origin),
+            halfSize(halfSize),
+            worldToLocalRot(worldToLocalRot)
+        {
+        }
+
+        [[nodiscard]] const Point3f& center() const
         {
             return origin;
         }
 
-        Point3f min() const
+        [[nodiscard]] Point3f min() const
         {
             return origin - (worldToLocalRot.inverse() * halfSize);
         }
 
-        Point3f max() const
+        [[nodiscard]] Point3f max() const
         {
             return origin + (worldToLocalRot.inverse() * halfSize);
         }
 
-        Vec3f extent() const
+        [[nodiscard]] Vec3f extent() const
         {
             return 2.0f * (worldToLocalRot.inverse() * halfSize);
         }
 
-        std::array<Point3f, 8> vertices() const
+        [[nodiscard]] std::array<Point3f, 8> vertices() const
         {
             std::array<Point3f, 8> v;
             const auto localToWorld = worldToLocalRot.inverse();

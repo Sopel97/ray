@@ -28,18 +28,18 @@ namespace ray
         All = Rotation | Scale | Translation
     };
 
-    constexpr AffineTransformationComponentMask operator|(AffineTransformationComponentMask lhs, AffineTransformationComponentMask rhs)
+    [[nodiscard]] constexpr AffineTransformationComponentMask operator|(AffineTransformationComponentMask lhs, AffineTransformationComponentMask rhs)
     {
         return AffineTransformationComponentMask(static_cast<std::uint32_t>(lhs) | static_cast<std::uint32_t>(rhs));
     }
 
-    constexpr AffineTransformationComponentMask operator&(AffineTransformationComponentMask lhs, AffineTransformationComponentMask rhs)
+    [[nodiscard]] constexpr AffineTransformationComponentMask operator&(AffineTransformationComponentMask lhs, AffineTransformationComponentMask rhs)
     {
         return AffineTransformationComponentMask(static_cast<std::uint32_t>(lhs) & static_cast<std::uint32_t>(rhs));
     }
 
     // whether lhs contains rhs
-    constexpr bool contains(AffineTransformationComponentMask lhs, AffineTransformationComponentMask rhs)
+    [[nodiscard]] constexpr bool contains(AffineTransformationComponentMask lhs, AffineTransformationComponentMask rhs)
     {
         return (lhs & rhs) == lhs;
     }
@@ -58,32 +58,32 @@ namespace ray
 
         // enable construction from more specific matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
-        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) noexcept :
             Matrix4(other)
         {
         }
 
-        AffineTransformation3() :
+        AffineTransformation3() noexcept :
             Matrix4()
         {
         }
 
-        friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
+        [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             return lhs;
         }
 
-        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             return rhs;
         }
 
-        friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
             return rhs;
         }
 
-        friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return rhs;
         }
@@ -93,7 +93,7 @@ namespace ray
             // nothing to do
         }
 
-        SelfType inverse() const
+        [[nodiscard]] SelfType inverse() const
         {
             SelfType c(*this);
             c.invert();
@@ -110,7 +110,7 @@ namespace ray
             // nothing to do
         }
 
-        SelfType transposed() const
+        [[nodiscard]] SelfType transposed() const
         {
             return *this;
         }
@@ -124,44 +124,44 @@ namespace ray
 
         // enable construction from more specific matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
-        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) noexcept :
             Matrix4(other)
         {
         }
 
-        AffineTransformation3() :
+        AffineTransformation3() noexcept :
             Matrix4()
         {
         }
 
-        explicit AffineTransformation3(const OrthonormalBasis3<float>& basis) :
+        explicit AffineTransformation3(const OrthonormalBasis3<float>& basis) noexcept :
             Matrix4(basis)
         {
         }
 
-        explicit AffineTransformation3(const Quat4<float>& q) :
+        explicit AffineTransformation3(const Quat4<float>& q) noexcept :
             Matrix4(q.normalized())
         {
         }
 
-        friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
+        [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
             m128::mulMat3Mat3(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
-        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
         }
 
-        friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
-        friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
@@ -172,7 +172,7 @@ namespace ray
             m128::transpose3zx(m_columns);
         }
 
-        SelfType inverse() const
+        [[nodiscard]] SelfType inverse() const
         {
             SelfType c(*this);
             c.invert();
@@ -189,7 +189,7 @@ namespace ray
             m128::transpose3zx(m_columns);
         }
 
-        SelfType transposed() const
+        [[nodiscard]] SelfType transposed() const
         {
             SelfType m(*this);
             m.transpose();
@@ -205,27 +205,27 @@ namespace ray
 
         // enable construction from more specific matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
-        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) noexcept :
             Matrix4(other)
         {
         }
 
-        AffineTransformation3() :
+        AffineTransformation3() noexcept:
             Matrix4()
         {
         }
 
-        AffineTransformation3(float xs, float ys, float zs) :
+        AffineTransformation3(float xs, float ys, float zs) noexcept :
             Matrix4(xs, ys, zs)
         {
         }
 
-        explicit AffineTransformation3(const Vec3<float>& s) :
+        explicit AffineTransformation3(const Vec3<float>& s) noexcept :
             Matrix4(s.x, s.y, s.z)
         {
         }
 
-        friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
+        [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             // just multiply the diagonal
             SelfType ret{};
@@ -235,18 +235,18 @@ namespace ray
             return ret;
         }
 
-        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m_values[0][0], lhs.m_values[1][1], lhs.m_values[2][2]);
             return (Vec3<float>(rhs) * invS).normalized();
         }
 
-        friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
-        friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
@@ -258,7 +258,7 @@ namespace ray
             m_values[2][2] = 1.0f / m_values[2][2];
         }
 
-        SelfType inverse() const
+        [[nodiscard]] SelfType inverse() const
         {
             SelfType c(*this);
             c.invert();
@@ -275,7 +275,7 @@ namespace ray
             // nothing to do
         }
 
-        SelfType transposed() const
+        [[nodiscard]] SelfType transposed() const
         {
             return *this;
         }
@@ -289,22 +289,22 @@ namespace ray
 
         // enable construction from more specific matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
-        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) noexcept :
             Matrix4(other)
         {
         }
 
-        AffineTransformation3() :
+        AffineTransformation3() noexcept :
             Matrix4()
         {
         }
 
-        explicit AffineTransformation3(const Vec3<float>& t) :
+        explicit AffineTransformation3(const Vec3<float>& t) noexcept :
             Matrix4(t)
         {
         }
 
-        friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
+        [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             return SelfType(
                 lhs.m_columns[0],
@@ -315,17 +315,17 @@ namespace ray
             );
         }
 
-        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             return rhs;
         }
 
-        friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
             return rhs + Vec3<float>(lhs.m_columns[3]);
         }
 
-        friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return rhs + Vec3<float>(lhs.m_columns[3]);
         }
@@ -335,7 +335,7 @@ namespace ray
             m_columns[3] = m128::neg(m_columns[3], m128::mask_xyz());
         }
 
-        SelfType inverse() const
+        [[nodiscard]] SelfType inverse() const
         {
             SelfType c(*this);
             c.invert();
@@ -347,7 +347,7 @@ namespace ray
             m128::transpose3zx(m_columns);
         }
 
-        Matrix4<float> transposed() const
+        [[nodiscard]] Matrix4<float> transposed() const
         {
             Matrix4<float> m(*this);
             m.transpose();
@@ -355,7 +355,7 @@ namespace ray
         }
 
     protected:
-        AffineTransformation3(__m128 c0, __m128 c1, __m128 c2, __m128 c3) :
+        AffineTransformation3(__m128 c0, __m128 c1, __m128 c2, __m128 c3) noexcept :
             Matrix4(c0, c1, c2, c3)
         {
         }
@@ -369,45 +369,45 @@ namespace ray
 
         // enable construction from more specific matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
-        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) noexcept :
             Matrix4(other)
         {
         }
 
-        AffineTransformation3() :
+        AffineTransformation3() noexcept :
             Matrix4()
         {
         }
 
-        AffineTransformation3(const OrthonormalBasis3<float>& basis, const Vec3<float>& t) :
+        AffineTransformation3(const OrthonormalBasis3<float>& basis, const Vec3<float>& t) noexcept :
             Matrix4(basis, t)
         {
         }
 
-        AffineTransformation3(const Quat4<float>& q, const Point3<float>& origin) :
+        AffineTransformation3(const Quat4<float>& q, const Point3<float>& origin) noexcept :
             Matrix4(q.normalized(), origin)
         {
         }
 
-        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             // rotation without scaling preserves length
             return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
         }
 
-        friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
+        [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
             m128::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
-        friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
-        friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
@@ -417,7 +417,7 @@ namespace ray
             m128::invertMatAffineNoScalePerpAxes(m_columns);
         }
 
-        SelfType inverse() const
+        [[nodiscard]] SelfType inverse() const
         {
             SelfType c(*this);
             c.invert();
@@ -429,7 +429,7 @@ namespace ray
             m128::transpose3zx(m_columns);
         }
 
-        Matrix4<float> transposed() const
+        [[nodiscard]] Matrix4<float> transposed() const
         {
             Matrix4<float> m(*this);
             m.transpose();
@@ -445,41 +445,41 @@ namespace ray
 
         // enable construction from more specific matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
-        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) noexcept :
             Matrix4(other)
         {
         }
 
-        AffineTransformation3() :
+        AffineTransformation3() noexcept :
             Matrix4()
         {
         }
 
-        explicit AffineTransformation3(const Basis3<float>& basis) :
+        explicit AffineTransformation3(const Basis3<float>& basis) noexcept :
             Matrix4(basis)
         {
         }
 
-        friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
+        [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
             m128::mulMat3Mat3(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
-        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             __m128 cols[3];
             m128::invertTransposeMat3(lhs.m_columns, cols);
             return Vec3<float>(m128::mulMat3Vec3(cols, rhs.xmm)).normalized();
         }
 
-        friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
 
-        friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
         }
@@ -489,7 +489,7 @@ namespace ray
             m128::invertMatAffine(m_columns);
         }
 
-        SelfType inverse() const
+        [[nodiscard]] SelfType inverse() const
         {
             SelfType c(*this);
             c.invert();
@@ -506,7 +506,7 @@ namespace ray
             m128::transpose3zx(m_columns);
         }
 
-        SelfType transposed() const
+        [[nodiscard]] SelfType transposed() const
         {
             SelfType m(*this);
             m.transpose();
@@ -522,45 +522,45 @@ namespace ray
 
         // enable construction from more specific matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
-        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) noexcept :
             Matrix4(other)
         {
         }
 
-        AffineTransformation3() :
+        AffineTransformation3() noexcept :
             Matrix4()
         {
         }
 
-        AffineTransformation3(float xs, float ys, float zs, const Vec3<float>& t) :
+        AffineTransformation3(float xs, float ys, float zs, const Vec3<float>& t) noexcept :
             Matrix4(xs, ys, zs, t)
         {
         }
 
-        AffineTransformation3(const Vec3<float>& s, const Vec3<float>& t) :
+        AffineTransformation3(const Vec3<float>& s, const Vec3<float>& t) noexcept :
             Matrix4(s.x, s.y, s.z, t)
         {
         }
 
-        friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
+        [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
             m128::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
-        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m_values[0][0], lhs.m_values[1][1], lhs.m_values[2][2]);
             return (Vec3<float>(rhs) * invS).normalized();
         }
 
-        friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
-        friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
@@ -571,7 +571,7 @@ namespace ray
             m128::invertMatAffine(m_columns);
         }
 
-        SelfType inverse() const
+        [[nodiscard]] SelfType inverse() const
         {
             SelfType c(*this);
             c.invert();
@@ -583,7 +583,7 @@ namespace ray
             // nothing to do
         }
 
-        Matrix4<float> transposed() const
+        [[nodiscard]] Matrix4<float> transposed() const
         {
             Matrix4<float> m(*this);
             m.transpose();
@@ -599,46 +599,46 @@ namespace ray
 
         // enable construction from more specific matrix type
         template <AffineTransformationComponentMask OtherMaskV, typename SfinaeT = std::enable_if_t<contains(OtherMaskV, mask)>>
-        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) :
+        AffineTransformation3(const AffineTransformation3<float, OtherMaskV>& other) noexcept :
             Matrix4(other)
         {
         }
 
-        AffineTransformation3() :
+        AffineTransformation3() noexcept :
             Matrix4()
         {
         }
 
-        AffineTransformation3(const Basis3<float>& basis, const Vec3<float>& t) :
+        AffineTransformation3(const Basis3<float>& basis, const Vec3<float>& t) noexcept :
             Matrix4(basis, t)
         {
         }
 
-        friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
+        [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
             m128::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
         }
 
-        friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             __m128 cols[3];
             m128::invertTransposeMat3(lhs.m_columns, cols);
             return Vec3<float>(m128::mulMat3Vec3(cols, rhs.xmm)).normalized();
         }
 
-        friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
-        friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
+        [[nodiscard]] friend Point3<float> operator*(const SelfType& lhs, const Point3<float>& rhs)
         {
             return Point3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
         }
 
-        Vec3<float> apply3(const Vec3<float>& rhs) const
+        [[nodiscard]] Vec3<float> apply3(const Vec3<float>& rhs) const
         {
             return Vec3<float>(m128::mulMat3Vec3(m_columns, rhs.xmm));
         }
@@ -648,7 +648,7 @@ namespace ray
             m128::invertMatAffine(m_columns);
         }
 
-        SelfType inverse() const
+        [[nodiscard]] SelfType inverse() const
         {
             SelfType c(*this);
             c.invert();
@@ -660,7 +660,7 @@ namespace ray
             m128::transpose3zx(m_columns);
         }
 
-        Matrix4<float> transposed() const
+        [[nodiscard]] Matrix4<float> transposed() const
         {
             Matrix4<float> m(*this);
             m.transpose();
@@ -678,7 +678,7 @@ namespace ray
     using AffineTransformation3f = AffineTransformation3<float, AffineTransformationComponentMask::All>;
 
     template <typename T, AffineTransformationComponentMask MaskLhsV, AffineTransformationComponentMask MaskRhsV>
-    auto operator*(const AffineTransformation3<T, MaskLhsV>& lhs, const AffineTransformation3<T, MaskRhsV>& rhs)
+    [[nodiscard]] auto operator*(const AffineTransformation3<T, MaskLhsV>& lhs, const AffineTransformation3<T, MaskRhsV>& rhs)
     {
         static_assert(MaskLhsV != MaskRhsV, "For equal masks there should be an overload");
 
