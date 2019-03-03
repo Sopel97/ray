@@ -777,9 +777,8 @@ namespace ray
 
     // Interval raycasts
 
-    // TODO: somehow make the data be assigned elsewhere
     template <typename DataT>
-    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Sphere& sphere, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Sphere& sphere, IntervalSet<DataT>& hitIntervals)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<Sphere>();
@@ -805,12 +804,12 @@ namespace ray
         perf::gThreadLocalPerfStats.addIntervalRaycastHit<Sphere>();
 #endif
 
-        hitIntervals.pushBack(Interval<DataT>{t_ca - t_hc, t_ca + t_hc, data, data});
+        hitIntervals.pushBack(Interval<void>(t_ca - t_hc, t_ca + t_hc));
         return true;
     }
 
     template <typename DataT>
-    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Box3& box, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Box3& box, IntervalSet<DataT>& hitIntervals)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<Box3>();
@@ -829,7 +828,7 @@ namespace ray
             perf::gThreadLocalPerfStats.addIntervalRaycastHit<Box3>();
 #endif
 
-            hitIntervals.pushBack(Interval<DataT>{tmin, tmax, data, data});
+            hitIntervals.pushBack(Interval<void>(tmin, tmax));
             return true;
         }
 
@@ -837,7 +836,7 @@ namespace ray
     }
 
     template <typename DataT>
-    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const OrientedBox3& obb, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const OrientedBox3& obb, IntervalSet<DataT>& hitIntervals)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<OrientedBox3>();
@@ -862,7 +861,7 @@ namespace ray
             perf::gThreadLocalPerfStats.addIntervalRaycastHit<OrientedBox3>();
 #endif
 
-            hitIntervals.pushBack(Interval<DataT>{tmin, tmax, data, data});
+            hitIntervals.pushBack(Interval<void>(tmin, tmax));
             return true;
         }
 
@@ -945,7 +944,7 @@ namespace ray
     }
 
     template <typename DataT>
-    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Cylinder& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Cylinder& cyl, IntervalSet<DataT>& hitIntervals)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<Cylinder>();
@@ -1070,7 +1069,7 @@ namespace ray
             perf::gThreadLocalPerfStats.addIntervalRaycastHit<Cylinder>();
 #endif
 
-            hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
+            hitIntervals.pushBack(Interval<void>(t0, t1));
 
             return true;
         }
@@ -1088,7 +1087,7 @@ namespace ray
                 perf::gThreadLocalPerfStats.addIntervalRaycastHit<Cylinder>();
 #endif
 
-                hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
+                hitIntervals.pushBack(Interval<void>(t0, t1));
                 return true;
             }
         }
@@ -1097,7 +1096,7 @@ namespace ray
     }
 
     template <typename DataT>
-    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Capsule& cyl, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const Capsule& cyl, IntervalSet<DataT>& hitIntervals)
     {
 #if defined(RAY_GATHER_PERF_STATS)
         perf::gThreadLocalPerfStats.addIntervalRaycast<Capsule>();
@@ -1246,7 +1245,7 @@ namespace ray
             perf::gThreadLocalPerfStats.addIntervalRaycastHit<Capsule>();
 #endif
 
-            hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
+            hitIntervals.pushBack(Interval<void>(t0, t1));
 
             return true;
         }
@@ -1269,7 +1268,7 @@ namespace ray
                 perf::gThreadLocalPerfStats.addIntervalRaycastHit<Capsule>();
 #endif
 
-                hitIntervals.pushBack(Interval<DataT>{t0, t1, data, data});
+                hitIntervals.pushBack(Interval<void>(t0, t1));
                 return true;
             }
         }
@@ -1320,7 +1319,7 @@ namespace ray
     }
 
     template <typename TransformT, typename ShapeT, typename DataT>
-    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const TransformedShape3<TransformT, ShapeT>& sh, IntervalSet<DataT>& hitIntervals, const DataT& data)
+    [[nodiscard]] inline bool raycastIntervals(const Ray& ray, const TransformedShape3<TransformT, ShapeT>& sh, IntervalSet<DataT>& hitIntervals)
     {
         // We have to:
         //   - transform the ray to shape's local coordinates
@@ -1340,7 +1339,7 @@ namespace ray
             D.normalized()
         );
 
-        if (raycastIntervals(localRay, sh.shape, hitIntervals, data))
+        if (raycastIntervals(localRay, sh.shape, hitIntervals))
         {
             hitIntervals.positiveScale(1.0f / DLen);
 

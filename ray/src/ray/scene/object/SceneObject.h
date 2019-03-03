@@ -178,7 +178,14 @@ namespace ray
             [[nodiscard]] bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const override
             {
                 hitIntervals.clear();
-                return ray::raycastIntervals(ray, m_shape, hitIntervals, CsgIntervalData{ this, invert });
+                const bool anyInterval = ray::raycastIntervals(ray, m_shape, hitIntervals);
+                if (anyInterval)
+                {
+                    hitIntervals.setData(CsgIntervalData{ this, invert });
+                    return true;
+                }
+                
+                return false;
             }
             [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
             {

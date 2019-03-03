@@ -8,10 +8,33 @@ namespace ray
     template <typename DataT>
     struct Interval
     {
+        Interval() noexcept = default;
+
+        Interval(float min, float max) noexcept :
+            min(min),
+            max(max)
+        {
+        }
+
         float min;
         float max;
         DataT minData;
         DataT maxData;
+    };
+
+    template <>
+    struct Interval<void>
+    {
+        Interval() noexcept = default;
+
+        Interval(float min, float max) noexcept :
+            min(min),
+            max(max)
+        {
+        }
+
+        float min;
+        float max;
     };
 
     template <typename DataT>
@@ -42,6 +65,21 @@ namespace ray
         void pushBack(Interval<DataT> interval)
         {
             m_intervals.emplace_back(std::move(interval));
+        }
+
+        // assumes that it can safely be inserted at the end
+        void pushBack(const Interval<void>& interval)
+        {
+            m_intervals.emplace_back(interval.min, interval.max);
+        }
+
+        void setData(const DataT& data)
+        {
+            for (auto& i : m_intervals)
+            {
+                i.minData = data;
+                i.maxData = data;
+            }
         }
 
         void reserve(int n)
