@@ -6,7 +6,7 @@
 #include <ray/math/Vec2.h>
 #include <ray/math/Vec3.h>
 
-#include <ray/utility/IterableNumber.h>
+#include <ray/utility/IntRange2.h>
 
 #include <ray/Camera.h>
 
@@ -62,18 +62,16 @@ namespace ray
 
             const float singleSampleContribution = 1.0f / (m_order * m_order);
 
-            std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
-                for (int xi = 0; xi < vp.widthPixels; ++xi)
-                {
-                    const Point2i xyi(xi, yi);
-                    const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
-                    ColorRGBf totalColor{};
-                    forEachSampleOffset(xyi, [&](const Vec2f& offset) {
-                        totalColor += sample(xyf + offset);
-                        });
-                    storeFunc(xyi, totalColor * singleSampleContribution);
-                }
+            auto range = IntRange2(Point2i(vp.widthPixels, vp.heightPixels));
+            std::for_each(exec, range.begin(), range.end(), [&](const Point2i& xyi) {
+                auto[xi, yi] = xyi;
+                const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
+                ColorRGBf totalColor{};
+                forEachSampleOffset(xyi, [&](const Vec2f& offset, float contribution) {
+                    totalColor += sample(xyf + offset);
                 });
+                storeFunc(xyi, totalColor * singleSampleContribution);
+            });
         }
 
     private:

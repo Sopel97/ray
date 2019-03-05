@@ -7,7 +7,7 @@
 #include <ray/math/Vec3.h>
 
 #include <ray/utility/Array2.h>
-#include <ray/utility/IterableNumber.h>
+#include <ray/utility/IntRange2.h>
 
 #include <ray/Camera.h>
 
@@ -36,11 +36,10 @@ namespace ray
             };
 
             Array2<ColorRGBf> samples(vp.widthPixels, vp.heightPixels);
-            std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
-                for (int xi = 0; xi < vp.widthPixels; ++xi)
-                {
-                    samples(xi, yi) = sample(Point2f(static_cast<float>(xi), static_cast<float>(yi)));
-                }
+            auto range = IntRange2(Point2i(vp.widthPixels, vp.heightPixels));
+            std::for_each(exec, range.begin(), range.end(), [&](const Point2i& xyi) {
+                auto[xi, yi] = xyi;
+                samples(xi, yi) = sample(Point2f(static_cast<float>(xi), static_cast<float>(yi)));
             });
 
             auto distance = [&](const ColorRGBf& lhs, const ColorRGBf& rhs) {
@@ -59,32 +58,29 @@ namespace ray
                 return false;
             };
 
-            std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
-                for (int xi = 0; xi < vp.widthPixels; ++xi)
+            std::for_each(exec, range.begin(), range.end(), [&](const Point2i& xyi) {
+                auto[xi, yi] = xyi;
+                if (xi == 0 || yi == 0 || xi == vp.widthPixels - 1 || yi == vp.heightPixels - 1)
                 {
-                    const Point2i xyi(xi, yi);
-                    if (xi == 0 || yi == 0 || xi == vp.widthPixels - 1 || yi == vp.heightPixels - 1)
-                    {
-                        storeFunc(xyi, samples(xi, yi));
-                    }
-                    else if (isAliased(xyi))
-                    {
-                        const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
-                        ColorRGBf color{};
-                        int numSamples = 0;
-                        m_multisampler.forEachSampleOffset(xyi, [&](const Vec2f& offset, float contribution) {
-                            color += sample(xyf + offset) * contribution;
-                            ++numSamples;
-                        });
-                        color = 
-                            (color * static_cast<float>(numSamples) + samples(xi, yi)) 
-                            / static_cast<float>(numSamples + 1);
-                        storeFunc(xyi, color);
-                    }
-                    else
-                    {
-                        storeFunc(xyi, samples(xi, yi));
-                    }
+                    storeFunc(xyi, samples(xi, yi));
+                }
+                else if (isAliased(xyi))
+                {
+                    const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
+                    ColorRGBf color{};
+                    int numSamples = 0;
+                    m_multisampler.forEachSampleOffset(xyi, [&](const Vec2f& offset, float contribution) {
+                        color += sample(xyf + offset) * contribution;
+                        ++numSamples;
+                    });
+                    color = 
+                        (color * static_cast<float>(numSamples) + samples(xi, yi)) 
+                        / static_cast<float>(numSamples + 1);
+                    storeFunc(xyi, color);
+                }
+                else
+                {
+                    storeFunc(xyi, samples(xi, yi));
                 }
             });
         }

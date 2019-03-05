@@ -164,9 +164,6 @@
     <ClInclude Include="src\ray\utility\Array2.h">
       <Filter>Header Files\src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\ray\utility\IterableNumber.h">
-      <Filter>Header Files\src\utility</Filter>
-    </ClInclude>
     <ClInclude Include="src\ray\utility\Util.h">
       <Filter>Header Files\src\utility</Filter>
     </ClInclude>
@@ -352,6 +349,12 @@
     </ClInclude>
     <ClInclude Include="src\ray\math\m128\M128Mask.h">
       <Filter>Header Files\src\math\m128</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\utility\IntRange.h">
+      <Filter>Header Files\src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\utility\IntRange2.h">
+      <Filter>Header Files\src\utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -7,7 +7,7 @@
 #include <ray/math/Vec3.h>
 
 #include <ray/utility/Array2.h>
-#include <ray/utility/IterableNumber.h>
+#include <ray/utility/IntRange2.h>
 
 #include <ray/Camera.h>
 
@@ -44,18 +44,19 @@ namespace ray
             };
 
             Array2<ColorRGBf> supersamples(vp.widthPixels + 1, vp.heightPixels + 1);
-            std::for_each_n(exec, IterableNumber(0), vp.heightPixels + 1, [&](int yi) {
-                for (int xi = 0; xi < vp.widthPixels + 1; ++xi)
-                {
+            {
+                auto range = IntRange2(Point2i(vp.widthPixels + 1, vp.heightPixels + 1));
+                std::for_each(exec, range.begin(), range.end(), [&](const Point2i& xyi) {
+                    auto[xi, yi] = xyi;
                     const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
                     supersamples(xi, yi) = sample(xyf);
-                }
-            });
+                });
+            }
 
-            std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int yi) {
-                for (int xi = 0; xi < vp.widthPixels; ++xi)
-                {
-                    const Point2i xyi(xi, yi);
+            {
+                auto range = IntRange2(Point2i(vp.widthPixels, vp.heightPixels));
+                std::for_each(exec, range.begin(), range.end(), [&](const Point2i& xyi) {
+                    auto[xi, yi] = xyi;
                     const Point2f xyf(static_cast<float>(xi), static_cast<float>(yi));
                     const ColorRGBf total =
                         sample(xyf)
@@ -65,8 +66,8 @@ namespace ray
                         + supersamples(xi + 1, yi + 1);
 
                     storeFunc(xyi, total * 0.2f);
-                }
-            });
+                });
+            }
         }
     };
 }

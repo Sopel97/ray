@@ -127,14 +127,14 @@ namespace ray
             return *this;
         }
 
-        constexpr Quat4<float>& operator*=(float rhs)
+        Quat4<float>& operator*=(float rhs)
         {
             xmm = m128::mul(xmm, rhs);
 
             return *this;
         }
 
-        constexpr Quat4<float>& operator/=(float rhs)
+        Quat4<float>& operator/=(float rhs)
         {
             xmm = m128::div(xmm, rhs);
 

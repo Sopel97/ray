@@ -2,9 +2,8 @@
 
 #include <ray/math/Angle2.h>
 #include <ray/math/Ray.h>
+#include <ray/math/Vec2.h>
 #include <ray/math/Vec3.h>
-
-#include <ray/utility/IterableNumber.h>
 
 #include <ray/Viewport.h>
 
@@ -58,11 +57,10 @@ namespace ray
         {
             const Viewport vp = viewport();
 
-            std::for_each_n(exec, IterableNumber(0), vp.heightPixels, [&](int y) {
-                for (int x = 0; x < vp.widthPixels; ++x)
-                {
-                    func(vp.rayAt(static_cast<float>(x), static_cast<float>(y)), x, y);
-                }
+            auto range = IntRange2(Point2i(vp.widthPixels, vp.heightPixels));
+            std::for_each(exec, range.begin(), range.end(), [&](const Point2i& xyi) {
+                auto[x, y] = xyi;
+                func(vp.rayAt(static_cast<float>(x), static_cast<float>(y)), x, y);
             });
         }
 
