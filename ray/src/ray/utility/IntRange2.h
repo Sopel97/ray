@@ -171,8 +171,8 @@ namespace ray
         using pointer = value_type * ;
         using iterator_category = std::random_access_iterator_tag;
 
-        IntIterator2WithStep() noexcept = default;
-        IntIterator2WithStep(const PointType& begin, IntType minX, IntType maxX, const VecType& step) noexcept :
+        constexpr IntIterator2WithStep() noexcept = default;
+        constexpr IntIterator2WithStep(const PointType& begin, IntType minX, IntType maxX, const VecType& step) noexcept :
             m_coords(begin),
             m_minX(minX),
             m_maxX(maxX),
@@ -180,25 +180,25 @@ namespace ray
         {
         }
 
-        IntIterator2WithStep(const IntIterator2WithStep&) noexcept = default;
-        IntIterator2WithStep(IntIterator2WithStep&&) noexcept = default;
-        IntIterator2WithStep& operator=(const IntIterator2WithStep&) noexcept = default;
-        IntIterator2WithStep& operator=(IntIterator2WithStep&&) noexcept = default;
+        constexpr IntIterator2WithStep(const IntIterator2WithStep&) noexcept = default;
+        constexpr IntIterator2WithStep(IntIterator2WithStep&&) noexcept = default;
+        constexpr IntIterator2WithStep& operator=(const IntIterator2WithStep&) noexcept = default;
+        constexpr IntIterator2WithStep& operator=(IntIterator2WithStep&&) noexcept = default;
 
-        IntIterator2WithStep operator++(int) const
+        constexpr IntIterator2WithStep operator++(int) const
         {
             IntIterator2WithStep i = *this;
             operator++();
             return i;
         }
-        IntIterator2WithStep operator--(int) const
+        constexpr IntIterator2WithStep operator--(int) const
         {
             IntIterator2WithStep i = *this;
             operator--();
             return i;
         }
 
-        IntIterator2WithStep& operator++()
+        constexpr IntIterator2WithStep& operator++()
         {
             m_coords.x += m_step.x;
             if (m_coords.x > m_maxX)
@@ -208,7 +208,7 @@ namespace ray
             };
             return *this;
         }
-        IntIterator2WithStep& operator--()
+        constexpr IntIterator2WithStep& operator--()
         {
             m_coords.x += m_step.x;
             if (m_coords.x < m_minX)
@@ -219,20 +219,20 @@ namespace ray
             return *this;
         }
 
-        [[nodiscard]] IntIterator2WithStep operator+(difference_type n) const
+        [[nodiscard]] constexpr IntIterator2WithStep operator+(difference_type n) const
         {
             IntIterator2WithStep i = *this;
             i += n;
             return i;
         }
-        [[nodiscard]] IntIterator2WithStep operator-(difference_type n) const
+        [[nodiscard]] constexpr IntIterator2WithStep operator-(difference_type n) const
         {
             IntIterator2WithStep i = *this;
             i -= n;
             return i;
         }
 
-        IntIterator2WithStep& operator+=(difference_type n)
+        constexpr IntIterator2WithStep& operator+=(difference_type n)
         {
             const IntType width = (m_maxX - m_minX + 1);
             const IntType widthSteps = (m_maxX - m_minX + 1) / m_step.x;
@@ -245,7 +245,7 @@ namespace ray
             }
             return *this;
         }
-        IntIterator2WithStep& operator-=(difference_type n)
+        constexpr IntIterator2WithStep& operator-=(difference_type n)
         {
             const IntType width = (m_maxX - m_minX + 1);
             const IntType widthSteps = (m_maxX - m_minX + 1) / m_step.x;
@@ -259,7 +259,7 @@ namespace ray
             return *this;
         }
 
-        [[nodiscard]] difference_type operator-(const IntIterator2WithStep& rhs) const
+        [[nodiscard]] constexpr difference_type operator-(const IntIterator2WithStep& rhs) const
         {
             const IntType width = (m_maxX - m_minX + 1) / m_step.x;
             const IntType x = (m_coords.x - rhs.m_coords.x) / m_step.x;
@@ -267,36 +267,36 @@ namespace ray
             return (y * width + x);
         }
 
-        [[nodiscard]] value_type operator[](difference_type n) const
+        [[nodiscard]] constexpr value_type operator[](difference_type n) const
         {
             return m_coords + n;
         }
-        [[nodiscard]] value_type operator*() const
+        [[nodiscard]] constexpr value_type operator*() const
         {
             return m_coords;
         }
 
-        [[nodiscard]] bool operator==(const IntIterator2WithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator==(const IntIterator2WithStep& rhs) const noexcept
         {
             return m_coords.x == rhs.m_coords.x && m_coords.y == rhs.m_coords.y;
         }
-        [[nodiscard]] bool operator<(const IntIterator2WithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator<(const IntIterator2WithStep& rhs) const noexcept
         {
             return *this - rhs < 0;
         }
-        [[nodiscard]] bool operator>(const IntIterator2WithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator>(const IntIterator2WithStep& rhs) const noexcept
         {
             return *this - rhs > 0;
         }
-        [[nodiscard]] bool operator<=(const IntIterator2WithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator<=(const IntIterator2WithStep& rhs) const noexcept
         {
             return *this - rhs <= 0;
         }
-        [[nodiscard]] bool operator>=(const IntIterator2WithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator>=(const IntIterator2WithStep& rhs) const noexcept
         {
             return *this - rhs >= 0;
         }
-        [[nodiscard]] bool operator!=(const IntIterator2WithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator!=(const IntIterator2WithStep& rhs) const noexcept
         {
             return !operator==(rhs);
         }

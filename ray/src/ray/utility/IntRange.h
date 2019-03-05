@@ -141,103 +141,103 @@ namespace ray
         using pointer = value_type * ;
         using iterator_category = std::random_access_iterator_tag;
 
-        IntIteratorWithStep() noexcept :
+        constexpr IntIteratorWithStep() noexcept :
             m_value{},
             m_step(1)
         {
         }
-        IntIteratorWithStep(IntType value, IntType step) noexcept :
+        constexpr IntIteratorWithStep(IntType value, IntType step) noexcept :
             m_value(value),
             m_step(step)
         {
         }
 
-        IntIteratorWithStep(const IntIteratorWithStep&) noexcept = default;
-        IntIteratorWithStep(IntIteratorWithStep&&) noexcept = default;
-        IntIteratorWithStep& operator=(const IntIteratorWithStep&) noexcept = default;
-        IntIteratorWithStep& operator=(IntIteratorWithStep&&) noexcept = default;
+        constexpr IntIteratorWithStep(const IntIteratorWithStep&) noexcept = default;
+        constexpr IntIteratorWithStep(IntIteratorWithStep&&) noexcept = default;
+        constexpr IntIteratorWithStep& operator=(const IntIteratorWithStep&) noexcept = default;
+        constexpr IntIteratorWithStep& operator=(IntIteratorWithStep&&) noexcept = default;
 
-        IntIteratorWithStep operator++(int) const
+        constexpr IntIteratorWithStep operator++(int) const
         {
             IntIteratorWithStep i = *this;
             operator++();
             return i;
         }
-        IntIteratorWithStep operator--(int) const
+        constexpr IntIteratorWithStep operator--(int) const
         {
             IntIteratorWithStep i = *this;
             operator--();
             return i;
         }
-        IntIteratorWithStep& operator++()
+        constexpr IntIteratorWithStep& operator++()
         {
             m_value += m_step;
             return *this;
         }
-        IntIteratorWithStep& operator--()
+        constexpr IntIteratorWithStep& operator--()
         {
             m_value -= m_step;
             return *this;
         }
 
-        [[nodiscard]] IntIteratorWithStep operator+(difference_type n) const
+        [[nodiscard]] constexpr IntIteratorWithStep operator+(difference_type n) const
         {
             IntIteratorWithStep i = *this;
             i += n;
             return i;
         }
-        [[nodiscard]] IntIteratorWithStep operator-(difference_type n) const
+        [[nodiscard]] constexpr IntIteratorWithStep operator-(difference_type n) const
         {
             IntIteratorWithStep i = *this;
             i -= n;
             return i;
         }
-        IntIteratorWithStep& operator+=(difference_type n)
+        constexpr IntIteratorWithStep& operator+=(difference_type n)
         {
             m_value += n * m_step;
             return *this;
         }
-        IntIteratorWithStep& operator-=(difference_type n)
+        constexpr IntIteratorWithStep& operator-=(difference_type n)
         {
             m_value -= n * m_step;
             return *this;
         }
 
-        [[nodiscard]] difference_type operator-(const IntIteratorWithStep& rhs) const
+        [[nodiscard]] constexpr difference_type operator-(const IntIteratorWithStep& rhs) const
         {
             return (m_value - rhs.m_value) / m_step;
         }
 
-        [[nodiscard]] value_type operator[](difference_type n) const
+        [[nodiscard]] constexpr value_type operator[](difference_type n) const
         {
             return m_value + n * m_step;
         }
-        [[nodiscard]] value_type operator*() const
+        [[nodiscard]] constexpr value_type operator*() const
         {
             return m_value;
         }
 
-        [[nodiscard]] bool operator==(const IntIteratorWithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator==(const IntIteratorWithStep& rhs) const noexcept
         {
             return m_value == rhs.m_value;
         }
-        [[nodiscard]] bool operator<(const IntIteratorWithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator<(const IntIteratorWithStep& rhs) const noexcept
         {
             return m_value < rhs.m_value;
         }
-        [[nodiscard]] bool operator>(const IntIteratorWithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator>(const IntIteratorWithStep& rhs) const noexcept
         {
             return m_value > rhs.m_value;
         }
-        [[nodiscard]] bool operator<=(const IntIteratorWithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator<=(const IntIteratorWithStep& rhs) const noexcept
         {
             return m_value <= rhs.m_value;
         }
-        [[nodiscard]] bool operator>=(const IntIteratorWithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator>=(const IntIteratorWithStep& rhs) const noexcept
         {
             return m_value >= rhs.m_value;
         }
-        [[nodiscard]] bool operator!=(const IntIteratorWithStep& rhs) const noexcept
+        [[nodiscard]] constexpr bool operator!=(const IntIteratorWithStep& rhs) const noexcept
         {
             return m_value != rhs.m_value;
         }
