@@ -50,4 +50,7 @@ namespace ray
     private:
         DefaultSurfaceShader() noexcept = default;
     };
+
+    template <typename ShapeT>
+    inline const DefaultSurfaceShader<ShapeT>& defaultShader = DefaultSurfaceShader<ShapeT>::instance();
 }

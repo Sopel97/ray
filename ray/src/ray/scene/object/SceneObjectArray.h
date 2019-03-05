@@ -121,6 +121,8 @@ namespace ray
         using ShapePackType = ShapeT;
         using ShapeTraits = ShapeTraits<ShapePackType>;
         using BaseShapeType = typename ShapeTraits::BaseShapeType;
+        using SurfaceShaderType = SurfaceShader<ShapeT>;
+        using SurfaceShaderPtrType = const SurfaceShaderType*;
         static constexpr int numShapesInPack = ShapeTraits::numShapes;
         static constexpr bool isPack = numShapesInPack > 1;
         static constexpr bool hasVolume = ShapeTraits::hasVolume;
@@ -128,6 +130,7 @@ namespace ray
         static constexpr bool isLocallyContinuable = ShapeTraits::isLocallyContinuable;
         using ShapeStorageType = std::vector<ShapePackType>;
         using MaterialStorageType = std::vector<MaterialPtrStorageType<BaseShapeType>>;
+        using SurfaceShaderPtrStorageType = std::vector<SurfaceShaderPtrType>;
         using IdStorageType = std::vector<SceneObjectId>;
 
         SceneObjectArray() noexcept :
@@ -149,6 +152,7 @@ namespace ray
                 ShapePackType& pack = subindex == 0 ? m_shapePacks.emplace_back() : m_shapePacks.back();
                 pack.set(subindex, so.shape());
                 m_materials.emplace_back(so.materials());
+                m_shaders.emplace_back(&so.shader());
                 m_ids.emplace_back(so.id());
                 ++m_size;
             }
@@ -156,6 +160,7 @@ namespace ray
             {
                 m_shapePacks.emplace_back(so.shape());
                 m_materials.emplace_back(so.materials());
+                m_shaders.emplace_back(&so.shader());
                 m_ids.emplace_back(so.id());
                 ++m_size;
             }
@@ -177,6 +182,11 @@ namespace ray
         [[nodiscard]] MaterialPtrStorageView materialsView(int shapeNo) const
         {
             return m_materials[shapeNo].view();
+        }
+
+        [[nodiscard]] const SurfaceShaderType& shader(int shapeNo) const
+        {
+            return *m_shaders[shapeNo];
         }
 
         [[nodiscard]] SceneObjectId id(int shapeNo) const
@@ -228,19 +238,9 @@ namespace ray
 
         [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
-            /*
-            const int packNo = hit.shapeNo / numShapesInPack;
-            const int shapeInPackNo = hit.shapeNo % numShapesInPack;
-            auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
-            const TexCoords texCoords = surface->texture ? resolveTexCoords(m_shapePacks[packNo], hit, shapeInPackNo) : TexCoords{ 0.0f, 0.0f };
-            return ResolvedRaycastHit(hit.dist, hit.point, hit.normal, texCoords, hit.shapeNo, surface, medium, *this, hit.isInside, hasVolume, isLocallyContinuable);
-            */
-
-            const int packNo = hit.shapeNo / numShapesInPack;
-            const int shapeInPackNo = hit.shapeNo % numShapesInPack;
             auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
             return ResolvedRaycastHit(
-                DefaultSurfaceShader<BaseShapeType>::instance().shade(shape(hit.shapeNo), hit, materialsView(hit.shapeNo)), 
+                shader(hit.shapeNo).shade(shape(hit.shapeNo), hit, materialsView(hit.shapeNo)), 
                 hit.shapeNo, medium, this, hit.isInside, hasVolume, isLocallyContinuable
             );
         }
@@ -262,6 +262,7 @@ namespace ray
     private:
         ShapeStorageType m_shapePacks;
         MaterialStorageType m_materials;
+        SurfaceShaderPtrStorageType m_shaders;
         IdStorageType m_ids;
         int m_size;
     };

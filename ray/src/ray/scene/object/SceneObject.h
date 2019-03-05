@@ -48,12 +48,24 @@ namespace ray
         static constexpr bool isBounded = ShapeTraits::isBounded;
         using MaterialStorageType = MaterialPtrStorageType<ShapeType>;
         using MaterialStorageViewType = MaterialPtrStorageView;
+        using SurfaceShaderType = SurfaceShader<ShapeT>;
+        using SurfaceShaderPtrType = const SurfaceShaderType*;
 
         static_assert(!isPack, "A single scene object must not be a pack. Use SceneObjectArray.");
 
         SceneObject(const ShapeType& shape, const MaterialStorageType& materials) :
             m_shape(shape),
             m_materials(materials),
+            m_shader(&DefaultSurfaceShader<ShapeT>::instance()),
+            m_id(detail::gNextSceneObjectId.fetch_add(1))
+        {
+
+        }
+
+        SceneObject(const ShapeType& shape, const MaterialStorageType& materials, const SurfaceShaderPtrType& shader) :
+            m_shape(shape),
+            m_materials(materials),
+            m_shader(&shader),
             m_id(detail::gNextSceneObjectId.fetch_add(1))
         {
 
@@ -89,6 +101,11 @@ namespace ray
             return m_shape;
         }
 
+        [[nodiscard]] const SurfaceShaderType& shader() const
+        {
+            return *m_shader;
+        }
+
         [[nodiscard]] bool isLight() const
         {
             return isBounded && m_materials.isEmissive();
@@ -102,6 +119,7 @@ namespace ray
     private:
         ShapeType m_shape;
         MaterialStorageType m_materials;
+        SurfaceShaderPtrType m_shader;
         SceneObjectId m_id;
     };
 
@@ -155,15 +173,17 @@ namespace ray
             static constexpr bool isLocallyContinuable = ShapeTraits<ShapeT>::isLocallyContinuable;
             using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
             using MaterialStorageViewType = MaterialPtrStorageView;
+            using SurfaceShaderType = SurfaceShader<ShapeT>;
+            using SurfaceShaderPtrType = const SurfaceShaderType*;
 
             static_assert(isBounded, "Must be bounded.");
             static_assert(hasVolume, "Must have volume.");
             static_assert(isLocallyContinuable, "Must be locally continuable.");
 
-            template <typename... ArgsTs>
-            CsgPrimitiveImpl(const MaterialStorageType& materials, ArgsTs&&... args) :
-                m_shape(std::forward<ArgsTs>(args)...),
+            CsgPrimitiveImpl(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
+                m_shape(shape),
                 m_materials(materials),
+                m_shader(&shader),
                 m_id(detail::gNextSceneObjectId.fetch_add(1))
             {
 
@@ -192,7 +212,7 @@ namespace ray
             {
                 auto[surface, medium] = materialsView().material(hit.materialIndex);
                 return ResolvedRaycastHit(
-                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    m_shader->shade(m_shape, hit, materialsView()),
                     hit.shapeNo, medium, nullptr, hit.isInside, true, true
                 );
             }
@@ -217,6 +237,7 @@ namespace ray
         private:
             ShapeT m_shape;
             MaterialStorageType m_materials;
+            SurfaceShaderPtrType m_shader;
             SceneObjectId m_id;
         };
 
@@ -335,9 +356,16 @@ namespace ray
         using ShapeType = CsgShape;
 
         template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_shared<CsgPrimitiveImpl<ShapeT>>(materials, shape)),
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
+            m_obj(std::make_shared<CsgPrimitiveImpl<ShapeT>>(shape, materials, shader)),
             m_id(detail::gNextSceneObjectId.fetch_add(1))
+        {
+
+        }
+
+        template <typename ShapeT>
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
+            m_obj(std::make_unique<CsgPrimitiveImpl<ShapeT>>(shape, materials, defaultShader<ShapeT>))
         {
 
         }
@@ -487,11 +515,14 @@ namespace ray
             static_assert(isBounded, "Must be bounded.");
             using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
             using MaterialStorageViewType = MaterialPtrStorageView;
+            using SurfaceShaderType = SurfaceShader<ShapeT>;
+            using SurfaceShaderPtrType = const SurfaceShaderType*;
 
             template <typename... ArgsTs>
-            PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
-                m_shape(std::forward<ArgsTs>(args)...),
+            PolymorphicSceneObject(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
+                m_shape(shape),
                 m_materials(materials),
+                m_shader(&shader),
                 m_id(detail::gNextSceneObjectId.fetch_add(1))
             {
 
@@ -517,7 +548,7 @@ namespace ray
             {
                 auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
                 return ResolvedRaycastHit(
-                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    m_shader->shade(m_shape, hit, materialsView()),
                     hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
                 );
             }
@@ -545,6 +576,7 @@ namespace ray
         private:
             ShapeT m_shape;
             MaterialStorageType m_materials;
+            SurfaceShaderPtrType m_shader;
             SceneObjectId m_id;
         };
 
@@ -552,8 +584,15 @@ namespace ray
         using ShapeType = BoundedUniqueAnyShape;
 
         template <typename ShapeT>
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, shader))
+        {
+
+        }
+
+        template <typename ShapeT>
         SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(materials, shape))
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, defaultShader<ShapeT>))
         {
 
         }
@@ -652,11 +691,14 @@ namespace ray
             static_assert(isBounded, "Must be bounded.");
             using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
             using MaterialStorageViewType = MaterialPtrStorageView;
+            using SurfaceShaderType = SurfaceShader<ShapeT>;
+            using SurfaceShaderPtrType = const SurfaceShaderType*;
 
             template <typename... ArgsTs>
-            PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
-                m_shape(std::forward<ArgsTs>(args)...),
+            PolymorphicSceneObject(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
+                m_shape(shape),
                 m_materials(materials),
+                m_shader(&shader),
                 m_id(detail::gNextSceneObjectId.fetch_add(1))
             {
 
@@ -678,7 +720,7 @@ namespace ray
             {
                 auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
                 return ResolvedRaycastHit(
-                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    m_shader->shade(m_shape, hit, materialsView()),
                     hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
                 );
             }
@@ -706,6 +748,7 @@ namespace ray
         private:
             ShapeT m_shape;
             MaterialStorageType m_materials;
+            SurfaceShaderPtrType m_shader;
             SceneObjectId m_id;
         };
 
@@ -713,8 +756,15 @@ namespace ray
         using ShapeType = BoundedSharedAnyShape;
 
         template <typename ShapeT>
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, shader))
+        {
+
+        }
+
+        template <typename ShapeT>
         SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, defaultShader<ShapeT>))
         {
 
         }
@@ -805,15 +855,19 @@ namespace ray
             static_assert(!isBounded, "Must not be bounded.");
             using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
             using MaterialStorageViewType = MaterialPtrStorageView;
+            using SurfaceShaderType = SurfaceShader<ShapeT>;
+            using SurfaceShaderPtrType = const SurfaceShaderType*;
 
             template <typename... ArgsTs>
-            PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
-                m_shape(std::forward<ArgsTs>(args)...),
+            PolymorphicSceneObject(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
+                m_shape(shape),
                 m_materials(materials),
+                m_shader(&shader),
                 m_id(detail::gNextSceneObjectId.fetch_add(1))
             {
 
             }
+
             [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
                 return ray::raycast(ray, m_shape, hit);
@@ -826,7 +880,7 @@ namespace ray
             {
                 auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
                 return ResolvedRaycastHit(
-                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    m_shader->shade(m_shape, hit, materialsView()),
                     hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
                 );
             }
@@ -850,6 +904,7 @@ namespace ray
         private:
             ShapeT m_shape;
             MaterialStorageType m_materials;
+            SurfaceShaderPtrType m_shader;
             SceneObjectId m_id;
         };
 
@@ -857,8 +912,15 @@ namespace ray
         using ShapeType = UnboundedUniqueAnyShape;
 
         template <typename ShapeT>
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, shader))
+        {
+
+        }
+
+        template <typename ShapeT>
         SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(materials, shape))
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, defaultShader<ShapeT>))
         {
 
         }
@@ -946,15 +1008,19 @@ namespace ray
             static_assert(!isBounded, "Must not be bounded.");
             using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
             using MaterialStorageViewType = MaterialPtrStorageView;
+            using SurfaceShaderType = SurfaceShader<ShapeT>;
+            using SurfaceShaderPtrType = const SurfaceShaderType*;
 
             template <typename... ArgsTs>
-            PolymorphicSceneObject(const MaterialStorageType& materials, ArgsTs&&... args) :
-                m_shape(std::forward<ArgsTs>(args)...),
+            PolymorphicSceneObject(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
+                m_shape(shape),
                 m_materials(materials),
+                m_shader(&shader),
                 m_id(detail::gNextSceneObjectId.fetch_add(1))
             {
 
             }
+
             [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
             {
                 return ray::raycast(ray, m_shape, hit);
@@ -963,7 +1029,7 @@ namespace ray
             {
                 auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
                 return ResolvedRaycastHit(
-                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    m_shader->shade(m_shape, hit, materialsView()),
                     hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
                 );
             }
@@ -987,6 +1053,7 @@ namespace ray
         private:
             ShapeT m_shape;
             MaterialStorageType m_materials;
+            SurfaceShaderPtrType m_shader;
             SceneObjectId m_id;
         };
 
@@ -994,8 +1061,15 @@ namespace ray
         using ShapeType = UnboundedSharedAnyShape;
 
         template <typename ShapeT>
+        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, shader))
+        {
+
+        }
+
+        template <typename ShapeT>
         SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_shared<PolymorphicSceneObject<ShapeT>>(materials, shape))
+            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, defaultShader<ShapeT>))
         {
 
         }
