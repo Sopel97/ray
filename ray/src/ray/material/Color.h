@@ -28,11 +28,19 @@ namespace ray
         constexpr ColorRGBf& operator=(const ColorRGBf&) noexcept = default;
         constexpr ColorRGBf& operator=(ColorRGBf&&) noexcept = default;
 
-        ColorRGBf& operator+=(const ColorRGBf& rhs)
+        constexpr ColorRGBf& operator+=(const ColorRGBf& rhs)
         {
             r += rhs.r;
             g += rhs.g;
             b += rhs.b;
+            return *this;
+        }
+
+        constexpr ColorRGBf& operator*=(const ColorRGBf& rhs)
+        {
+            r *= rhs.r;
+            g *= rhs.g;
+            b *= rhs.b;
             return *this;
         }
 

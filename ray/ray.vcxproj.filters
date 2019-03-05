@@ -356,5 +356,11 @@
     <ClInclude Include="src\ray\utility\IntRange2.h">
       <Filter>Header Files\src\utility</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\material\SurfaceShader.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\material\SurfaceShaderOutput.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

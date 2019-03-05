@@ -4,6 +4,7 @@
 
 #include <ray/material/Material.h>
 #include <ray/material/MaterialPtrStorage.h>
+#include <ray/material/SurfaceShader.h>
 #include <ray/material/TexCoords.h>
 
 #include <ray/math/BoundingVolume.h>
@@ -137,7 +138,7 @@ namespace ray
             using MaterialStorageViewType = MaterialPtrStorageView;
 
             [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
             [[nodiscard]] virtual MaterialStorageViewType materialsView() const = 0;
             [[nodiscard]] virtual bool isLight() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
@@ -187,9 +188,13 @@ namespace ray
                 
                 return false;
             }
-            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
             {
-                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+                auto[surface, medium] = materialsView().material(hit.materialIndex);
+                return ResolvedRaycastHit(
+                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    hit.shapeNo, medium, nullptr, hit.isInside, true, true
+                );
             }
             [[nodiscard]] MaterialStorageViewType materialsView() const override
             {
@@ -462,7 +467,7 @@ namespace ray
             [[nodiscard]] virtual Point3f center() const = 0;
             [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
-            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
             [[nodiscard]] virtual bool hasVolume() const = 0;
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual Box3 aabb() const = 0;
@@ -508,9 +513,13 @@ namespace ray
             {
                 return std::make_unique<PolymorphicSceneObject<ShapeT>>(*this);
             }
-            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
             {
-                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
+                return ResolvedRaycastHit(
+                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
+                );
             }
             [[nodiscard]] bool hasVolume() const override
             {
@@ -582,9 +591,9 @@ namespace ray
             return m_obj->raycast(ray, hit);
         }
 
-        [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
-            return m_obj->resolveTexCoords(hit, shapeInPackNo);
+            return m_obj->resolveHit(hit);
         }
 
         [[nodiscard]] bool hasVolume() const
@@ -623,7 +632,7 @@ namespace ray
 
             [[nodiscard]] virtual Point3f center() const = 0;
             [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
             [[nodiscard]] virtual bool hasVolume() const = 0;
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual Box3 aabb() const = 0;
@@ -665,9 +674,13 @@ namespace ray
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
             {
-                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
+                return ResolvedRaycastHit(
+                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
+                );
             }
             [[nodiscard]] bool hasVolume() const override
             {
@@ -731,9 +744,9 @@ namespace ray
             return m_obj->raycast(ray, hit);
         }
 
-        [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
-            return m_obj->resolveTexCoords(hit, shapeInPackNo);
+            return m_obj->resolveHit(hit);
         }
 
         [[nodiscard]] bool hasVolume() const
@@ -774,7 +787,7 @@ namespace ray
 
             [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
-            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
             [[nodiscard]] virtual bool hasVolume() const = 0;
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
@@ -809,9 +822,13 @@ namespace ray
             {
                 return std::make_unique<PolymorphicSceneObject<ShapeT>>(*this);
             }
-            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
             {
-                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
+                return ResolvedRaycastHit(
+                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
+                );
             }
             [[nodiscard]] bool hasVolume() const override
             {
@@ -869,9 +886,9 @@ namespace ray
             return m_obj->raycast(ray, hit);
         }
 
-        [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
-            return m_obj->resolveTexCoords(hit, shapeInPackNo);
+            return m_obj->resolveHit(hit);
         }
 
         [[nodiscard]] bool hasVolume() const
@@ -911,7 +928,7 @@ namespace ray
             using MaterialStorageViewType = MaterialPtrStorageView;
 
             [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            [[nodiscard]] virtual TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
             [[nodiscard]] virtual bool hasVolume() const = 0;
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
@@ -942,9 +959,13 @@ namespace ray
             {
                 return ray::raycast(ray, m_shape, hit);
             }
-            [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const override
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
             {
-                return ray::resolveTexCoords(m_shape, hit, shapeInPackNo);
+                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
+                return ResolvedRaycastHit(
+                    DefaultSurfaceShader<ShapeT>::instance().shade(m_shape, hit, materialsView()),
+                    hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
+                );
             }
             [[nodiscard]] bool hasVolume() const override
             {
@@ -994,9 +1015,9 @@ namespace ray
             return m_obj->raycast(ray, hit);
         }
 
-        [[nodiscard]] TexCoords resolveTexCoords(const ResolvableRaycastHit& hit, int shapeInPackNo) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
-            return m_obj->resolveTexCoords(hit, shapeInPackNo);
+            return m_obj->resolveHit(hit);
         }
 
         [[nodiscard]] bool hasVolume() const

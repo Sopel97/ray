@@ -2,6 +2,7 @@
 
 #include "object/SceneObjectId.h"
 
+#include <ray/material/SurfaceShaderOutput.h>
 #include <ray/material/TexCoords.h>
 
 #include <ray/math/Ray.h>
@@ -30,42 +31,29 @@ namespace ray
         [[nodiscard]] SceneObjectId objectId() const;
     };
 
-    struct ResolvedRaycastHit
+    struct ResolvedRaycastHit : SurfaceShaderOutput
     {
         ResolvedRaycastHit(
-            float dist,
-            const Point3f& point,
-            const Normal3f& normal,
-            const TexCoords& texCoords,
+            const SurfaceShaderOutput& shaderOutput,
             int shapeNo,
-            const SurfaceMaterial* surfaceMaterial,
             const MediumMaterial* mediumMaterial,
-            const HomogeneousSceneObjectCollection& owner,
+            const HomogeneousSceneObjectCollection* owner,
             bool isInside,
             bool hasVolume,
             bool local
         ) :
-            dist(dist),
-            point(point),
-            normal(normal),
-            texCoords(texCoords),
+            SurfaceShaderOutput(shaderOutput),
             shapeNo(shapeNo),
-            surfaceMaterial(surfaceMaterial),
             mediumMaterial(mediumMaterial),
-            owner(&owner),
+            owner(owner),
             isInside(isInside),
             hasVolume(hasVolume),
             isLocallyContinuable(local)
         {
 
         }
-
-        float dist;
-        Point3f point;
-        Normal3f normal;
-        TexCoords texCoords;
+        
         int shapeNo;
-        const SurfaceMaterial* surfaceMaterial;
         const MediumMaterial* mediumMaterial;
         const HomogeneousSceneObjectCollection* owner;
         bool isInside;

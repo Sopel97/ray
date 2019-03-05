@@ -49,6 +49,8 @@
     <ClInclude Include="src\ray\material\MediumMaterial.h" />
     <ClInclude Include="src\ray\material\Patterns.h" />
     <ClInclude Include="src\ray\material\SurfaceMaterial.h" />
+    <ClInclude Include="src\ray\material\SurfaceShader.h" />
+    <ClInclude Include="src\ray\material\SurfaceShaderOutput.h" />
     <ClInclude Include="src\ray\material\TexCoords.h" />
     <ClInclude Include="src\ray\material\Texture.h" />
     <ClInclude Include="src\ray\material\TextureDatabase.h" />
