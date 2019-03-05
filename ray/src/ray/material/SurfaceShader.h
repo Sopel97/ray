@@ -19,6 +19,9 @@ namespace ray
     template <typename ShapeT>
     struct DefaultSurfaceShader : SurfaceShader<ShapeT>
     {
+        using BaseType = SurfaceShader<ShapeT>;
+        using ShapeType = ShapeT;
+
         [[nodiscard]] static DefaultSurfaceShader<ShapeT>& instance()
         {
             static DefaultSurfaceShader<ShapeT> s_instance{};

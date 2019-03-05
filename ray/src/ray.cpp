@@ -10,6 +10,7 @@
 #include <ray/material/MaterialDatabase.h>
 #include <ray/material/Patterns.h>
 #include <ray/material/TextureDatabase.h>
+#include <ray/material/ShaderDatabase.h>
 
 #include <ray/math/Angle2.h>
 #include <ray/math/Matrix3.h>
@@ -259,6 +260,10 @@ int __cdecl main()
     auto& m9m = matDb.emplaceMedium("mat9", ColorRGBf(0, 0, 0), 1.0f);
     auto& m10m = matDb.emplaceMedium("mat10", ColorRGBf(0, 0, 0), 1.0f);
     auto& airMedium = matDb.emplaceMedium("air", ColorRGBf(0.0001f, 0.0001f, 0.0001f), 1.00027717f);
+
+    ShaderDatabase shaderDb;
+    //auto& ds = shaderDb.emplace<DefaultSurfaceShader<Sphere>>("ds"); // has a private constructor, but would work if it were public
+
 
     //*
     using ShapeT = Sphere;

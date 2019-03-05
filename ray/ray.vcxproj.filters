@@ -362,5 +362,8 @@
     <ClInclude Include="src\ray\material\SurfaceShaderOutput.h">
       <Filter>Header Files\src\material</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\material\ShaderDatabase.h">
+      <Filter>Header Files\src\material</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
