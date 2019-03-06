@@ -474,8 +474,8 @@ int __cdecl main()
     //auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(3, 256, 0.66f));
     //auto sampler = AdaptiveMultisampler(0.05f, QuincunxMultisampler());
     //auto sampler = AdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
-    //auto sampler = PruningAdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
-    auto sampler = InterpolatingSampler(UniformGridMultisampler(3));
+    auto sampler = PruningAdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
+    //auto sampler = InterpolatingSampler(UniformGridMultisampler(3));
     //auto sampler = Sampler{};
     Image img = raytracer.capture(camera, sampler);
     //Image img = raytracer.capture(camera);
