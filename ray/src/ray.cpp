@@ -29,6 +29,7 @@
 
 #include <ray/sampler/AdaptiveMultisampler.h>
 #include <ray/sampler/JitteredMultisampler.h>
+#include <ray/sampler/PruningAdaptiveMultisampler.h>
 #include <ray/sampler/QuincunxMultisampler.h>
 #include <ray/sampler/UniformGridMultisampler.h>
 #include <ray/sampler/Sampler.h>
@@ -472,7 +473,8 @@ int __cdecl main()
     //auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(3, 256, 0.66f));
     //auto sampler = AdaptiveMultisampler(0.05f, QuincunxMultisampler());
     //auto sampler = AdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
-    auto sampler = Sampler{};
+    auto sampler = PruningAdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
+    //auto sampler = Sampler{};
     Image img = raytracer.capture(camera, sampler);
     //Image img = raytracer.capture(camera);
 

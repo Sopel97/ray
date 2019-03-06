@@ -44,6 +44,14 @@ namespace ray
             return *this;
         }
 
+        constexpr ColorRGBf& operator*=(float rhs)
+        {
+            r *= rhs;
+            g *= rhs;
+            b *= rhs;
+            return *this;
+        }
+
         [[nodiscard]] constexpr float total() const
         {
             return r + g + b;
