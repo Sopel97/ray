@@ -90,6 +90,7 @@
     <ClInclude Include="src\ray\perf\PerformanceStats.h" />
     <ClInclude Include="src\ray\Raytracer.h" />
     <ClInclude Include="src\ray\sampler\AdaptiveMultisampler.h" />
+    <ClInclude Include="src\ray\sampler\InterpolatingSampler.h" />
     <ClInclude Include="src\ray\sampler\JitteredMultisampler.h" />
     <ClInclude Include="src\ray\sampler\PruningAdaptiveMultisampler.h" />
     <ClInclude Include="src\ray\sampler\QuincunxMultisampler.h" />

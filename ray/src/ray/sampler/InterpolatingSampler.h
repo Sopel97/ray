@@ -17,11 +17,11 @@
 
 namespace ray
 {
+    // uses the given sampler for offsets, averages the colors computed from interpolating single samples in those offsets.
     template <typename MultisamplerT>
-    struct PruningAdaptiveMultisampler
+    struct InterpolatingSampler
     {
-        PruningAdaptiveMultisampler(float threshold, MultisamplerT&& multisampler) :
-            m_threshold(threshold),
+        InterpolatingSampler(MultisamplerT&& multisampler) :
             m_multisampler(std::move(multisampler))
         {
         }
@@ -41,13 +41,6 @@ namespace ray
                 auto[xi, yi] = xyi;
                 samples(xi, yi) = sample(Point2f(static_cast<float>(xi), static_cast<float>(yi)));
             });
-
-            auto distance = [&](const ColorRGBf& lhs, const ColorRGBf& rhs) {
-                return
-                    std::abs(lhs.r - rhs.r)
-                    + std::abs(lhs.g - rhs.g)
-                    + std::abs(lhs.b - rhs.b);
-            };
 
             auto sampleInterpolate = [&](const Point2i& xyi, const Vec2f& offset) {
                 int xmin = xyi.x - 1;
@@ -74,20 +67,6 @@ namespace ray
                 return interpolated;
             };
 
-            auto sampleOrInterpolate = [&](const Point2i& xyi, const Vec2f& offset) {
-                const ColorRGBf interpolated = sampleInterpolate(xyi, offset);
-
-                if (distance(interpolated, samples(xyi.x, xyi.y)) > m_threshold)
-                {
-                    const Point2f xyf(static_cast<float>(xyi.x), static_cast<float>(xyi.y));
-                    return sample(xyf + offset);
-                }
-                else
-                {
-                    return interpolated;
-                }
-            };
-
             std::for_each(exec, range.begin(), range.end(), [&](const Point2i& xyi) {
                 auto[xi, yi] = xyi;
                 if (xi == 0 || yi == 0 || xi == vp.widthPixels - 1 || yi == vp.heightPixels - 1)
@@ -99,7 +78,7 @@ namespace ray
                     ColorRGBf color{};
                     int numSamples = 0;
                     m_multisampler.forEachSampleOffset(xyi, [&](const Vec2f& offset, float contribution) {
-                        color += sampleOrInterpolate(xyi, offset) * contribution;
+                        color += sampleInterpolate(xyi, offset) * contribution;
                         ++numSamples;
                     });
                     color =
@@ -111,7 +90,6 @@ namespace ray
         }
 
     private:
-        float m_threshold;
         MultisamplerT m_multisampler;
     };
 }

@@ -368,5 +368,8 @@
     <ClInclude Include="src\ray\sampler\PruningAdaptiveMultisampler.h">
       <Filter>Header Files\src\sampler</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\sampler\InterpolatingSampler.h">
+      <Filter>Header Files\src\sampler</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
