@@ -432,6 +432,15 @@ int __cdecl main()
         {
             return std::make_unique<SphereSdf>(*this);
         }
+        [[nodiscard]] SphereSdf* operator->()
+        {
+            return this;
+        }
+
+        [[nodiscard]] const SphereSdf* operator->() const
+        {
+            return this;
+        }
     };
 
 
@@ -467,6 +476,15 @@ int __cdecl main()
         {
             return std::make_unique<RoundedConeSdf>(*this);
         }
+        [[nodiscard]] RoundedConeSdf* operator->()
+        {
+            return this;
+        }
+
+        [[nodiscard]] const RoundedConeSdf* operator->() const
+        {
+            return this;
+        }
     };
 
     auto sdfSphere = Sphere(Point3f(0.0, 0, -7), 3.5);
@@ -494,6 +512,7 @@ int __cdecl main()
     );
     */
 
+    /*
     sdfs.emplace_back(
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
@@ -505,6 +524,20 @@ int __cdecl main()
             ),
         { { &m7s }, { &m7m } }
         )
+    );
+    */
+
+    sdfs.emplace_back(
+        SceneObject<ClippedSdf<Sphere>>(
+            ClippedSdf<Sphere>(
+                sdfSphere,
+                SdfUnion(
+                    std::make_unique<RoundedConeSdf>(sdfSphere.center(), 1.0f, 2.0f, 3.0f),
+                    std::make_unique<SphereSdf>(Sphere(Point3f(0.0, 0, -7), 2.2))
+                ).clone()
+                ),
+            { { &m7s }, { &m7m } }
+            )
     );
 
     using ShapesT = Shapes<ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;

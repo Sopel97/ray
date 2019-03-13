@@ -374,5 +374,8 @@
     <ClInclude Include="src\ray\shape\Sdf.h">
       <Filter>Header Files\src\shape</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\utility\CloneableUniquePtr.h">
+      <Filter>Header Files\src\utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

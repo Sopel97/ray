@@ -4,6 +4,8 @@
 
 #include <ray/math/Vec3.h>
 
+#include <ray/utility/CloneableUniquePtr.h>
+
 #include <algorithm>
 #include <cmath>
 #include <memory>
@@ -14,6 +16,7 @@ namespace ray
     {
         [[nodiscard]] virtual float signedDistance(const Point3f& p) const = 0;
         [[nodiscard]] virtual std::unique_ptr<SdfBase> clone() const = 0;
+        virtual ~SdfBase() = default;
     };
 
     template <typename ClippingShapeT>
@@ -74,31 +77,66 @@ namespace ray
         float m_accuracy;
     };
 
-    template <typename LhsExprT, typename RhsExprT>
-    struct SdfUnion : SdfBase
+    // tuple<> has non zero size. maybe use inheritance
+    template <typename ExprT, typename PartsT>
+    struct SdfExpression : SdfBase, private PartsT
     {
-        SdfUnion(LhsExprT lhs, RhsExprT rhs) :
-            m_lhs(std::move(lhs)),
-            m_rhs(std::move(rhs))
+        using PartsType = PartsT;
+        using ExprType = ExprT;
+
+        template <typename... PartsFwdTs>
+        SdfExpression(PartsFwdTs&&... parts) :
+            PartsType(std::forward<PartsFwdTs>(parts)...)
         {
 
-        }
-
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override
-        {
-            return std::min(
-                m_lhs.signedDistance(p),
-                m_rhs.signedDistance(p)
-            );
         }
 
         [[nodiscard]] virtual std::unique_ptr<SdfBase> clone() const override
         {
-            return std::make_unique<SdfUnion>(*this);
+            return std::make_unique<ExprType>(*static_cast<const ExprType*>(this));
         }
 
-    private:
-        LhsExprT m_lhs;
-        RhsExprT m_rhs;
+        [[nodiscard]] ExprType* operator->()
+        {
+            return static_cast<ExprType*>(this);
+        }
+
+        [[nodiscard]] const ExprType* operator->() const
+        {
+            return static_cast<const ExprType*>(this);
+        }
+
+    protected:
+        const PartsType& parts() const
+        {
+            return *this;
+        }
     };
+
+    template <typename LhsExprT, typename RhsExprT>
+    struct SdfUnion : SdfExpression<SdfUnion<LhsExprT, RhsExprT>, std::tuple<LhsExprT, RhsExprT>>
+    {
+        using BaseType = SdfExpression<SdfUnion, std::tuple<LhsExprT, RhsExprT>>;
+        using BaseType::BaseType;
+        using BaseType::parts;
+
+        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override
+        {
+            return std::min(
+                get<0>()->signedDistance(p),
+                get<1>()->signedDistance(p)
+            );
+        }
+
+    protected:
+        template <int I>
+        [[nodiscard]] decltype(auto) get() const
+        {
+            return std::get<I>(parts());
+        }
+    };
+    template <typename LhsExprT, typename RhsExprT>
+    SdfUnion(LhsExprT&&, RhsExprT&&)->SdfUnion<LhsExprT, RhsExprT>;
+    template <typename LhsExprT, typename RhsExprT>
+    SdfUnion(std::unique_ptr<LhsExprT>&&, std::unique_ptr<RhsExprT>&&)->SdfUnion<CloneableUniquePtr<SdfBase>, CloneableUniquePtr<SdfBase>>;
 }
