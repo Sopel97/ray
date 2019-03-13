@@ -435,7 +435,42 @@ int __cdecl main()
     };
 
 
+    struct RoundedConeSdf : SdfBase
+    {
+        Vec3f translation;
+        float r1, r2, h;
+
+        RoundedConeSdf(Point3f center, float r1, float r2, float h) :
+            translation(Vec3f(center)),
+            r1(r1),
+            r2(r2),
+            h(h)
+        {
+
+        }
+
+        [[nodiscard]] float signedDistance(const Point3f& pp) const override
+        {
+            const Point3f p = pp - translation;
+            Vec2f q = Vec2f(Vec2f(p.x, p.z).length(), p.y);
+
+            float b = (r1 - r2) / h;
+            float a = std::sqrt(1.0f - b * b);
+            float k = dot(q, Vec2f(-b, a));
+
+            if (k < 0.0) return q.length() - r1;
+            if (k > a*h) return (q - Vec2f(0.0f, h)).length() - r2;
+
+            return dot(q, Vec2f(a, b)) - r1;
+        }
+        [[nodiscard]] std::unique_ptr<SdfBase> clone() const override
+        {
+            return std::make_unique<RoundedConeSdf>(*this);
+        }
+    };
+
     auto sdfSphere = Sphere(Point3f(0.0, 0, -7), 3.5);
+    /*
     sdfs.emplace_back(
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
@@ -444,6 +479,17 @@ int __cdecl main()
             ), 
             { { &m7s }, { &m7m } }
         )
+    );
+    */
+
+    sdfs.emplace_back(
+        SceneObject<ClippedSdf<Sphere>>(
+            ClippedSdf<Sphere>(
+                sdfSphere,
+                std::make_unique<RoundedConeSdf>(sdfSphere.center(), 1.0f, 2.0f, 3.0f)
+                ),
+            { { &m7s }, { &m7m } }
+            )
     );
 
     using ShapesT = Shapes<ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
