@@ -21,6 +21,7 @@
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
 #include <ray/shape/HalfSphere.h>
+#include <ray/shape/Sdf.h>
 #include <ray/shape/Sphere.h>
 #include <ray/shape/TransformedShape3.h>
 
@@ -114,6 +115,33 @@ namespace ray
         return false;
         //*/
     }
+
+    [[nodiscard]] inline bool intersect(const Ray& ray, const Sphere& sphere)
+    {
+        const Point3f O = ray.origin();
+        const Normal3f D = ray.direction();
+        const Point3f C = sphere.center();
+        const float R = sphere.radius();
+
+        const Vec3f L = C - O;
+        const float t_ca = dot(L, D);
+        //if (t_ca < 0.0f) return false; // we need to handle cases where ray origin is past the sphere center
+
+        const float d2 = dot(L, L) - t_ca * t_ca;
+        if (d2 > R * R) return false;
+        const float r = R * R - d2;
+        //const float t_hc = std::sqrt(r);
+
+        // transformed to be equivalent, but avoid sqrt
+        // return t_max >= 0
+        // return t_ca + t_hc >= 0;
+        // return t_ca >= -t_hc;
+        // t_ca can be negative
+        // t_hc >= 0
+        // return t_ca * std::abs(t_ca) >= -(t_hc * t_hc)
+        return t_ca * std::abs(t_ca) >= -r;
+    }
+
 
     [[nodiscard]] inline bool raycast(const Ray& ray, const Sphere& sphere, RaycastHit& hit)
     {
@@ -232,6 +260,7 @@ namespace ray
         hit.isInside = isInside;
         return true;
     }
+
 
     [[nodiscard]] inline bool raycast(const Ray& ray, const OrientedBox3& obb, RaycastHit& hit)
     {
@@ -1235,6 +1264,93 @@ namespace ray
         }
 
         return false;
+    }
+
+    template <typename ClippingShapeT>
+    [[nodiscard]] inline bool raycast(const Ray& ray, const ClippedSdf<ClippingShapeT>& sh, RaycastHit& hit)
+    {
+        if (!intersect(ray, sh.clippingShape()))
+        {
+            return false;
+        }
+
+        Point3f origin = ray.origin();
+        Normal3f direction = ray.direction();
+        const int maxIters = sh.maxIters();
+        const float accuracy = sh.accuracy();
+
+        // first determine whether we are inside or outside
+        // set a multiplier accordingly, -1 if we're inside
+
+        // when we start inside the shape we have to flip the sign
+        // of the distance function, because if we didn't
+        // we would be going back (negative increments)
+        // Effectively when we're inside we're raymarching the shape's inverse
+        float sign = 1.0f;
+        float depth = 0.0f;
+
+        auto sdfAbsolute = [&sh](const Point3f& p) {
+            const float shape_sd = sh.signedDistance(p);
+            const float clip_sd = sh.clippingShape().signedDistance(p);
+            return std::max(shape_sd, clip_sd);
+        };
+
+        const float maxDepth = sh.clippingShape().maxDistance(origin); // so we know when we can stop and reject
+        {
+            float sd = sdfAbsolute(origin);
+            if (sd < 0.0f)
+            {
+                // we have started inside the shape
+                sign = -1.0f;
+                sd = -sd;
+            }
+            depth += sd;
+        }
+
+        auto sdfAsIfOutside = [&sdfAbsolute, &sh, sign](const Point3f& p) {
+            return sdfAbsolute(p) * sign;
+        };
+
+        auto normal = [&sh, &sdfAsIfOutside](const Point3f& p) {
+            constexpr float eps = 0.0001f;
+
+            // NOTE: we don't have to invert when we're inside because
+            // we already look at the shape as if it was inverted
+            return Vec3f(
+                sdfAsIfOutside(Point3f(p.x + eps, p.y, p.z)) - sdfAsIfOutside(Point3f(p.x - eps, p.y, p.z)),
+                sdfAsIfOutside(Point3f(p.x, p.y + eps, p.z)) - sdfAsIfOutside(Point3f(p.x, p.y - eps, p.z)),
+                sdfAsIfOutside(Point3f(p.x, p.y, p.z + eps)) - sdfAsIfOutside(Point3f(p.x, p.y, p.z - eps))
+            ).normalized();
+        };
+
+        for (int i = 0; i < maxIters; ++i)
+        {
+            const float sd = sdfAsIfOutside(origin + direction * depth) * sign;
+            depth += sd;
+            
+            if (sd < accuracy)
+            {
+                // we have a hit
+
+                const Point3f point = origin + direction * depth;
+
+                hit.dist = depth;
+                hit.point = point;
+                hit.normal = normal(point);
+                hit.shapeInPackNo = 0;
+                hit.materialIndex = MaterialIndex(0, 0);
+                hit.isInside = sign < 0.0f; // if we're inside then we have negated the sdf
+            }
+
+            if (depth > maxDepth)
+            {
+                return false;
+            }
+        }
+
+        return false;
+
+
     }
 
     template <typename TransformT, typename ShapeT>

@@ -371,5 +371,8 @@
     <ClInclude Include="src\ray\sampler\InterpolatingSampler.h">
       <Filter>Header Files\src\sampler</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\shape\Sdf.h">
+      <Filter>Header Files\src\shape</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

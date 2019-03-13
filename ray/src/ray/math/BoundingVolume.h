@@ -6,6 +6,7 @@
 #include <ray/shape/Disc3.h>
 #include <ray/shape/HalfSphere.h>
 #include <ray/shape/OrientedBox3.h>
+#include <ray/shape/Sdf.h>
 #include <ray/shape/ShapeTags.h>
 #include <ray/shape/Sphere.h>
 #include <ray/shape/TransformedShape3.h>
@@ -146,6 +147,12 @@ namespace ray
             }
 
             return Box3(a, b);
+        }
+
+        template <typename ClippingShapeT>
+        [[nodiscard]] static Box3 get(const ClippedSdf<ClippingShapeT>& sh)
+        {
+            return get(sh.clippingShape());
         }
     };
 }

@@ -43,6 +43,7 @@
 #include <ray/shape/OrientedBox3.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
+#include <ray/shape/Sdf.h>
 #include <ray/shape/Shapes.h>
 #include <ray/shape/Sphere.h>
 #include <ray/shape/TransformedShape3.h>
@@ -279,6 +280,7 @@ int __cdecl main()
     std::vector<SceneObject<Cylinder>> cylinders;
     std::vector<SceneObject<Capsule>> capsules;
     std::vector<SceneObject<OrientedBox3>> obbs;
+    std::vector<SceneObject<ClippedSdf<Sphere>>> sdfs;
     std::vector<SceneObject<TransformedShape3<AffineTransformation4f, Sphere>>> trSpheres;
 
     //ClosedTriangleMesh mesh = createSmoothIcosahedron(Vec3f(0, 0, -7), 3.5f/2.0f, &m7);
@@ -410,10 +412,10 @@ int __cdecl main()
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
 
-    using ShapesT = Shapes<ShapeT, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
+    using ShapesT = Shapes<ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
     using PartitionerType = StaticBvhObjectMeanPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
-    RawSceneObjectBlob<ShapesT> shapes(std::move(trSpheres), std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
+    RawSceneObjectBlob<ShapesT> shapes(std::move(sdfs), std::move(trSpheres), std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
     StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes, 3);
     //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/

@@ -52,6 +52,16 @@ namespace ray
             return Sphere(m_center + v, m_radius);
         }
 
+        [[nodiscard]] float signedDistance(const Point3f& p) const
+        {
+            return distance(p, m_center) - m_radius;
+        }
+
+        [[nodiscard]] float maxDistance(const Point3f& p) const
+        {
+            return distance(p, m_center) + m_radius;
+        }
+
     private:
         Point3f m_center;
         float m_radius;

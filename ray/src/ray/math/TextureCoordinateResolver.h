@@ -14,6 +14,7 @@
 #include <ray/shape/Disc3.h>
 #include <ray/shape/Triangle3.h>
 #include <ray/shape/Plane.h>
+#include <ray/shape/Sdf.h>
 #include <ray/shape/Sphere.h>
 #include <ray/shape/TransformedShape3.h>
 
@@ -145,5 +146,11 @@ namespace ray
         hitLocal.point = sh.worldToLocal * hitLocal.point;
         hitLocal.normal = sh.worldToLocal * hitLocal.normal;
         return resolveTexCoords(sh.shape, hitLocal);
+    }
+
+    template <typename ClippingShapeT>
+    [[nodiscard]] inline TexCoords resolveTexCoords(const ClippedSdf<ClippingShapeT>& sh, const RaycastHit& hit)
+    {
+        return { 0.0f, 0.0f }; // there's no meaningful way to do it, really
     }
 }

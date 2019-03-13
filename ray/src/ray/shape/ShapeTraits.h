@@ -15,6 +15,8 @@ namespace ray
     struct ClosedTriangleMeshFace;
     template <typename TransformT, typename ShapeT>
     struct TransformedShape3;
+    template <typename ClippingShapeT>
+    struct ClippedSdf;
 
     template <typename ShapeT>
     struct ShapeTraits;
@@ -149,6 +151,19 @@ namespace ray
         //       the raytracer and storage would have to know that it's a mesh and know all its faces
         //       Specialize SceneObjectArray?
         static constexpr bool isLocallyContinuable = false;
+        static constexpr bool isBounded = true;
+    };
+
+    template <typename ClippingShapeT>
+    struct ShapeTraits<ClippedSdf<ClippingShapeT>>
+    {
+        using ShapePackType = ClippedSdf<ClippingShapeT>;
+        using BaseShapeType = ClippedSdf<ClippingShapeT>; // for a pack it should be an underlying shape
+        static constexpr int numShapes = 1; // >1 means that it's a pack (and should behave like a pack of BaseShapeType)
+        static constexpr int numSurfaceMaterialsPerShape = 1;
+        static constexpr int numMediumMaterialsPerShape = 1;
+        static constexpr bool hasVolume = true;
+        static constexpr bool isLocallyContinuable = true;
         static constexpr bool isBounded = true;
     };
 
