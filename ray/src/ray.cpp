@@ -482,6 +482,7 @@ int __cdecl main()
     );
     */
 
+    /*
     sdfs.emplace_back(
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
@@ -490,6 +491,20 @@ int __cdecl main()
                 ),
             { { &m7s }, { &m7m } }
             )
+    );
+    */
+
+    sdfs.emplace_back(
+        SceneObject<ClippedSdf<Sphere>>(
+            ClippedSdf<Sphere>(
+                sdfSphere,
+                SdfUnion(
+                    RoundedConeSdf(sdfSphere.center(), 1.0f, 2.0f, 3.0f),
+                    SphereSdf(Sphere(Point3f(0.0, 0, -7), 2.2))
+                ).clone()
+            ),
+        { { &m7s }, { &m7m } }
+        )
     );
 
     using ShapesT = Shapes<ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;

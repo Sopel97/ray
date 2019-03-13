@@ -4,6 +4,8 @@
 
 #include <ray/math/Vec3.h>
 
+#include <algorithm>
+#include <cmath>
 #include <memory>
 
 namespace ray
@@ -70,5 +72,33 @@ namespace ray
         std::unique_ptr<SdfBase> m_sdf;
         int m_maxIters;
         float m_accuracy;
+    };
+
+    template <typename LhsExprT, typename RhsExprT>
+    struct SdfUnion : SdfBase
+    {
+        SdfUnion(LhsExprT lhs, RhsExprT rhs) :
+            m_lhs(std::move(lhs)),
+            m_rhs(std::move(rhs))
+        {
+
+        }
+
+        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override
+        {
+            return std::min(
+                m_lhs.signedDistance(p),
+                m_rhs.signedDistance(p)
+            );
+        }
+
+        [[nodiscard]] virtual std::unique_ptr<SdfBase> clone() const override
+        {
+            return std::make_unique<SdfUnion>(*this);
+        }
+
+    private:
+        LhsExprT m_lhs;
+        RhsExprT m_rhs;
     };
 }
