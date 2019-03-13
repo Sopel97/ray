@@ -1311,35 +1311,35 @@ namespace ray
             return sdfAbsolute(p) * sign;
         };
 
-        auto normal = [&sh, &sdfAsIfOutside](const Point3f& p) {
+        auto normal = [&sdfAbsolute, sign](const Point3f& p) {
             constexpr float eps = 0.0001f;
 
-            // NOTE: we don't have to invert when we're inside because
-            // we already look at the shape as if it was inverted
-            return Vec3f(
-                sdfAsIfOutside(Point3f(p.x + eps, p.y, p.z)) - sdfAsIfOutside(Point3f(p.x - eps, p.y, p.z)),
-                sdfAsIfOutside(Point3f(p.x, p.y + eps, p.z)) - sdfAsIfOutside(Point3f(p.x, p.y - eps, p.z)),
-                sdfAsIfOutside(Point3f(p.x, p.y, p.z + eps)) - sdfAsIfOutside(Point3f(p.x, p.y, p.z - eps))
-            ).normalized();
+            return (Vec3f(
+                sdfAbsolute(Point3f(p.x + eps, p.y, p.z)) - sdfAbsolute(Point3f(p.x - eps, p.y, p.z)),
+                sdfAbsolute(Point3f(p.x, p.y + eps, p.z)) - sdfAbsolute(Point3f(p.x, p.y - eps, p.z)),
+                sdfAbsolute(Point3f(p.x, p.y, p.z + eps)) - sdfAbsolute(Point3f(p.x, p.y, p.z - eps))
+            ) * sign).normalized();
         };
 
         for (int i = 0; i < maxIters; ++i)
         {
-            const float sd = sdfAsIfOutside(origin + direction * depth) * sign;
+            const float sd = sdfAsIfOutside(origin + direction * depth);
+
             depth += sd;
-            
+
             if (sd < accuracy)
             {
                 // we have a hit
 
                 const Point3f point = origin + direction * depth;
-
                 hit.dist = depth;
                 hit.point = point;
                 hit.normal = normal(point);
                 hit.shapeInPackNo = 0;
                 hit.materialIndex = MaterialIndex(0, 0);
                 hit.isInside = sign < 0.0f; // if we're inside then we have negated the sdf
+
+                return true;
             }
 
             if (depth > maxDepth)

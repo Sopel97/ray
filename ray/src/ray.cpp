@@ -384,6 +384,7 @@ int __cdecl main()
 
     auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m4s }, { &m4m } });
 
+    /*
     csgs.emplace_back(
         (
             (
@@ -405,12 +406,45 @@ int __cdecl main()
         )
         | sumPart16
     );
+    */
 
     //csgs.emplace_back(sumPart16);
 
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
     //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
     //csgs.emplace_back(lensPart1 | lensPart2);
+
+    struct SphereSdf : SdfBase
+    {
+        Sphere s;
+
+        SphereSdf(Sphere s) :
+            s(s)
+        {
+
+        }
+
+        [[nodiscard]] float signedDistance(const Point3f& p) const override
+        {
+            return s.signedDistance(p);
+        }
+        [[nodiscard]] std::unique_ptr<SdfBase> clone() const override
+        {
+            return std::make_unique<SphereSdf>(*this);
+        }
+    };
+
+
+    auto sdfSphere = Sphere(Point3f(0.0, 0, -7), 3.5);
+    sdfs.emplace_back(
+        SceneObject<ClippedSdf<Sphere>>(
+            ClippedSdf<Sphere>(
+                sdfSphere,
+                std::make_unique<SphereSdf>(sdfSphere)
+            ), 
+            { { &m7s }, { &m7m } }
+        )
+    );
 
     using ShapesT = Shapes<ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
     using PartitionerType = StaticBvhObjectMeanPartitioner;
@@ -476,9 +510,9 @@ int __cdecl main()
     //auto sampler = AdaptiveMultisampler(0.05f, JitteredMultisampler(3, 256, 0.66f));
     //auto sampler = AdaptiveMultisampler(0.05f, QuincunxMultisampler());
     //auto sampler = AdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
-    auto sampler = PruningAdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
+    //auto sampler = PruningAdaptiveMultisampler(0.05f, UniformGridMultisampler(3));
     //auto sampler = InterpolatingSampler(UniformGridMultisampler(3));
-    //auto sampler = Sampler{};
+    auto sampler = Sampler{};
     Image img = raytracer.capture(camera, sampler);
     //Image img = raytracer.capture(camera);
 

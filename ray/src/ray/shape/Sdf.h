@@ -23,9 +23,9 @@ namespace ray
 
         using ClippingShapeType = ClippingShapeT;
 
-        ClippedSdf(const ClippingShapeType& clippingShape, std::unique_ptr<SdfBase>&& sdf, int maxIters = 32, float accuracy = 0.001f) :
+        ClippedSdf(const ClippingShapeType& clippingShape, std::unique_ptr<SdfBase>&& sdf, int maxIters = 64, float accuracy = 0.0001f) :
             m_clippingShape(clippingShape),
-            m_sdf(sdf),
+            m_sdf(std::move(sdf)),
             m_maxIters(maxIters),
             m_accuracy(accuracy)
         {
