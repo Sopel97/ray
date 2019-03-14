@@ -162,6 +162,17 @@ namespace ray
             return _mm_cmpeq_ps(a, _mm_set1_ps(b));
         }
 
+        [[nodiscard]] inline __m128 mod(__m128 lhs, __m128 rhs)
+        {
+            // http://dss.stephanierct.com/DevBlog/?p=8
+            __m128 c = _mm_div_ps(lhs, rhs);
+            __m128i i = _mm_cvttps_epi32(c);
+            __m128 cTrunc = _mm_cvtepi32_ps(i);
+            __m128 base = _mm_mul_ps(cTrunc, rhs);
+            __m128 r = _mm_sub_ps(lhs, base);
+            return r;
+        }
+
         [[nodiscard]] inline float dot3(__m128 a, __m128 b)
         {
             // mul first 3 components of xmm, sum it, and store in the first component, return first component

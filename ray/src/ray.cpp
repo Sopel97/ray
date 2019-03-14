@@ -531,14 +531,17 @@ int __cdecl main()
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
                 sdfSphere,
-                SdfSmoothUnion(
-                    std::make_unique<RoundedConeSdf>(sdfSphere.center(), 1.0f, 2.0f, 3.0f),
-                    std::make_unique<SphereSdf>(Sphere(Point3f(0.0, 0, -7), 2.2)),
-                    0.25f
+                SdfOnion(
+                    SdfSmoothUnion(
+                        std::make_unique<PolySdfTranslation>(std::make_unique<SdfRoundedCone>(1.0f, 2.0f, 3.0f), Vec3f(sdfSphere.center())),
+                        std::make_unique<PolySdfTranslation>(std::make_unique<SdfSphere>(2.2f), Vec3f(sdfSphere.center())),
+                        0.25f
+                    ),
+                    0.2f
                 ).clone()
-                ),
+            ),
             { { &m7s }, { &m7m } }
-            )
+        )
     );
 
     using ShapesT = Shapes<ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;

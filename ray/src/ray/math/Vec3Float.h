@@ -522,6 +522,12 @@ namespace ray
     }
 
 
+    [[nodiscard]] inline Point3<float> mod(const Point3<float>& lhs, const Vec3<float>& rhs)
+    {
+        return Point3<float>(m128::mod(lhs.xmm, rhs.xmm));
+    }
+
+
     [[nodiscard]] inline Vec3<float> rcp(const Vec3<float>& v)
     {
         return 1.0f / v;

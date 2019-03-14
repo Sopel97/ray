@@ -2,6 +2,7 @@
 
 #include "ShapeTraits.h"
 
+#include <ray/math/Vec2.h>
 #include <ray/math/Vec3.h>
 
 #include <ray/utility/CloneableUniquePtr.h>
@@ -128,6 +129,7 @@ namespace ray
             return std::get<I>(parts()); \
         } \
     }; \
+    using Poly##TypeName = TypeName; \
     [[nodiscard]] float TypeName::signedDistance(const Point3f& p) const \
     {
 
@@ -150,6 +152,7 @@ namespace ray
             return std::get<0>(parts()); \
         } \
     }; \
+    using Poly##TypeName = TypeName<CloneableUniquePtr<SdfBase>>; \
     template <typename LhsExprT> \
     TypeName(LhsExprT, __VA_ARGS__)->TypeName<LhsExprT>; \
     template <typename LhsExprT> \
@@ -181,6 +184,7 @@ namespace ray
             return std::get<1>(parts()); \
         } \
     }; \
+    using Poly##TypeName = TypeName<CloneableUniquePtr<SdfBase>, CloneableUniquePtr<SdfBase>>; \
     template <typename LhsExprT, typename RhsExprT> \
     TypeName(LhsExprT, RhsExprT, __VA_ARGS__)->TypeName<LhsExprT, RhsExprT>; \
     template <typename LhsExprT, typename RhsExprT> \
@@ -249,6 +253,8 @@ namespace ray
     FINALIZE_SDF_EXPRESSION
     */
 
+    // http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
+
     DEFINE_SDF_EXPRESSION_2(SdfUnion)
         return std::min(
             lhs()->signedDistance(p),
@@ -293,6 +299,84 @@ namespace ray
         const float h = std::clamp(0.5f - 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
         return mix(d2, d1, h) - k * h*(1.0f - h);
     FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_1(SdfRound, float)
+        const float d = arg()->signedDistance(p);
+        const float r = get<0>();
+        return d - r;
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_1(SdfOnion, float)
+        const float d = arg()->signedDistance(p);
+        const float r = get<0>();
+        return std::abs(d) - r;
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_1(SdfRepeat, Vec3f)
+        const Vec3f& period = get<0>();
+        const Vec3f q = mod(p, period) - 0.5f*period;
+        return arg()->signedDistance(q);
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_1(SdfTranslation, Vec3f)
+        const Vec3f& t = get<0>();
+        return arg()->signedDistance(p - t);
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_0(SdfSphere, float)
+        // centered at the origin
+        const float r = get<0>();
+        return Vec3f(p).length() - r;
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_0(SdfBox, Vec3f)
+        // centered at the origin
+        // b._ is half of the extent in a given direction
+        const Vec3f& b = get<0>();
+        const Vec3f d = abs(Vec3f(p)) - b;
+        return (max(d, Vec3f::broadcast(0.0f))).length() + std::min(std::max(d.x, std::max(d.y, d.z)), 0.0f);
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_0(SdfCapsule, Point3f, Point3f, float)
+        const Point3f& a = get<0>();
+        const Point3f& b = get<1>();
+        const float r = get<2>(); 
+
+        const Vec3f pa = p - a;
+        const Vec3f ba = b - a;
+        const float h = std::clamp(dot(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
+        return (pa - ba * h).length() - r;
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_0(SdfRoundedCone, float, float, float)
+        // starts at origin with radius r1
+        // end at (0, h, 0) with radius r2
+        const float r1 = get<0>();
+        const float r2 = get<1>();
+        const float h = get<2>();
+
+        const Vec2f q = Vec2f(Vec2f(p.x, p.z).length(), p.y);
+
+        const float b = (r1 - r2) / h;
+        const float a = std::sqrt(1.0f - b * b);
+        const float k = dot(q, Vec2f(-b, a));
+
+        if (k < 0.0f) return q.length() - r1;
+        if (k > a*h) return (q - Vec2f(0.0f, h)).length() - r2;
+
+        return dot(q, Vec2f(a, b)) - r1;
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_0(SdfEllipsoid, Vec3f)
+        // centered at the origin
+        // with extents of r._
+        const Vec3f& r = get<0>();
+
+        const float k0 = (Vec3f(p) / r).length();
+        const float k1 = (Vec3f(p) / (r*r)).length();
+        return k0 * (k0 - 1.0f) / k1;
+    FINALIZE_SDF_EXPRESSION
+
 
 #undef DEFINE_SDF_EXPRESSION_0
 #undef DEFINE_SDF_EXPRESSION_1
