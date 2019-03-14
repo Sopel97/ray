@@ -527,6 +527,7 @@ int __cdecl main()
     );
     */
 
+    /*
     sdfs.emplace_back(
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
@@ -540,6 +541,24 @@ int __cdecl main()
                     0.2f
                 ).clone()
             ),
+            { { &m7s }, { &m7m } }
+        )
+    );
+    */
+
+    sdfs.emplace_back(
+        SceneObject<ClippedSdf<Sphere>>(
+            ClippedSdf<Sphere>(
+                sdfSphere,
+                SdfOnion(
+                    SdfSmoothUnion(
+                        SdfTranslation(SdfRoundedCone(1.0f, 2.0f, 3.0f), Vec3f(sdfSphere.center())),
+                        SdfTranslation(SdfSphere(2.2f), Vec3f(sdfSphere.center())),
+                        0.25f
+                    ),
+                    0.2f
+                ).clone()
+                ),
             { { &m7s }, { &m7m } }
         )
     );

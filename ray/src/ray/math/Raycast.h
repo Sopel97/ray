@@ -1269,6 +1269,8 @@ namespace ray
     template <typename ClippingShapeT>
     [[nodiscard]] inline bool raycast(const Ray& ray, const ClippedSdf<ClippingShapeT>& sh, RaycastHit& hit)
     {
+        constexpr int numStartupIters = 4;
+
         if (!intersect(ray, sh.clippingShape()))
         {
             return false;
@@ -1320,6 +1322,18 @@ namespace ray
                 sdfAbsolute(Point3f(p.x, p.y, p.z + eps)) - sdfAbsolute(Point3f(p.x, p.y, p.z - eps))
             ) * sign).normalized();
         };
+
+        // precaution to prevent early exit when going away from a surface that was just hit
+        for (int i = 0; i < numStartupIters; ++i)
+        {
+            const float sd = sdfAsIfOutside(origin + direction * depth);
+            depth += sd;
+
+            if (depth > maxDepth)
+            {
+                return false;
+            }
+        }
 
         for (int i = 0; i < maxIters; ++i)
         {

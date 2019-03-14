@@ -2,6 +2,7 @@
 
 #include "ShapeTraits.h"
 
+#include <ray/math/Transform3.h>
 #include <ray/math/Vec2.h>
 #include <ray/math/Vec3.h>
 
@@ -254,6 +255,8 @@ namespace ray
     */
 
     // http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
+    // TODO: consider using approximate versions of more expensive functions since
+    //       it's an iterative process and may not get such a big hit in precision
 
     DEFINE_SDF_EXPRESSION_2(SdfUnion)
         return std::min(
@@ -323,6 +326,12 @@ namespace ray
         return arg()->signedDistance(p - t);
     FINALIZE_SDF_EXPRESSION
 
+    DEFINE_SDF_EXPRESSION_1(SdfScale, float)
+        // scales by a uniform amount in all directions
+        const float s = get<0>();
+        return arg()->signedDistance(p/s)*s;
+    FINALIZE_SDF_EXPRESSION
+
     DEFINE_SDF_EXPRESSION_0(SdfSphere, float)
         // centered at the origin
         const float r = get<0>();
@@ -376,6 +385,50 @@ namespace ray
         const float k1 = (Vec3f(p) / (r*r)).length();
         return k0 * (k0 - 1.0f) / k1;
     FINALIZE_SDF_EXPRESSION
+
+
+    template <typename LhsExprT, typename TransformT> 
+    struct SdfTransform : SdfExpression<SdfTransform<LhsExprT, TransformT>, std::tuple<LhsExprT, TransformT>>
+    { 
+        // TODO: handle other matrices properly
+        //       currently we can only handle non-scaling transforms
+        static_assert(contains(AffineTransformationComponentMask::RotationTranslation, TransformT::mask));
+
+        using BaseType = SdfExpression<SdfTransform, std::tuple<LhsExprT, TransformT>>;
+        using BaseType::BaseType; 
+        using BaseType::parts;
+
+        template <typename LhsExprFwdT, typename TransformFwdT>
+        SdfTransform(LhsExprFwdT&& expr, TransformFwdT&& transform) :
+            SdfExpression(std::forward<LhsExprFwdT>(expr), transform.inverse())
+        {
+        }
+
+        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override
+        {
+            const TransformT& transformInverse = get<0>();
+            return get()->signedDistance(transformInverse * p);
+        }
+
+    protected: 
+        template <int I> 
+        [[nodiscard]] decltype(auto) get() const 
+        { 
+            return std::get<I + 1>(parts()); 
+        } 
+
+        [[nodiscard]] decltype(auto) arg() const 
+        {
+            return std::get<0>(parts());
+        }
+    }; 
+    // TODO: change RotationTranslation4f -> Matrix4f when it is supported
+    using PolySdfTransform = SdfTransform<CloneableUniquePtr<SdfBase>, RotationTranslation4f>;
+    template <typename LhsExprT, typename TransformT>
+    SdfTransform(LhsExprT, TransformT)->SdfTransform<LhsExprT, TransformT>;
+    template <typename LhsExprT, typename TransformT>
+    SdfTransform(std::unique_ptr<LhsExprT>, TransformT)->SdfTransform<CloneableUniquePtr<SdfBase>, TransformT>;
+
 
 
 #undef DEFINE_SDF_EXPRESSION_0
