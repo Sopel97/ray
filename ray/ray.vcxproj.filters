@@ -79,6 +79,9 @@
     <Filter Include="Header Files\src\math\m128">
       <UniqueIdentifier>{f806d847-41c8-491b-a6cd-bddee4a045b4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\src\shape\detail">
+      <UniqueIdentifier>{f495d408-3f8a-4669-97d8-460e422b9c08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ray.cpp">
@@ -376,6 +379,12 @@
     </ClInclude>
     <ClInclude Include="src\ray\utility\CloneableUniquePtr.h">
       <Filter>Header Files\src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\detail\SdfExpressionMacroDef.h">
+      <Filter>Header Files\src\shape\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\shape\detail\SdfExpressionMacroUndef.h">
+      <Filter>Header Files\src\shape\detail</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

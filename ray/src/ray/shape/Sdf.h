@@ -80,7 +80,8 @@ namespace ray
         float m_accuracy;
     };
 
-    // tuple<> has non zero size. maybe use inheritance
+    // This class is always instantiated as a parent of some expression using CRTP
+    // Because of that it is safe to use it as if it was ExprType
     template <typename ExprT, typename PartsT>
     struct SdfExpression : SdfBase, private PartsT
     {
@@ -116,143 +117,7 @@ namespace ray
         }
     };
 
-#define DEFINE_SDF_EXPRESSION_0(TypeName, ...) \
-    struct TypeName : SdfExpression<TypeName, std::tuple<__VA_ARGS__>> \
-    { \
-        using BaseType = SdfExpression<TypeName, std::tuple<__VA_ARGS__>>; \
-        using BaseType::BaseType; \
-        using BaseType::parts; \
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override; \
-    protected: \
-        template <int I> \
-        [[nodiscard]] decltype(auto) get() const \
-        { \
-            return std::get<I>(parts()); \
-        } \
-    }; \
-    using Poly##TypeName = TypeName; \
-    [[nodiscard]] float TypeName::signedDistance(const Point3f& p) const \
-    {
-
-#define DEFINE_SDF_EXPRESSION_1(TypeName, ...) \
-    template <typename LhsExprT> \
-    struct TypeName : SdfExpression<TypeName<LhsExprT>, std::tuple<LhsExprT, __VA_ARGS__>> \
-    { \
-        using BaseType = SdfExpression<TypeName, std::tuple<LhsExprT, __VA_ARGS__>>; \
-        using BaseType::BaseType; \
-        using BaseType::parts; \
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override; \
-    protected: \
-        template <int I> \
-        [[nodiscard]] decltype(auto) get() const \
-        { \
-            return std::get<I + 1>(parts()); \
-        } \
-        [[nodiscard]] decltype(auto) arg() const \
-        { \
-            return std::get<0>(parts()); \
-        } \
-    }; \
-    using Poly##TypeName = TypeName<CloneableUniquePtr<SdfBase>>; \
-    template <typename LhsExprT> \
-    TypeName(LhsExprT, __VA_ARGS__)->TypeName<LhsExprT>; \
-    template <typename LhsExprT> \
-    TypeName(std::unique_ptr<LhsExprT>, __VA_ARGS__)->TypeName<CloneableUniquePtr<SdfBase>>; \
-    template <typename LhsExprT> \
-    [[nodiscard]] float TypeName<LhsExprT>::signedDistance(const Point3f& p) const \
-    {
-
-#define DEFINE_SDF_EXPRESSION_2(TypeName, ...) \
-    template <typename LhsExprT, typename RhsExprT> \
-    struct TypeName : SdfExpression<TypeName<LhsExprT, RhsExprT>, std::tuple<LhsExprT, RhsExprT, __VA_ARGS__>> \
-    { \
-        using BaseType = SdfExpression<TypeName, std::tuple<LhsExprT, RhsExprT, __VA_ARGS__>>; \
-        using BaseType::BaseType; \
-        using BaseType::parts; \
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override; \
-    protected: \
-        template <int I> \
-        [[nodiscard]] decltype(auto) get() const \
-        { \
-            return std::get<I + 2>(parts()); \
-        } \
-        [[nodiscard]] decltype(auto) lhs() const \
-        { \
-            return std::get<0>(parts()); \
-        } \
-        [[nodiscard]] decltype(auto) rhs() const \
-        { \
-            return std::get<1>(parts()); \
-        } \
-    }; \
-    using Poly##TypeName = TypeName<CloneableUniquePtr<SdfBase>, CloneableUniquePtr<SdfBase>>; \
-    template <typename LhsExprT, typename RhsExprT> \
-    TypeName(LhsExprT, RhsExprT, __VA_ARGS__)->TypeName<LhsExprT, RhsExprT>; \
-    template <typename LhsExprT, typename RhsExprT> \
-    TypeName(std::unique_ptr<LhsExprT>, std::unique_ptr<RhsExprT>, __VA_ARGS__)->TypeName<CloneableUniquePtr<SdfBase>, CloneableUniquePtr<SdfBase>>; \
-    template <typename LhsExprT, typename RhsExprT> \
-    [[nodiscard]] float TypeName<LhsExprT, RhsExprT>::signedDistance(const Point3f& p) const \
-    {
-
-#define FINALIZE_SDF_EXPRESSION }
-
-    /*
-    template <typename LhsExprT, typename RhsExprT>
-    struct SdfUnion : SdfExpression<SdfUnion<LhsExprT, RhsExprT>, std::tuple<LhsExprT, RhsExprT>>
-    {
-        using BaseType = SdfExpression<SdfUnion, std::tuple<LhsExprT, RhsExprT>>;
-        using BaseType::BaseType;
-        using BaseType::parts;
-
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override;
-
-    protected:
-        template <int I>
-        [[nodiscard]] decltype(auto) get() const
-        {
-            return std::get<I+2>(parts());
-        }
-
-        [[nodiscard]] decltype(auto) lhs() const
-        {
-            return std::get<0>(parts());
-        }
-
-        [[nodiscard]] decltype(auto) rhs() const
-        {
-            return std::get<1>(parts());
-        }
-    };
-    template <typename LhsExprT, typename RhsExprT>
-    SdfUnion(LhsExprT, RhsExprT)->SdfUnion<LhsExprT, RhsExprT>;
-    template <typename LhsExprT, typename RhsExprT>
-    SdfUnion(std::unique_ptr<LhsExprT>, std::unique_ptr<RhsExprT>)->SdfUnion<CloneableUniquePtr<SdfBase>, CloneableUniquePtr<SdfBase>>;
-
-    template <typename LhsExprT, typename RhsExprT>
-    [[nodiscard]] float SdfUnion<LhsExprT, RhsExprT>::signedDistance(const Point3f& p) const
-    {
-        return std::min(
-            lhs()->signedDistance(p),
-            rhs()->signedDistance(p)
-        );
-    }
-
-    // examples
-    DEFINE_SDF_EXPRESSION_2(SdfUnion)
-        return std::min(
-            lhs()->signedDistance(p),
-            rhs()->signedDistance(p)
-        );
-    FINALIZE_SDF_EXPRESSION
-
-    DEFINE_SDF_EXPRESSION_1(SdfUnion2)
-        return arg()->signedDistance(p);
-    FINALIZE_SDF_EXPRESSION
-
-    DEFINE_SDF_EXPRESSION_0(SdfUnion3, float)
-        return get<0>();
-    FINALIZE_SDF_EXPRESSION
-    */
+#include "detail/SdfExpressionMacroDef.h"
 
     // http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
     // TODO: consider using approximate versions of more expensive functions since
@@ -398,6 +263,7 @@ namespace ray
         using BaseType::BaseType; 
         using BaseType::parts;
 
+        // here we hold the inverse, because it's all we need
         template <typename LhsExprFwdT, typename TransformFwdT>
         SdfTransform(LhsExprFwdT&& expr, TransformFwdT&& transform) :
             SdfExpression(std::forward<LhsExprFwdT>(expr), transform.inverse())
@@ -429,10 +295,6 @@ namespace ray
     template <typename LhsExprT, typename TransformT>
     SdfTransform(std::unique_ptr<LhsExprT>, TransformT)->SdfTransform<CloneableUniquePtr<SdfBase>, TransformT>;
 
+#include "detail/SdfExpressionMacroUndef.h"
 
-
-#undef DEFINE_SDF_EXPRESSION_0
-#undef DEFINE_SDF_EXPRESSION_1
-#undef DEFINE_SDF_EXPRESSION_2
-#undef FINALIZE_SDF_EXPRESSION
 }

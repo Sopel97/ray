@@ -118,6 +118,8 @@
     <ClInclude Include="src\ray\shape\Capsule.h" />
     <ClInclude Include="src\ray\shape\ClosedTriangleMesh.h" />
     <ClInclude Include="src\ray\shape\Cylinder.h" />
+    <ClInclude Include="src\ray\shape\detail\SdfExpressionMacroDef.h" />
+    <ClInclude Include="src\ray\shape\detail\SdfExpressionMacroUndef.h" />
     <ClInclude Include="src\ray\shape\Disc3.h" />
     <ClInclude Include="src\ray\shape\HalfSphere.h" />
     <ClInclude Include="src\ray\shape\OrientedBox3.h" />
