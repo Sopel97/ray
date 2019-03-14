@@ -136,7 +136,7 @@ namespace ray
         }
     };
     template <typename LhsExprT, typename RhsExprT>
-    SdfUnion(LhsExprT&&, RhsExprT&&)->SdfUnion<LhsExprT, RhsExprT>;
+    SdfUnion(LhsExprT, RhsExprT)->SdfUnion<LhsExprT, RhsExprT>;
     template <typename LhsExprT, typename RhsExprT>
-    SdfUnion(std::unique_ptr<LhsExprT>&&, std::unique_ptr<RhsExprT>&&)->SdfUnion<CloneableUniquePtr<SdfBase>, CloneableUniquePtr<SdfBase>>;
+    SdfUnion(std::unique_ptr<LhsExprT>, std::unique_ptr<RhsExprT>)->SdfUnion<CloneableUniquePtr<SdfBase>, CloneableUniquePtr<SdfBase>>;
 }
