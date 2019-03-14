@@ -5,6 +5,7 @@
 #include <ray/math/Vec3.h>
 
 #include <ray/utility/CloneableUniquePtr.h>
+#include <ray/utility/Util.h>
 
 #include <algorithm>
 #include <cmath>
@@ -253,6 +254,44 @@ namespace ray
             lhs()->signedDistance(p),
             rhs()->signedDistance(p)
         );
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_2(SdfDifference)
+        return std::max(
+            lhs()->signedDistance(p),
+            -rhs()->signedDistance(p)
+        );
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_2(SdfIntersection)
+        return std::max(
+            lhs()->signedDistance(p),
+            rhs()->signedDistance(p)
+        );
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_2(SdfSmoothUnion, float)
+        const float d1 = lhs()->signedDistance(p);
+        const float d2 = rhs()->signedDistance(p);
+        const float k = get<0>();
+        const float h = std::clamp(0.5f + 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
+        return mix(d2, d1, h) - k*h*(1.0f - h);
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_2(SdfSmoothDifference, float)
+        const float d1 = lhs()->signedDistance(p);
+        const float d2 = -rhs()->signedDistance(p);
+        const float k = get<0>();
+        const float h = std::clamp(0.5f - 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
+        return mix(d2, d1, h) - k * h*(1.0f - h);
+    FINALIZE_SDF_EXPRESSION
+
+    DEFINE_SDF_EXPRESSION_2(SdfSmoothIntersection, float)
+        const float d1 = lhs()->signedDistance(p);
+        const float d2 = rhs()->signedDistance(p);
+        const float k = get<0>();
+        const float h = std::clamp(0.5f - 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
+        return mix(d2, d1, h) - k * h*(1.0f - h);
     FINALIZE_SDF_EXPRESSION
 
 #undef DEFINE_SDF_EXPRESSION_0

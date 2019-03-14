@@ -531,9 +531,10 @@ int __cdecl main()
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
                 sdfSphere,
-                SdfUnion(
+                SdfSmoothUnion(
                     std::make_unique<RoundedConeSdf>(sdfSphere.center(), 1.0f, 2.0f, 3.0f),
-                    std::make_unique<SphereSdf>(Sphere(Point3f(0.0, 0, -7), 2.2))
+                    std::make_unique<SphereSdf>(Sphere(Point3f(0.0, 0, -7), 2.2)),
+                    0.25f
                 ).clone()
                 ),
             { { &m7s }, { &m7m } }
