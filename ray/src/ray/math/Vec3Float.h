@@ -81,7 +81,7 @@ namespace ray
         Normal3<float>& operator=(const Normal3<float>&) noexcept = default;
         Normal3<float>& operator=(Normal3<float>&&) noexcept = default;
 
-        [[nodiscard]] explicit operator Vec3<float>() const;
+        [[nodiscard]] operator Vec3<float>() const;
 
         void negate(const Vec3Mask<float>& mask)
         {
@@ -275,7 +275,7 @@ namespace ray
             return *this;
         }
 
-        [[nodiscard]] explicit operator Vec3<float>() const
+        [[nodiscard]] operator Vec3<float>() const
         {
             return Vec3<float>(xmm);
         }

@@ -207,7 +207,7 @@ namespace ray
         // centered at the origin
         // b._ is half of the extent in a given direction
         const Vec3f& b = get<0>();
-        const Vec3f d = abs(Vec3f(p)) - b;
+        const Vec3f d = abs(p) - b;
         return (max(d, Vec3f::broadcast(0.0f))).length() + std::min(std::max(d.x, std::max(d.y, d.z)), 0.0f);
     FINALIZE_SDF_EXPRESSION
 
@@ -246,8 +246,8 @@ namespace ray
         // with extents of r._
         const Vec3f& r = get<0>();
 
-        const float k0 = (Vec3f(p) / r).length();
-        const float k1 = (Vec3f(p) / (r*r)).length();
+        const float k0 = (p / r).length();
+        const float k1 = (p / (r*r)).length();
         return k0 * (k0 - 1.0f) / k1;
     FINALIZE_SDF_EXPRESSION
 

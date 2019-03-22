@@ -376,7 +376,7 @@ namespace ray
         perf::gThreadLocalPerfStats.addObjectRaycast<Plane>();
 #endif
         const float nd = dot(ray.direction(), plane.normal);
-        const float pn = dot(Vec3f(ray.origin()), plane.normal);
+        const float pn = dot(ray.origin(), plane.normal);
         const float t = (plane.distance - pn) / nd;
 
         // t must be positive
@@ -407,7 +407,7 @@ namespace ray
 #endif
 
         const float nd = dot(ray.direction(), disc.normal);
-        const float pn = dot(Vec3f(ray.origin()), disc.normal);
+        const float pn = dot(ray.origin(), disc.normal);
         const float t = (disc.distance - pn) / nd;
 
         // t must be positive
@@ -498,8 +498,8 @@ namespace ray
         {
             // not parallel
             const float dPv = dot(dP, v);
-            const Vec3f dvv = Vec3f(d) - dv * v;
-            const Vec3f dPvv = Vec3f(dP) - dPv * v;
+            const Vec3f dvv = d - dv * v;
+            const Vec3f dPvv = dP - dPv * v;
 
             const float a = dot(dvv, dvv);
             const float b = 2.0f * dot(dvv, dPvv);
@@ -585,8 +585,8 @@ namespace ray
         {
             // not parallel
             const float dPv = dot(dP, v);
-            const Vec3f dvv = Vec3f(d) - dv * v;
-            const Vec3f dPvv = Vec3f(dP) - dPv * v;
+            const Vec3f dvv = d - dv * v;
+            const Vec3f dPvv = dP - dPv * v;
 
             const float a = dot(dvv, dvv);
             const float b = 2.0f * dot(dvv, dPvv);
@@ -666,7 +666,7 @@ namespace ray
         const float dist = tri.plane().distance;
 
         const float nd = dot3(invDir, nor);
-        const float pn = dot3(Vec3f(orig), nor);
+        const float pn = dot3(orig, nor);
         const float t = (dist - pn) * nd;
 
         if (t < 0.0f) return false;
@@ -904,7 +904,7 @@ namespace ray
 #endif
 
         const float nd = dot(ray.direction(), disc.normal);
-        const float pn = dot(Vec3f(ray.origin()), disc.normal);
+        const float pn = dot(ray.origin(), disc.normal);
         t = (disc.distance - pn) / nd;
 
         const Point3f point = ray.origin() + ray.direction() * t;
@@ -994,8 +994,8 @@ namespace ray
         {
             // not parallel
             const float dPv = dot(dP, v);
-            const Vec3f dvv = Vec3f(d) - dv * v;
-            const Vec3f dPvv = Vec3f(dP) - dPv * v;
+            const Vec3f dvv = d - dv * v;
+            const Vec3f dPvv = dP - dPv * v;
 
             const float a = dot(dvv, dvv);
             const float b = 2.0f * dot(dvv, dPvv);
@@ -1146,8 +1146,8 @@ namespace ray
         {
             // not parallel
             const float dPv = dot(dP, v);
-            const Vec3f dvv = Vec3f(d) - dv * v;
-            const Vec3f dPvv = Vec3f(dP) - dPv * v;
+            const Vec3f dvv = d - dv * v;
+            const Vec3f dPvv = dP - dPv * v;
 
             const float a = dot(dvv, dvv);
             const float b = 2.0f * dot(dvv, dPvv);
