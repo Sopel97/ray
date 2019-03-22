@@ -41,10 +41,7 @@ namespace ray
         void extend(const Box3& box)
         {
             min = Point3f::blend(min, box.min, box.min < min);
-
-            if (box.max.x > max.x) max.x = box.max.x;
-            if (box.max.y > max.y) max.y = box.max.y;
-            if (box.max.z > max.z) max.z = box.max.z;
+            max = Point3f::blend(max, box.max, box.max > max);
         }
 
         [[nodiscard]] std::array<Point3f, 8> vertices() const
