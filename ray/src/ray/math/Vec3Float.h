@@ -235,6 +235,14 @@ namespace ray
         {
             return Point3<float>{};
         }
+        [[nodiscard]] static Point3<float> blend(float a, float b, const Vec3Mask<float>& mask) noexcept
+        {
+            return Point3<float>(m128::blend(a, b, mask.xmm));
+        }
+        [[nodiscard]] static Point3<float> blend(const Point3<float>& a, const Point3<float>& b, const Vec3Mask<float>& mask) noexcept
+        {
+            return Point3<float>(m128::blend(a.xmm, b.xmm, mask.xmm));
+        }
 
         explicit Point3(__m128 xyz_) noexcept :
             xmm(xyz_)
@@ -290,7 +298,7 @@ namespace ray
     {
     }
 
-    inline Normal3<float>::operator Vec3<float>() const
+    [[nodiscard]] inline Normal3<float>::operator Vec3<float>() const
     {
         return Vec3<float>(xmm);
     }
@@ -356,11 +364,6 @@ namespace ray
 
 
     [[nodiscard]] inline Vec3Mask<float> operator==(const Vec3<float> & lhs, const Vec3<float>& rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator==(const Point3<float>& lhs, const Point3<float>& rhs) noexcept
     {
         return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
     }

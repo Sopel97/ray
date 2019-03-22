@@ -25,6 +25,32 @@ namespace ray
             wwww = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(3, 3, 3, 3));
         }
 
+        template <int I>
+        [[nodiscard]] inline float extract(__m128 xmm)
+        {
+            if constexpr (I == 0)
+            {
+                return _mm_cvtss_f32(xmm);
+            }
+            else
+            {
+                return _mm_cvtss_f32(permute<I, I, I, I>(xmm));
+            }
+        }
+
+        template <int I>
+        [[nodiscard]] inline __m128 insert(__m128 xmm, float s)
+        {
+            __m128 s4 = _mm_set1_ps(s);
+            return _mm_blend_ps(xmm, s4, 1 << I);
+        }
+
+        template <bool X, bool Y, bool Z, bool W>
+        [[nodiscard]] inline __m128 blend(__m128 xmm0, __m128 xmm1)
+        {
+            return _mm_blend_ps(xmm0, xmm1, lane::mask<X, Y, Z, W>());
+        }
+
         // for xyzw vector make it xyz0
         [[nodiscard]] inline __m128 truncate3(__m128 v)
         {
