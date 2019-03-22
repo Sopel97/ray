@@ -1,10 +1,12 @@
 #pragma once
 
 #include "m128/M128Math.h"
+#include "m128/M128ScalarAccessor.h"
 
 #include "Angle2.h"
 #include "AxisAngle3f.h"
 #include "EulerAngles2.h"
+#include "Vec3.h"
 
 #include <cmath>
 
@@ -20,10 +22,11 @@ namespace ray
     {
     public:
         union {
-            struct {
-                float x, y, z, w;
-            };
             __m128 xmm;
+            m128::ScalarAccessor<0> x;
+            m128::ScalarAccessor<1> y;
+            m128::ScalarAccessor<2> z;
+            m128::ScalarAccessor<3> w;
         };
 
         RAY_GEN_MEMBER_SWIZZLE4_ALL(Quat4<float>)
@@ -40,19 +43,13 @@ namespace ray
         }
 
         Quat4() noexcept :
-            x(0),
-            y(0),
-            z(0),
-            w(1)
+            xmm(_mm_set_ps(1, 0, 0, 0))
         {
 
         }
 
         Quat4(float x, float y, float z, float w) noexcept :
-            x(x),
-            y(y),
-            z(z),
-            w(w)
+            xmm(_mm_set_ps(w, z, y, x))
         {
 
         }
@@ -85,10 +82,28 @@ namespace ray
             z = a.axis().z * s;
         }
 
-        Quat4(const Quat4<float>&) noexcept = default;
-        Quat4(Quat4<float>&&) noexcept = default;
-        Quat4<float>& operator=(const Quat4<float>&) noexcept = default;
-        Quat4<float>& operator=(Quat4<float>&&) noexcept = default;
+
+        Quat4(const Quat4<float>& other) noexcept :
+            xmm(other.xmm)
+        {
+
+        }
+        Quat4(Quat4<float>&& other) noexcept :
+            xmm(other.xmm)
+        {
+
+        }
+
+        Quat4<float>& operator=(const Quat4<float>& other) noexcept
+        {
+            xmm = other.xmm;
+            return *this;
+        }
+        Quat4<float>& operator=(Quat4<float>&& other) noexcept
+        {
+            xmm = other.xmm;
+            return *this;
+        }
 
         Quat4<float>& operator+=(const Quat4<float>& rhs)
         {
@@ -180,9 +195,9 @@ namespace ray
         // http://people.csail.mit.edu/bkph/articles/Quaternions.pdf
         [[nodiscard]] Vec3<float> apply(const Vec3<float>& v) const
         {
-            const Vec3<float> q(x, y, z);
+            const Vec3<float> q(xmm);
             const Vec3<float> t = 2.0f * cross(q, v);
-            const Vec3<float> r = v + (w * t) + cross(q, t);
+            const Vec3<float> r = v + (Vec3<float>(w) * t) + cross(q, t);
             return r;
         }
 

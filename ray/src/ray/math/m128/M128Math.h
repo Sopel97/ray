@@ -64,6 +64,21 @@ namespace ray
             return _mm_blend_ps(xmm, s4, 1 << I);
         }
 
+        [[nodiscard]] inline __m128 insert(__m128 xmm, float s, int i)
+        {
+            switch (i)
+            {
+            case 0:
+                return insert<0>(xmm, s);
+            case 1:
+                return insert<1>(xmm, s);
+            case 2:
+                return insert<2>(xmm, s);
+            default:
+                return insert<3>(xmm, s);
+            }
+        }
+
         template <bool X, bool Y, bool Z, bool W>
         [[nodiscard]] inline __m128 blend(__m128 xmm0, __m128 xmm1)
         {
