@@ -28,6 +28,8 @@ namespace ray
         template <int I>
         [[nodiscard]] inline float extract(__m128 xmm)
         {
+            static_assert(I >= 0 && I <= 3);
+
             if constexpr (I == 0)
             {
                 return _mm_cvtss_f32(xmm);
@@ -38,9 +40,26 @@ namespace ray
             }
         }
 
+        [[nodiscard]] inline float extract(__m128 xmm, int i)
+        {
+            switch (i)
+            {
+            case 0:
+                return extract<0>(xmm);
+            case 1:
+                return extract<1>(xmm);
+            case 2:
+                return extract<2>(xmm);
+            default:
+                return extract<3>(xmm);
+            }
+        }
+
         template <int I>
         [[nodiscard]] inline __m128 insert(__m128 xmm, float s)
         {
+            static_assert(I >= 0 && I <= 3);
+
             __m128 s4 = _mm_set1_ps(s);
             return _mm_blend_ps(xmm, s4, 1 << I);
         }

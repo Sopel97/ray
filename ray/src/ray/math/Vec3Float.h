@@ -3,6 +3,7 @@
 #include "Vec3.h"
 
 #include "m128/M128Math.h"
+#include "m128/M128ScalarAccessor.h"
 
 #include <xmmintrin.h>
 #include <smmintrin.h>
@@ -34,10 +35,10 @@ namespace ray
     struct alignas(alignof(__m128)) Normal3<float>
     {
         union {
-            struct {
-                float x, y, z, _;
-            };
             __m128 xmm;
+            m128::ScalarAccessor<0> x;
+            m128::ScalarAccessor<1> y;
+            m128::ScalarAccessor<2> z;
         };
 
         RAY_GEN_MEMBER_SWIZZLE3_ALL(Normal3<float>)
@@ -75,11 +76,27 @@ namespace ray
         {
         }
 
-        Normal3(const Normal3<float>&) noexcept = default;
-        Normal3(Normal3<float>&&) noexcept = default;
+        Normal3(const Normal3<float>& other) noexcept :
+            xmm(other.xmm)
+        {
 
-        Normal3<float>& operator=(const Normal3<float>&) noexcept = default;
-        Normal3<float>& operator=(Normal3<float>&&) noexcept = default;
+        }
+        Normal3(Normal3<float>&& other) noexcept :
+            xmm(other.xmm)
+        {
+
+        }
+
+        Normal3<float>& operator=(const Normal3<float>& other) noexcept
+        {
+            xmm = other.xmm;
+            return *this;
+        }
+        Normal3<float>& operator=(Normal3<float>&& other) noexcept
+        {
+            xmm = other.xmm;
+            return *this;
+        }
 
         [[nodiscard]] operator Vec3<float>() const;
 
@@ -100,10 +117,10 @@ namespace ray
     struct alignas(alignof(__m128)) Vec3<float>
     {
         union {
-            struct {
-                float x, y, z, _;
-            };
             __m128 xmm;
+            m128::ScalarAccessor<0> x;
+            m128::ScalarAccessor<1> y;
+            m128::ScalarAccessor<2> z;
         };
 
         RAY_GEN_MEMBER_SWIZZLE3_ALL(Vec3<float>)
@@ -140,11 +157,28 @@ namespace ray
         {
 
         }
-        Vec3(const Vec3<float>&) noexcept = default;
-        Vec3(Vec3<float>&&) noexcept = default;
 
-        Vec3<float>& operator=(const Vec3<float>&) noexcept = default;
-        Vec3<float>& operator=(Vec3<float>&&) noexcept = default;
+        Vec3(const Vec3<float>& other) noexcept :
+            xmm(other.xmm)
+        {
+
+        }
+        Vec3(Vec3<float>&& other) noexcept :
+            xmm(other.xmm)
+        {
+
+        }
+
+        Vec3<float>& operator=(const Vec3<float>& other) noexcept
+        {
+            xmm = other.xmm;
+            return *this;
+        }
+        Vec3<float>& operator=(Vec3<float>&& other) noexcept
+        {
+            xmm = other.xmm;
+            return *this;
+        }
 
         Vec3<float>& operator+=(const Vec3<float>& rhs)
         {
@@ -204,13 +238,13 @@ namespace ray
         [[nodiscard]] float max() const
         {
             using std::max;
-            return max(max(x, y), z);
+            return max<float>(max<float>(x, y), z);
         }
 
         [[nodiscard]] float min() const
         {
             using std::min;
-            return min(min(x, y), z);
+            return min<float>(min<float>(x, y), z);
         }
     };
     static_assert(sizeof(Vec3f) == sizeof(__m128));
@@ -219,10 +253,10 @@ namespace ray
     struct alignas(alignof(__m128)) Point3<float>
     {
         union {
-            struct {
-                float x, y, z, _;
-            };
             __m128 xmm;
+            m128::ScalarAccessor<0> x;
+            m128::ScalarAccessor<1> y;
+            m128::ScalarAccessor<2> z;
         };
 
         RAY_GEN_MEMBER_SWIZZLE3_ALL(Point3<float>)
@@ -263,11 +297,28 @@ namespace ray
         {
 
         }
-        Point3(const Point3<float>&) noexcept = default;
-        Point3(Point3<float>&&) noexcept = default;
 
-        Point3<float>& operator=(const Point3<float>&) noexcept = default;
-        Point3<float>& operator=(Point3<float>&&) noexcept = default;
+        Point3(const Point3<float>& other) noexcept :
+            xmm(other.xmm)
+        {
+
+        }
+        Point3(Point3<float>&& other) noexcept :
+            xmm(other.xmm)
+        {
+
+        }
+
+        Point3<float>& operator=(const Point3<float>& other) noexcept
+        {
+            xmm = other.xmm;
+            return *this;
+        }
+        Point3<float>& operator=(Point3<float>&& other) noexcept
+        {
+            xmm = other.xmm;
+            return *this;
+        }
 
         Point3<float>& operator+=(const Vec3<float>& rhs)
         {
@@ -302,6 +353,36 @@ namespace ray
     {
         return Vec3<float>(xmm);
     }
+
+    struct Vec3fScalarExtractor
+    {
+        [[nodiscard]] static Vec3fScalarExtractor x()
+        {
+            return { 0 };
+        }
+        [[nodiscard]] static Vec3fScalarExtractor y()
+        {
+            return { 1 };
+        }
+        [[nodiscard]] static Vec3fScalarExtractor z()
+        {
+            return { 2 };
+        }
+
+        Vec3fScalarExtractor(int i) :
+            m_index(i)
+        {
+
+        }
+
+        [[nodiscard]] float extractFrom(const Vec3f& v) const
+        {
+            return m128::extract(v.xmm, m_index);
+        }
+
+    private:
+        int m_index;
+    };
 
     // Operations
 

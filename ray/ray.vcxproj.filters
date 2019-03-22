@@ -386,5 +386,8 @@
     <ClInclude Include="src\ray\shape\detail\SdfExpressionMacroUndef.h">
       <Filter>Header Files\src\shape\detail</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\math\m128\M128ScalarAccessor.h">
+      <Filter>Header Files\src\math\m128</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

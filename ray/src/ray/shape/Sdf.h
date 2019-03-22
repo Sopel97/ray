@@ -208,7 +208,7 @@ namespace ray
         // b._ is half of the extent in a given direction
         const Vec3f& b = get<0>();
         const Vec3f d = abs(p) - b;
-        return (max(d, Vec3f::broadcast(0.0f))).length() + std::min(std::max(d.x, std::max(d.y, d.z)), 0.0f);
+        return (max(d, Vec3f::broadcast(0.0f))).length() + std::min<float>(std::max<float>(d.x, std::max<float>(d.y, d.z)), 0.0f);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfCapsule, Point3f, Point3f, float)

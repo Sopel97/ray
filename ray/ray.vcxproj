@@ -71,6 +71,7 @@
     <ClInclude Include="src\ray\math\m128\M128MatrixOperations.h" />
     <ClInclude Include="src\ray\math\m128\M128MemberSwizzleGeneratorDef.h" />
     <ClInclude Include="src\ray\math\m128\M128MemberSwizzleGeneratorUndef.h" />
+    <ClInclude Include="src\ray\math\m128\M128ScalarAccessor.h" />
     <ClInclude Include="src\ray\math\m128\M128Shuffle.h" />
     <ClInclude Include="src\ray\math\MathConstants.h" />
     <ClInclude Include="src\ray\math\Matrix3.h" />
