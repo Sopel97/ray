@@ -84,7 +84,7 @@ namespace ray
         [[nodiscard]] static Box3 get(const Disc3& d)
         {
             Vec3f halfExtent = Vec3f::broadcast(d.radius);
-            halfExtent *= sqrt(Vec3f::broadcast(1.0f) - Vec3f(d.normal) * Vec3f(d.normal));
+            halfExtent *= sqrt(Vec3f::broadcast(1.0f) - d.normal * d.normal);
             return Box3(d.origin - halfExtent, d.origin + halfExtent);
         }
 
@@ -109,7 +109,7 @@ namespace ray
             // applies similar (but inverted) method as for disc3
             const Vec3f halfExtent = Vec3f::broadcast(s.radius());
             Box3 bb(s.center() - halfExtent, s.center() + halfExtent);
-            const Vec3f diff = (Vec3f::broadcast(1.0f) - sqrt(Vec3f::broadcast(1.0f) - Vec3f(s.normal())*Vec3f(s.normal()))) * (-s.radius());
+            const Vec3f diff = (Vec3f::broadcast(1.0f) - sqrt(Vec3f::broadcast(1.0f) - s.normal()*s.normal())) * (-s.radius());
             // diff.x < 0.0f indicates that we have to move bb.max by diff.x
             // diff.x > 0.0f indicates that we have to move bb.min by diff.x
             const Vec3f dmin = Vec3f::blend(Vec3f::broadcast(0.0f), diff, diff < 0);

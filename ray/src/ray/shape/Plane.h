@@ -19,7 +19,7 @@ namespace ray
 
         Plane(const Point3f& p, const Vec3f& v1, const Vec3f& v2) noexcept :
             normal(cross(v1, v2).normalized()),
-            distance(dot(normal, Vec3f(p)))
+            distance(dot(normal, p.asVector()))
         {
         }
     };

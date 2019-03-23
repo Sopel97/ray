@@ -81,7 +81,7 @@ namespace ray
         Normal3<float>& operator=(const Normal3<float>&) noexcept = default;
         Normal3<float>& operator=(Normal3<float>&&) noexcept = default;
 
-        [[nodiscard]] explicit operator Vec3<float>() const;
+        [[nodiscard]] operator Vec3<float>() const;
 
         void negate(const Vec3Mask<float>& mask)
         {
@@ -126,6 +126,11 @@ namespace ray
         {
         }
 
+        Vec3(float v) :
+            xmm(_mm_set1_ps(v))
+        {
+        }
+
         explicit Vec3(__m128 xyz_) noexcept :
             xmm(xyz_)
         {
@@ -162,18 +167,6 @@ namespace ray
         Vec3<float>& operator/=(const Vec3<float>& rhs)
         {
             xmm = m128::div(xmm, rhs.xmm);
-            return *this;
-        }
-
-        Vec3<float>& operator*=(float rhs)
-        {
-            xmm = m128::mul(xmm, rhs);
-            return *this;
-        }
-
-        Vec3<float>& operator/=(float rhs)
-        {
-            xmm = m128::div(xmm, rhs);
             return *this;
         }
 
@@ -242,6 +235,14 @@ namespace ray
         {
             return Point3<float>{};
         }
+        [[nodiscard]] static Point3<float> blend(float a, float b, const Vec3Mask<float>& mask) noexcept
+        {
+            return Point3<float>(m128::blend(a, b, mask.xmm));
+        }
+        [[nodiscard]] static Point3<float> blend(const Point3<float>& a, const Point3<float>& b, const Vec3Mask<float>& mask) noexcept
+        {
+            return Point3<float>(m128::blend(a.xmm, b.xmm, mask.xmm));
+        }
 
         explicit Point3(__m128 xyz_) noexcept :
             xmm(xyz_)
@@ -275,6 +276,11 @@ namespace ray
             return *this;
         }
 
+        [[nodiscard]] Vec3<float> asVector() const
+        {
+            return Vec3<float>(xmm);
+        }
+
         [[nodiscard]] explicit operator Vec3<float>() const
         {
             return Vec3<float>(xmm);
@@ -292,7 +298,7 @@ namespace ray
     {
     }
 
-    inline Normal3<float>::operator Vec3<float>() const
+    [[nodiscard]] inline Normal3<float>::operator Vec3<float>() const
     {
         return Vec3<float>(xmm);
     }
@@ -351,30 +357,9 @@ namespace ray
         return Vec3<float>(m128::mul(lhs.xmm, rhs.xmm));
     }
 
-    [[nodiscard]] inline Vec3<float> operator*(const Vec3<float>& lhs, float rhs)
+    [[nodiscard]] inline Point3<float> operator*(const Point3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(m128::mul(lhs.xmm, rhs));
-    }
-
-    [[nodiscard]] inline Vec3<float> operator*(const Normal3<float>& lhs, float rhs)
-    {
-        return Vec3<float>(m128::mul(lhs.xmm, rhs));
-    }
-
-    [[nodiscard]] inline Vec3<float> operator*(float lhs, const Vec3<float>& rhs)
-    {
-        return Vec3<float>(m128::mul(lhs, rhs.xmm));
-    }
-
-    [[nodiscard]] inline Vec3<float> operator*(float lhs, const Normal3<float>& rhs)
-    {
-        return Vec3<float>(m128::mul(lhs, rhs.xmm));
-    }
-
-
-    [[nodiscard]] inline Vec3<float> operator/(const Vec3<float>& lhs, float rhs)
-    {
-        return Vec3<float>(m128::div(lhs.xmm, rhs));
+        return Point3<float>(m128::mul(lhs.xmm, rhs.xmm));
     }
 
     [[nodiscard]] inline Vec3<float> operator/(const Vec3<float>& lhs, const Vec3<float>& rhs)
@@ -382,19 +367,9 @@ namespace ray
         return Vec3<float>(m128::div(lhs.xmm, rhs.xmm));
     }
 
-    [[nodiscard]] inline Vec3<float> operator/(const Normal3<float>& lhs, float rhs)
+    [[nodiscard]] inline Point3<float> operator/(const Point3<float>& lhs, const Vec3<float>& rhs)
     {
-        return Vec3<float>(m128::div(lhs.xmm, rhs));
-    }
-
-    [[nodiscard]] inline Vec3<float> operator/(float lhs, const Vec3<float>& rhs)
-    {
-        return Vec3<float>(m128::div(lhs, rhs.xmm));
-    }
-
-    [[nodiscard]] inline Vec3<float> operator/(float lhs, const Normal3<float>& rhs)
-    {
-        return Vec3<float>(m128::div(lhs, rhs.xmm));
+        return Point3<float>(m128::div(lhs.xmm, rhs.xmm));
     }
 
 
@@ -403,141 +378,49 @@ namespace ray
         return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
     }
 
-    [[nodiscard]] inline Vec3Mask<float> operator==(const Normal3<float>& lhs, const Normal3<float>& rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator==(const Point3<float>& lhs, const Point3<float>& rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator==(const Vec3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator==(const Normal3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator==(const Point3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs)};
-    }
-
-
     [[nodiscard]] inline Vec3Mask<float> operator<(const Vec3<float> & lhs, const Vec3<float>& rhs) noexcept
     {
         return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs.xmm)};
     }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<(const Normal3<float>& lhs, const Normal3<float>& rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<(const Point3<float>& lhs, const Point3<float>& rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<(const Vec3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<(const Normal3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<(const Point3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs)};
-    }
-
 
     [[nodiscard]] inline Vec3Mask<float> operator>(const Vec3<float> & lhs, const Vec3<float>& rhs) noexcept
     {
         return Vec3Mask<float>{m128::cmplt(rhs.xmm, lhs.xmm)};
     }
 
-    [[nodiscard]] inline Vec3Mask<float> operator>(const Normal3<float>& lhs, const Normal3<float>& rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(rhs.xmm, lhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator>(const Point3<float>& lhs, const Point3<float>& rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(rhs.xmm, lhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator>(const Vec3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(rhs, lhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator>(const Normal3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(rhs, lhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator>(const Point3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmplt(rhs, lhs.xmm)};
-    }
-
-
     [[nodiscard]] inline Vec3Mask<float> operator<=(const Vec3<float> & lhs, const Vec3<float>& rhs) noexcept
     {
         return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs.xmm)};
     }
+    [[nodiscard]] inline Vec3Mask<float> operator==(const Point3<float> & lhs, const Point3<float>& rhs) noexcept
+    {
+        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
+    }
 
-    [[nodiscard]] inline Vec3Mask<float> operator<=(const Normal3<float>& lhs, const Normal3<float>& rhs) noexcept
+    [[nodiscard]] inline Vec3Mask<float> operator<(const Point3<float> & lhs, const Point3<float>& rhs) noexcept
+    {
+        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs.xmm)};
+    }
+
+    [[nodiscard]] inline Vec3Mask<float> operator>(const Point3<float> & lhs, const Point3<float>& rhs) noexcept
+    {
+        return Vec3Mask<float>{m128::cmplt(rhs.xmm, lhs.xmm)};
+    }
+
+    [[nodiscard]] inline Vec3Mask<float> operator<=(const Point3<float> & lhs, const Point3<float>& rhs) noexcept
     {
         return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs.xmm)};
     }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<=(const Point3<float>& lhs, const Point3<float>& rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs.xmm)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<=(const Vec3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<=(const Normal3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs)};
-    }
-
-    [[nodiscard]] inline Vec3Mask<float> operator<=(const Point3<float>& lhs, float rhs) noexcept
-    {
-        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs)};
-    }
-
 
     [[nodiscard]] inline Point3<float> mod(const Point3<float>& lhs, const Vec3<float>& rhs)
     {
         return Point3<float>(m128::mod(lhs.xmm, rhs.xmm));
     }
 
-
     [[nodiscard]] inline Vec3<float> rcp(const Vec3<float>& v)
     {
         return 1.0f / v;
     }
-
-    [[nodiscard]] inline Vec3<float> rcp(const Normal3<float>& v)
-    {
-        return 1.0f / v;
-    }
-
 
     [[nodiscard]] inline Vec3<float> abs(const Vec3<float>& v)
     {
@@ -560,42 +443,10 @@ namespace ray
         return m128::dot3(lhs.xmm, rhs.xmm);
     }
 
-    [[nodiscard]] inline float dot(const Normal3<float>& lhs, const Vec3<float>& rhs)
-    {
-        return m128::dot3(lhs.xmm, rhs.xmm);
-    }
-
-    [[nodiscard]] inline float dot(const Vec3<float>& lhs, const Normal3<float>& rhs)
-    {
-        return m128::dot3(lhs.xmm, rhs.xmm);
-    }
-
-    [[nodiscard]] inline float dot(const Normal3<float>& lhs, const Normal3<float>& rhs)
-    {
-        return m128::dot3(lhs.xmm, rhs.xmm);
-    }
-
-
     [[nodiscard]] inline Vec3<float> cross(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
         return Vec3<float>(m128::cross3(lhs.xmm, rhs.xmm));
     }
-
-    [[nodiscard]] inline Vec3<float> cross(const Normal3<float>& lhs, const Vec3<float>& rhs)
-    {
-        return Vec3<float>(m128::cross3(lhs.xmm, rhs.xmm));
-    }
-
-    [[nodiscard]] inline Vec3<float> cross(const Vec3<float>& lhs, const Normal3<float>& rhs)
-    {
-        return Vec3<float>(m128::cross3(lhs.xmm, rhs.xmm));
-    }
-
-    [[nodiscard]] inline Vec3<float> cross(const Normal3<float>& lhs, const Normal3<float>& rhs)
-    {
-        return Vec3<float>(m128::cross3(lhs.xmm, rhs.xmm));
-    }
-
 
     [[nodiscard]] inline Vec3<float> min(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {

@@ -137,7 +137,7 @@ ClosedTriangleMesh createIcosahedron(const Vec3f& offset, float radius, const Su
 
     for (const Index3& face : basicMesh.faces)
     {
-        Vec3f centerOffset = (Vec3f(basicMesh.vertices[face.i]) + Vec3f(basicMesh.vertices[face.j]) + Vec3f(basicMesh.vertices[face.k])) * 0.333333333333f;
+        Vec3f centerOffset = (basicMesh.vertices[face.i].asVector() + basicMesh.vertices[face.j].asVector() + basicMesh.vertices[face.k].asVector()) * 0.333333333333f;
         Normal3f normal = centerOffset.normalized();
         mesh.addVertex(ClosedTriangleMeshVertex{ basicMesh.vertices[face.i] + offset, normal, {} });
         mesh.addVertex(ClosedTriangleMeshVertex{ basicMesh.vertices[face.j] + offset, normal, {} });
@@ -407,7 +407,6 @@ int __cdecl main()
         | sumPart16
     );
     */
-
     //csgs.emplace_back(sumPart16);
 
     //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
