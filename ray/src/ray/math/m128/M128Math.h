@@ -6,8 +6,6 @@
 #include <xmmintrin.h>
 #include <smmintrin.h>
 
-#include <ray/utility/UtilityMacroDef.h>
-
 namespace ray
 {
     namespace m128
@@ -25,70 +23,6 @@ namespace ray
             yyyy = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(1, 1, 1, 1));
             zzzz = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(2, 2, 2, 2));
             wwww = _mm_shuffle_ps(vec, vec, _MM_SHUFFLE(3, 3, 3, 3));
-        }
-
-        template <int I>
-        [[nodiscard]] inline float extract(__m128 xmm)
-        {
-            static_assert(I >= 0 && I <= 3);
-
-            if constexpr (I == 0)
-            {
-                return _mm_cvtss_f32(xmm);
-            }
-            else
-            {
-                return _mm_cvtss_f32(permute<I, I, I, I>(xmm));
-            }
-        }
-
-        [[nodiscard]] inline float extract(__m128 xmm, int i)
-        {
-            switch (i)
-            {
-            case 0:
-                return extract<0>(xmm);
-            case 1:
-                return extract<1>(xmm);
-            case 2:
-                return extract<2>(xmm);
-            case 3:
-                return extract<3>(xmm);
-            }
-
-            RAY_UNREACHABLE();
-        }
-
-        template <int I>
-        [[nodiscard]] inline __m128 insert(__m128 xmm, float s)
-        {
-            static_assert(I >= 0 && I <= 3);
-
-            __m128 s4 = _mm_set1_ps(s);
-            return _mm_blend_ps(xmm, s4, 1 << I);
-        }
-
-        [[nodiscard]] inline __m128 insert(__m128 xmm, float s, int i)
-        {
-            switch (i)
-            {
-            case 0:
-                return insert<0>(xmm, s);
-            case 1:
-                return insert<1>(xmm, s);
-            case 2:
-                return insert<2>(xmm, s);
-            case 3:
-                return insert<3>(xmm, s);
-            }
-
-            RAY_UNREACHABLE();
-        }
-
-        template <bool X, bool Y, bool Z, bool W>
-        [[nodiscard]] inline __m128 blend(__m128 xmm0, __m128 xmm1)
-        {
-            return _mm_blend_ps(xmm0, xmm1, lane::mask<X, Y, Z, W>());
         }
 
         // for xyzw vector make it xyz0
@@ -383,5 +317,3 @@ namespace ray
         }
     }
 }
-
-#include <ray/utility/UtilityMacroUndef.h>

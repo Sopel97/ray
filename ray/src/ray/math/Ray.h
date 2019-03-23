@@ -73,7 +73,11 @@ namespace ray
 
         [[nodiscard]] Vec3f safeInv(const Normal3f& n) const
         {
-            return rcp(Vec3f::blend(n, Vec3f::broadcast(0.00001f), abs(n) < 0.00001f));
+            Vec3f nv(n);
+            if (std::abs(nv.x) < 0.00001f) nv.x = 0.00001f;
+            if (std::abs(nv.y) < 0.00001f) nv.y = 0.00001f;
+            if (std::abs(nv.z) < 0.00001f) nv.z = 0.00001f;
+            return rcp(nv);
         }
     };
 }

@@ -2,7 +2,6 @@
 
 #include "m128/M128Math.h"
 #include "m128/M128MatrixOperations.h"
-#include "m128/M128ScalarAccessor.h"
 
 #include "Quat4.h"
 #include "Vec3.h"
@@ -23,32 +22,6 @@ namespace ray
     {
         friend struct Matrix3<float>;
         
-        Matrix4(const Matrix4& other) :
-            m_columns{ other.m_columns[0], other.m_columns[1], other.m_columns[2], other.m_columns[3] }
-        {
-
-        }
-        Matrix4(Matrix4&& other) :
-            m_columns{ other.m_columns[0], other.m_columns[1], other.m_columns[2], other.m_columns[3] }
-        {
-
-        }
-
-        Matrix4& operator=(const Matrix4& other)
-        {
-            m_columns[0] = other.m_columns[0];
-            m_columns[1] = other.m_columns[1];
-            m_columns[2] = other.m_columns[2];
-            m_columns[3] = other.m_columns[3];
-        }
-        Matrix4& operator=(Matrix4&& other)
-        {
-            m_columns[0] = other.m_columns[0];
-            m_columns[1] = other.m_columns[1];
-            m_columns[2] = other.m_columns[2];
-            m_columns[3] = other.m_columns[3];
-        }
-
         // takes rows, transposes
         // will mostly be used in source with literals
         // so it is the most intuitive way
@@ -58,12 +31,12 @@ namespace ray
             float m02, float m12, float m22, float m32,
             float m03, float m13, float m23, float m33
         ) noexcept :
-            m_columns{
-                _mm_setr_ps(m00, m01, m02, m03),
-                _mm_setr_ps(m10, m11, m12, m13),
-                _mm_setr_ps(m20, m21, m22, m23),
-                _mm_setr_ps(m30, m31, m32, m33)
-            }
+            m_values{
+                m00, m01, m02, m03,
+                m10, m11, m12, m13,
+                m20, m21, m22, m23,
+                m30, m31, m32, m33
+        }
         {
         }
 
@@ -88,17 +61,17 @@ namespace ray
             const float tx = -near * (left + right) / (right - left);
             const float ty = -near * (bottom + top) / (top - bottom);
 
-            m00 = sx;
+            m_values[0][0] = sx;
 
-            m11 = sy;
+            m_values[1][1] = sy;
 
-            m22 = c2;
-            m23 = -1.0f;
+            m_values[2][2] = c2;
+            m_values[2][3] = -1.0f;
 
-            m30 = tx;
-            m31 = ty;
-            m32 = c1;
-            m33 = 0.0f;
+            m_values[3][0] = tx;
+            m_values[3][1] = ty;
+            m_values[3][2] = c1;
+            m_values[3][3] = 0.0f;
         }
 
         [[nodiscard]] friend Matrix4<float> operator*(const Matrix4<float>& lhs, const Matrix4<float>& rhs)
@@ -121,11 +94,12 @@ namespace ray
         [[nodiscard]] bool isAlmostIdentity() const
         {
             static constexpr float eps = 1e-5;
-            Matrix4 identity{};
-            for (int c = 0; c < 4; ++c)
+            for (int r = 0; r < 4; ++r)
             {
-                auto mask = m128::cmplt(eps, m128::sub(m128::abs(m_columns[c]), identity.m_columns[c]));
-                if (_mm_movemask_ps(mask)) return false;
+                for (int c = 0; c < 4; ++c)
+                {
+                    if (std::abs(m_values[r][c] - static_cast<float>(r == c)) > eps) return false;
+                }
             }
             return true;
         }
@@ -161,29 +135,14 @@ namespace ray
 
         void print() const
         {
-            std::cout << m00 << ' ';
-            std::cout << m10 << ' ';
-            std::cout << m20 << ' ';
-            std::cout << m30 << ' ';
-            std::cout << '\n';
-
-            std::cout << m01 << ' ';
-            std::cout << m11 << ' ';
-            std::cout << m21 << ' ';
-            std::cout << m31 << ' ';
-            std::cout << '\n';
-
-            std::cout << m02 << ' ';
-            std::cout << m12 << ' ';
-            std::cout << m22 << ' ';
-            std::cout << m32 << ' ';
-            std::cout << '\n';
-
-            std::cout << m03 << ' ';
-            std::cout << m13 << ' ';
-            std::cout << m23 << ' ';
-            std::cout << m33 << ' ';
-            std::cout << '\n';
+            for (int r = 0; r < 4; ++r)
+            {
+                for (int c = 0; c < 4; ++c)
+                {
+                    std::cout << m_values[c][r] << ' ';
+                }
+                std::cout << '\n';
+            }
         }
 
     protected:
@@ -191,22 +150,7 @@ namespace ray
         {
             __m128 m_columns[4];
             // [col][row]
-            m128::ScalarMatrixAccessor<4, 0, 0> m00;
-            m128::ScalarMatrixAccessor<4, 0, 1> m01;
-            m128::ScalarMatrixAccessor<4, 0, 2> m02;
-            m128::ScalarMatrixAccessor<4, 0, 3> m03;
-            m128::ScalarMatrixAccessor<4, 1, 0> m10;
-            m128::ScalarMatrixAccessor<4, 1, 1> m11;
-            m128::ScalarMatrixAccessor<4, 1, 2> m12;
-            m128::ScalarMatrixAccessor<4, 1, 3> m13;
-            m128::ScalarMatrixAccessor<4, 2, 0> m20;
-            m128::ScalarMatrixAccessor<4, 2, 1> m21;
-            m128::ScalarMatrixAccessor<4, 2, 2> m22;
-            m128::ScalarMatrixAccessor<4, 2, 3> m23;
-            m128::ScalarMatrixAccessor<4, 3, 0> m30;
-            m128::ScalarMatrixAccessor<4, 3, 1> m31;
-            m128::ScalarMatrixAccessor<4, 3, 2> m32;
-            m128::ScalarMatrixAccessor<4, 3, 3> m33;
+            float m_values[4][4];
         };
 
         Matrix4(__m128 c0, __m128 c1, __m128 c2, __m128 c3) noexcept :
@@ -311,27 +255,27 @@ namespace ray
             const float z2 = q.z*q.z;
 
             // col 0
-            m00 = 1.0f - 2.0f * (y2 + z2);
-            m01 = 2.0f * (q.x*q.y + q.z*q.w);
-            m02 = 2.0f * (q.x*q.z - q.y*q.w);
+            m_values[0][0] = 1.0f - 2.0f * (y2 + z2);
+            m_values[0][1] = 2.0f * (q.x*q.y + q.z*q.w);
+            m_values[0][2] = 2.0f * (q.x*q.z - q.y*q.w);
 
             // col 1
-            m10 = 2.0f * (q.x*q.y - q.z*q.w);
-            m11 = 1.0f - 2.0f * (x2 + z2);
-            m12 = 2.0f * (q.y*q.z + q.x*q.w);
+            m_values[1][0] = 2.0f * (q.x*q.y - q.z*q.w);
+            m_values[1][1] = 1.0f - 2.0f * (x2 + z2);
+            m_values[1][2] = 2.0f * (q.y*q.z + q.x*q.w);
 
             // col 2
-            m20 = 2.0f * (q.x*q.z + q.y*q.w);
-            m21 = 2.0f * (q.y*q.z - q.x*q.w);
-            m22 = 1.0f - 2.0f * (x2 + y2);
+            m_values[2][0] = 2.0f * (q.x*q.z + q.y*q.w);
+            m_values[2][1] = 2.0f * (q.y*q.z - q.x*q.w);
+            m_values[2][2] = 1.0f - 2.0f * (x2 + y2);
         }
 
         Matrix4(const Quat4<float>& q, const Vec3<float>& t) noexcept :
             Matrix4(q)
         {
-            m30 = t.x;
-            m31 = t.y;
-            m32 = t.z;
+            m_values[3][0] = t.x;
+            m_values[3][1] = t.y;
+            m_values[3][2] = t.z;
         }
 
         Matrix4(const Quat4<float>& q, const Point3<float>& origin) noexcept :
@@ -345,9 +289,9 @@ namespace ray
             // 0 | 1     0 | 1      0 |   1
 
             const Vec3<float> t(m128::sub(origin.xmm, m128::mulMat3Vec3(m_columns, origin.xmm)));
-            m30 = t.x;
-            m31 = t.y;
-            m32 = t.z;
+            m_values[3][0] = t.x;
+            m_values[3][1] = t.y;
+            m_values[3][2] = t.z;
         }
     };
 

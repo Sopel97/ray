@@ -29,7 +29,7 @@ namespace ray
             using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvhParamsT>;
             using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvhParamsT>;
 
-            using Point3fMemberExtractor = Point3fScalarExtractor;
+            using Point3fMemberPtr = float(Point3f::*);
 
             For(int order = 1) :
                 m_numParts(1 << order)
@@ -57,12 +57,12 @@ namespace ray
                 return bb;
             }
 
-            [[nodiscard]] Point3fMemberExtractor biggestExtentAxis(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
+            [[nodiscard]] Point3fMemberPtr biggestExtentAxis(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
                 const Vec3f extent = aabb(first, last).extent();
-                if (extent.x > extent.y && extent.x > extent.z) return Point3fMemberExtractor::x();
-                if (extent.y > extent.x && extent.y > extent.z) return Point3fMemberExtractor::y();
-                return Point3fMemberExtractor::z();
+                if (extent.x > extent.y && extent.x > extent.z) return &Point3f::x;
+                if (extent.y > extent.x && extent.y > extent.z) return &Point3f::y;
+                return &Point3f::z;
             }
 
         private:
@@ -79,6 +79,8 @@ namespace ray
                     } while (x);
                     return y;
                 };
+
+                const Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
 
                 const int size = static_cast<int>(std::distance(first, last));
                 const int parts = flp2(std::min(size, p));
@@ -98,17 +100,17 @@ namespace ray
 
             [[nodiscard]] BoundedBvhObjectVectorIterator partitionHalf(BoundedBvhObjectVectorIterator first, BoundedBvhObjectVectorIterator last) const
             {
-                const Point3fMemberExtractor cmpAxis = biggestExtentAxis(first, last);
+                const Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
 
                 const int size = static_cast<int>(std::distance(first, last));
                 const auto mid = std::next(first, size / 2);
 
                 const float partitionPoint = std::accumulate(first, last, 0.0f, [cmpAxis](float acc, const auto& lhs) {
-                    return cmpAxis.extractFrom(lhs->center()) + acc;
+                    return lhs->center().*cmpAxis + acc;
                     }) / size;
 
                 return std::partition(first, last, [partitionPoint, cmpAxis](const auto& em) {
-                        return cmpAxis.extractFrom(em->center()) < partitionPoint;
+                        return em->center().*cmpAxis < partitionPoint;
                     });
             }
         };

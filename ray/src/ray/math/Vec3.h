@@ -74,7 +74,7 @@ namespace ray
         constexpr Normal3<T>& operator=(const Normal3<T>&) noexcept = default;
         constexpr Normal3<T>& operator=(Normal3<T>&&) noexcept = default;
 
-        [[nodiscard]] constexpr operator Vec3<T>() const
+        [[nodiscard]] constexpr explicit operator Vec3<T>() const
         {
             return Vec3<T>(x, y, z);
         }
@@ -102,14 +102,6 @@ namespace ray
             return Vec3<T>(v, v, v);
         }
         constexpr Vec3() noexcept = default;
-        constexpr Vec3(const T& v) :
-            x(v),
-            y(v),
-            z(v)
-        {
-
-        }
-
         constexpr Vec3(const T& x, const T& y, const T& z) noexcept :
             x(x),
             y(y),
@@ -152,6 +144,22 @@ namespace ray
             x /= rhs.x;
             y /= rhs.y;
             z /= rhs.z;
+            return *this;
+        }
+
+        constexpr Vec3<T>& operator*=(const T& rhs)
+        {
+            x *= rhs;
+            y *= rhs;
+            z *= rhs;
+            return *this;
+        }
+
+        constexpr Vec3<T>& operator/=(const T& rhs)
+        {
+            x /= rhs;
+            y /= rhs;
+            z /= rhs;
             return *this;
         }
 
@@ -228,13 +236,6 @@ namespace ray
         }
 
         constexpr Point3() noexcept = default;
-        constexpr Point3(const T& v) :
-            x(v),
-            y(v),
-            z(v)
-        {
-        }
-
         constexpr Point3(const T& x, const T& y, const T& z) noexcept :
             x(x),
             y(y),
@@ -264,7 +265,7 @@ namespace ray
             return *this;
         }
 
-        [[nodiscard]] constexpr operator Vec3<T>() const
+        [[nodiscard]] constexpr explicit operator Vec3<T>() const
         {
             return Vec3<T>(x, y, z);
         }
@@ -345,6 +346,66 @@ namespace ray
     }
 
     template <typename T>
+    [[nodiscard]] constexpr Vec3<T> operator*(const Vec3<T>& lhs, const T& rhs)
+    {
+        return Vec3<T>(
+            lhs.x * rhs,
+            lhs.y * rhs,
+            lhs.z * rhs
+            );
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3<T> operator*(const Normal3<T>& lhs, const T& rhs)
+    {
+        return Vec3<T>(
+            lhs.x * rhs,
+            lhs.y * rhs,
+            lhs.z * rhs
+            );
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3<T> operator*(const T& lhs, const Vec3<T>& rhs)
+    {
+        return Vec3<T>(
+            lhs * rhs.x,
+            lhs * rhs.y,
+            lhs * rhs.z
+            );
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3<T> operator/(const Vec3<T>& lhs, const T& rhs)
+    {
+        return Vec3<T>(
+            lhs.x / rhs,
+            lhs.y / rhs,
+            lhs.z / rhs
+            );
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3<T> operator*(const T& lhs, const Normal3<T>& rhs)
+    {
+        return Vec3<T>(
+            lhs * rhs.x,
+            lhs * rhs.y,
+            lhs * rhs.z
+            );
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3<T> operator/(const Normal3<T>& lhs, const T& rhs)
+    {
+        return Vec3<T>(
+            lhs.x / rhs,
+            lhs.y / rhs,
+            lhs.z / rhs
+            );
+    }
+
+    template <typename T>
     [[nodiscard]] constexpr Vec3Mask<T> operator<(const Vec3<T>& lhs, const Vec3<T>& rhs) noexcept
     {
         return Vec3Mask<T>{
@@ -355,7 +416,64 @@ namespace ray
     }
 
     template <typename T>
+    [[nodiscard]] constexpr Vec3Mask<T> operator<(const Normal3<T>& lhs, const Vec3<T>& rhs) noexcept
+    {
+        return Vec3Mask<T>{
+            lhs.x < rhs.x,
+            lhs.y < rhs.y,
+            lhs.z < rhs.z
+        };
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3Mask<T> operator<(const Vec3<T>& lhs, const T& rhs) noexcept
+    {
+        return Vec3Mask<T>{
+            lhs.x < rhs,
+            lhs.y < rhs,
+            lhs.z < rhs
+        };
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3Mask<T> operator<(const Normal3<T>& lhs, const T& rhs) noexcept
+    {
+        return Vec3Mask<T>{
+            lhs.x < rhs,
+            lhs.y < rhs,
+            lhs.z < rhs
+        };
+    }
+
+    template <typename T>
     [[nodiscard]] constexpr T dot(const Vec3<T>& lhs, const Vec3<T>& rhs)
+    {
+        return
+            lhs.x * rhs.x +
+            lhs.y * rhs.y +
+            lhs.z * rhs.z;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr T dot(const Normal3<T>& lhs, const Vec3<T>& rhs)
+    {
+        return
+            lhs.x * rhs.x +
+            lhs.y * rhs.y +
+            lhs.z * rhs.z;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr T dot(const Vec3<T>& lhs, const Normal3<T>& rhs)
+    {
+        return
+            lhs.x * rhs.x +
+            lhs.y * rhs.y +
+            lhs.z * rhs.z;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr T dot(const Normal3<T>& lhs, const Normal3<T>& rhs)
     {
         return
             lhs.x * rhs.x +
@@ -371,6 +489,36 @@ namespace ray
             lhs.z*rhs.x - lhs.x*rhs.z, 
             lhs.x*rhs.y - lhs.y*rhs.x
         );
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3<T> cross(const Normal3<T>& lhs, const Vec3<T>& rhs)
+    {
+        return Vec3<T>(
+            lhs.y*rhs.z - lhs.z*rhs.y,
+            lhs.z*rhs.x - lhs.x*rhs.z,
+            lhs.x*rhs.y - lhs.y*rhs.x
+            );
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3<T> cross(const Vec3<T>& lhs, const Normal3<T>& rhs)
+    {
+        return Vec3<T>(
+            lhs.y*rhs.z - lhs.z*rhs.y,
+            lhs.z*rhs.x - lhs.x*rhs.z,
+            lhs.x*rhs.y - lhs.y*rhs.x
+            );
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr Vec3<T> cross(const Normal3<T>& lhs, const Normal3<T>& rhs)
+    {
+        return Vec3<T>(
+            lhs.y*rhs.z - lhs.z*rhs.y,
+            lhs.z*rhs.x - lhs.x*rhs.z,
+            lhs.x*rhs.y - lhs.y*rhs.x
+            );
     }
 
     template <typename T>

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ray/utility/UtilityMacroDef.h>
-
 namespace ray
 {
     struct AssumeNormalized {};
@@ -54,48 +52,5 @@ namespace ray
                 return m_value = std::move(value);
             }
         };
-
-        template <typename VecT, typename ScalarT>
-        struct ScalarExtractor
-        {
-            [[nodiscard]] static ScalarExtractor x()
-            {
-                return { 0 };
-            }
-            [[nodiscard]] static ScalarExtractor y()
-            {
-                return { 1 };
-            }
-            [[nodiscard]] static ScalarExtractor z()
-            {
-                return { 2 };
-            }
-
-            ScalarExtractor(int i) :
-                m_index(i)
-            {
-
-            }
-
-            [[nodiscard]] ScalarT extractFrom(const VecT& v) const
-            {
-                switch (m_index)
-                {
-                case 0:
-                    return v.x;
-                case 1:
-                    return v.y;
-                case 2:
-                    return v.z;
-                }
-
-                RAY_UNREACHABLE();
-            }
-
-        private:
-            int m_index;
-        };
     }
 }
-
-#include <ray/utility/UtilityMacroUndef.h>

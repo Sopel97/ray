@@ -1,7 +1,6 @@
 #pragma once
 
 #include "m128/M128Math.h"
-#include "m128/M128ScalarAccessor.h"
 
 #include <cstdint>
 #include <cmath>
@@ -28,11 +27,10 @@ namespace ray
     struct alignas(alignof(__m128)) Float4
     {
         union {
+            struct {
+                float v[4];
+            };
             __m128 xmm;
-            m128::ScalarAccessor<0> v0;
-            m128::ScalarAccessor<1> v1;
-            m128::ScalarAccessor<2> v2;
-            m128::ScalarAccessor<3> v3;
         };
 
         RAY_GEN_MEMBER_SWIZZLE4_DIG_ALL(Float4)
@@ -59,39 +57,16 @@ namespace ray
             xmm(xmm)
         {
         }
-
-        Float4(float v) :
-            xmm(_mm_set1_ps(v))
-        {
-        }
-
         Float4(float v0, float v1, float v2, float v3) noexcept :
             xmm(_mm_set_ps(v3, v2, v1, v0))
         {
 
         }
+        Float4(const Float4&) noexcept = default;
+        Float4(Float4&&) noexcept = default;
 
-        Float4(const Float4& other) noexcept :
-            xmm(other.xmm)
-        {
-
-        }
-        Float4(Float4&& other) noexcept :
-            xmm(other.xmm)
-        {
-
-        }
-
-        Float4& operator=(const Float4& other) noexcept
-        {
-            xmm = other.xmm;
-            return *this;
-        }
-        Float4& operator=(Float4&& other) noexcept
-        {
-            xmm = other.xmm;
-            return *this;
-        }
+        Float4& operator=(const Float4&) noexcept = default;
+        Float4& operator=(Float4&&) noexcept = default;
 
         Float4& operator+=(const Float4& rhs)
         {
@@ -117,9 +92,21 @@ namespace ray
             return *this;
         }
 
+        Float4& operator*=(float rhs)
+        {
+            xmm = m128::mul(xmm, rhs);
+            return *this;
+        }
+
+        Float4& operator/=(float rhs)
+        {
+            xmm = m128::div(xmm, rhs);
+            return *this;
+        }
+
         void insert(float x, int i)
         {
-            xmm = m128::insert(xmm, x, i);
+            v[i] = x;
         }
 
         [[nodiscard]] float max() const
@@ -149,11 +136,6 @@ namespace ray
         return Float4Mask(_mm_xor_ps(lhs.xmm, rhs.xmm));
     }
 
-    [[nodiscard]] inline Float4Mask operator~(const Float4Mask& lhs)
-    {
-        return Float4Mask(_mm_xor_ps(lhs.xmm, _mm_castsi128_ps(_mm_set1_epi32(0xFFFFFFFF))));
-    }
-
     [[nodiscard]] inline Float4 operator-(const Float4& f)
     {
         return Float4(m128::neg(f.xmm));
@@ -179,9 +161,34 @@ namespace ray
         return Float4(m128::div(lhs.xmm, rhs.xmm));
     }
 
+    [[nodiscard]] inline Float4 operator*(const Float4& lhs, float rhs)
+    {
+        return Float4(m128::mul(lhs.xmm, rhs));
+    }
+
+    [[nodiscard]] inline Float4 operator/(const Float4& lhs, float rhs)
+    {
+        return Float4(m128::div(lhs.xmm, rhs));
+    }
+
+    [[nodiscard]] inline Float4 operator*(float lhs, const Float4& rhs)
+    {
+        return Float4(m128::mul(lhs, rhs.xmm));
+    }
+
+    [[nodiscard]] inline Float4 operator/(float lhs, const Float4& rhs)
+    {
+        return Float4(m128::div(lhs, rhs.xmm));
+    }
+
     [[nodiscard]] inline Float4Mask operator==(const Float4& lhs, const Float4& rhs) noexcept
     {
         return Float4Mask(m128::cmpeq(lhs.xmm, rhs.xmm));
+    }
+
+    [[nodiscard]] inline Float4Mask operator==(const Float4& lhs, float rhs) noexcept
+    {
+        return Float4Mask(m128::cmpeq(lhs.xmm, rhs));
     }
 
     [[nodiscard]] inline Float4Mask operator<(const Float4& lhs, const Float4& rhs) noexcept
@@ -189,9 +196,19 @@ namespace ray
         return Float4Mask(m128::cmplt(lhs.xmm, rhs.xmm));
     }
 
+    [[nodiscard]] inline Float4Mask operator<(const Float4& lhs, float rhs) noexcept
+    {
+        return Float4Mask(m128::cmplt(lhs.xmm, rhs));
+    }
+
     [[nodiscard]] inline Float4Mask operator>(const Float4& lhs, const Float4& rhs) noexcept
     {
         return Float4Mask(m128::cmplt(rhs.xmm, lhs.xmm));
+    }
+
+    [[nodiscard]] inline Float4Mask operator>(const Float4& lhs, float rhs) noexcept
+    {
+        return Float4Mask(m128::cmplt(rhs, lhs.xmm));
     }
 
     [[nodiscard]] inline Float4Mask operator<=(const Float4& lhs, const Float4& rhs) noexcept
@@ -199,9 +216,19 @@ namespace ray
         return Float4Mask(m128::cmpeq(lhs.xmm, rhs.xmm));
     }
 
+    [[nodiscard]] inline Float4Mask operator<=(const Float4& lhs, float rhs) noexcept
+    {
+        return Float4Mask(m128::cmpeq(lhs.xmm, rhs));
+    }
+
     [[nodiscard]] inline Float4Mask operator>=(const Float4& lhs, const Float4& rhs) noexcept
     {
         return Float4Mask(m128::cmpeq(rhs.xmm, lhs.xmm));
+    }
+
+    [[nodiscard]] inline Float4Mask operator>=(const Float4& lhs, float rhs) noexcept
+    {
+        return Float4Mask(m128::cmpeq(rhs, lhs.xmm));
     }
 
     [[nodiscard]] inline Float4 sqrt(const Float4& f)

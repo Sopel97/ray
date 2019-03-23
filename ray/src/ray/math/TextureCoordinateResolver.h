@@ -63,8 +63,19 @@ namespace ray
     {
         const Vec3f extent = box.extent();
         const Normal3f normal = hit.normal;
-        const Vec3Mask<float> nm = normal > 0.5f;
-        const Point3f base = Point3f::blend(box.min, box.max, nm);
+        Point3f base = box.min;
+        if (normal.x > 0.5f)
+        {
+            base.x += extent.x;
+        }
+        else if (normal.y > 0.5f)
+        {
+            base.y += extent.y;
+        }
+        else if (normal.z > 0.5f)
+        {
+            base.z += extent.z;
+        }
         
         const Vec3f diff = (hit.point - base) / extent;
         if (diff.x < diff.y && diff.x < diff.z)
@@ -87,8 +98,19 @@ namespace ray
         const Normal3f normal = obb.worldToLocalRot * hit.normal;
         const Point3f p = Point3f::origin() + (hit.point - obb.min());
         const Point3f hitPoint = obb.worldToLocalRot * p;
-        const Vec3Mask<float> nm = normal > 0.5f;
-        const Point3f base = Point3f::blend(Point3f::origin() - obb.halfSize, Point3f::origin() + obb.halfSize, nm);
+        Point3f base = Point3f::origin() - obb.halfSize;
+        if (normal.x > 0.5f)
+        {
+            base.x += extent.x;
+        }
+        else if (normal.y > 0.5f)
+        {
+            base.y += extent.y;
+        }
+        else if (normal.z > 0.5f)
+        {
+            base.z += extent.z;
+        }
 
         const Vec3f diff = (hitPoint - base) / extent;
         if (diff.x < diff.y && diff.x < diff.z)
