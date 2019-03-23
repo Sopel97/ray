@@ -136,6 +136,8 @@
     <ClInclude Include="src\ray\utility\IntRange.h" />
     <ClInclude Include="src\ray\utility\IntRange2.h" />
     <ClInclude Include="src\ray\utility\Util.h" />
+    <ClInclude Include="src\ray\utility\UtilityMacroDef.h" />
+    <ClInclude Include="src\ray\utility\UtilityMacroUndef.h" />
     <ClInclude Include="src\ray\Viewport.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

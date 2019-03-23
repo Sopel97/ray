@@ -34,24 +34,14 @@ namespace ray
 
         void extend(const Point3f& point)
         {
-            if (point.x < min.x) min.x = point.x;
-            if (point.y < min.y) min.y = point.y;
-            if (point.z < min.z) min.z = point.z;
-
-            if (point.x > max.x) max.x = point.x;
-            if (point.y > max.y) max.y = point.y;
-            if (point.z > max.z) max.z = point.z;
+            min = Point3f::blend(min, point, point < min);
+            max = Point3f::blend(max, point, point > max);
         }
 
         void extend(const Box3& box)
         {
-            if (box.min.x < min.x) min.x = box.min.x;
-            if (box.min.y < min.y) min.y = box.min.y;
-            if (box.min.z < min.z) min.z = box.min.z;
-
-            if (box.max.x > max.x) max.x = box.max.x;
-            if (box.max.y > max.y) max.y = box.max.y;
-            if (box.max.z > max.z) max.z = box.max.z;
+            min = Point3f::blend(min, box.min, box.min < min);
+            max = Point3f::blend(max, box.max, box.max > max);
         }
 
         [[nodiscard]] std::array<Point3f, 8> vertices() const

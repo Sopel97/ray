@@ -246,8 +246,8 @@ namespace ray
         // with extents of r._
         const Vec3f& r = get<0>();
 
-        const float k0 = (Vec3f(p) / r).length();
-        const float k1 = (Vec3f(p) / (r*r)).length();
+        const float k0 = (p.asVector() / r).length();
+        const float k1 = (p.asVector() / (r*r)).length();
         return k0 * (k0 - 1.0f) / k1;
     FINALIZE_SDF_EXPRESSION
 
