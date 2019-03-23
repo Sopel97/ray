@@ -29,7 +29,7 @@ namespace ray
             using BoundedBvhObjectVector = BoundedStaticBvhObjectVector<BvhParamsT>;
             using BoundedBvhObjectVectorIterator = BoundedStaticBvhObjectVectorIterator<BvhParamsT>;
 
-            using Point3fMemberExtractor = Vec3fScalarExtractor;
+            using Point3fMemberExtractor = Point3fScalarExtractor;
 
             For(int order = 1) :
                 m_numParts(1 << order)

@@ -376,7 +376,7 @@ namespace ray
         perf::gThreadLocalPerfStats.addObjectRaycast<Plane>();
 #endif
         const float nd = dot(ray.direction(), plane.normal);
-        const float pn = dot(ray.origin(), plane.normal);
+        const float pn = dot(ray.origin().asVector(), plane.normal);
         const float t = (plane.distance - pn) / nd;
 
         // t must be positive
@@ -407,7 +407,7 @@ namespace ray
 #endif
 
         const float nd = dot(ray.direction(), disc.normal);
-        const float pn = dot(ray.origin(), disc.normal);
+        const float pn = dot(ray.origin().asVector(), disc.normal);
         const float t = (disc.distance - pn) / nd;
 
         // t must be positive
@@ -904,7 +904,7 @@ namespace ray
 #endif
 
         const float nd = dot(ray.direction(), disc.normal);
-        const float pn = dot(ray.origin(), disc.normal);
+        const float pn = dot(ray.origin().asVector(), disc.normal);
         t = (disc.distance - pn) / nd;
 
         const Point3f point = ray.origin() + ray.direction() * t;

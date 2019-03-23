@@ -55,7 +55,7 @@ namespace ray
 
         [[nodiscard]] Point3f center() const
         {
-            return Point3f::origin() + (vertex(0).point + vertex(1).point + vertex(2).point) * 0.333333333333333f;
+            return Point3f::origin() + (vertex(0).point.asVector() + vertex(1).point.asVector() + vertex(2).point.asVector()) * 0.333333333333333f;
         }
 
         [[nodiscard]] Box3 aabb() const

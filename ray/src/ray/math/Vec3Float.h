@@ -287,11 +287,6 @@ namespace ray
         {
         }
 
-        Point3(float v) :
-            xmm(_mm_set1_ps(v))
-        {
-        }
-
         Point3(float x, float y, float z) noexcept :
             xmm(_mm_set_ps(0.0f, z, y, x))
         {
@@ -332,7 +327,12 @@ namespace ray
             return *this;
         }
 
-        [[nodiscard]] operator Vec3<float>() const
+        [[nodiscard]] Vec3<float> asVector() const
+        {
+            return Vec3<float>(xmm);
+        }
+
+        [[nodiscard]] explicit operator Vec3<float>() const
         {
             return Vec3<float>(xmm);
         }
@@ -354,35 +354,8 @@ namespace ray
         return Vec3<float>(xmm);
     }
 
-    struct Vec3fScalarExtractor
-    {
-        [[nodiscard]] static Vec3fScalarExtractor x()
-        {
-            return { 0 };
-        }
-        [[nodiscard]] static Vec3fScalarExtractor y()
-        {
-            return { 1 };
-        }
-        [[nodiscard]] static Vec3fScalarExtractor z()
-        {
-            return { 2 };
-        }
-
-        Vec3fScalarExtractor(int i) :
-            m_index(i)
-        {
-
-        }
-
-        [[nodiscard]] float extractFrom(const Vec3f& v) const
-        {
-            return m128::extract(v.xmm, m_index);
-        }
-
-    private:
-        int m_index;
-    };
+    using Vec3fScalarExtractor = detail::ScalarExtractor<Vec3<float>, float>;
+    using Point3fScalarExtractor = detail::ScalarExtractor<Point3<float>, float>;
 
     // Operations
 
@@ -438,9 +411,19 @@ namespace ray
         return Vec3<float>(m128::mul(lhs.xmm, rhs.xmm));
     }
 
+    [[nodiscard]] inline Point3<float> operator*(const Point3<float>& lhs, const Vec3<float>& rhs)
+    {
+        return Point3<float>(m128::mul(lhs.xmm, rhs.xmm));
+    }
+
     [[nodiscard]] inline Vec3<float> operator/(const Vec3<float>& lhs, const Vec3<float>& rhs)
     {
         return Vec3<float>(m128::div(lhs.xmm, rhs.xmm));
+    }
+
+    [[nodiscard]] inline Point3<float> operator/(const Point3<float>& lhs, const Vec3<float>& rhs)
+    {
+        return Point3<float>(m128::div(lhs.xmm, rhs.xmm));
     }
 
 
@@ -460,6 +443,25 @@ namespace ray
     }
 
     [[nodiscard]] inline Vec3Mask<float> operator<=(const Vec3<float> & lhs, const Vec3<float>& rhs) noexcept
+    {
+        return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs.xmm)};
+    }
+    [[nodiscard]] inline Vec3Mask<float> operator==(const Point3<float> & lhs, const Point3<float>& rhs) noexcept
+    {
+        return Vec3Mask<float>{m128::cmpeq(lhs.xmm, rhs.xmm)};
+    }
+
+    [[nodiscard]] inline Vec3Mask<float> operator<(const Point3<float> & lhs, const Point3<float>& rhs) noexcept
+    {
+        return Vec3Mask<float>{m128::cmplt(lhs.xmm, rhs.xmm)};
+    }
+
+    [[nodiscard]] inline Vec3Mask<float> operator>(const Point3<float> & lhs, const Point3<float>& rhs) noexcept
+    {
+        return Vec3Mask<float>{m128::cmplt(rhs.xmm, lhs.xmm)};
+    }
+
+    [[nodiscard]] inline Vec3Mask<float> operator<=(const Point3<float> & lhs, const Point3<float>& rhs) noexcept
     {
         return Vec3Mask<float>{m128::cmple(lhs.xmm, rhs.xmm)};
     }

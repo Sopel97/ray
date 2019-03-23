@@ -194,7 +194,7 @@ namespace ray
     DEFINE_SDF_EXPRESSION_1(SdfScale, float)
         // scales by a uniform amount in all directions
         const float s = get<0>();
-        return arg()->signedDistance(p/s)*s;
+        return arg()->signedDistance(p / s)*s;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfSphere, float)
@@ -207,7 +207,7 @@ namespace ray
         // centered at the origin
         // b._ is half of the extent in a given direction
         const Vec3f& b = get<0>();
-        const Vec3f d = abs(p) - b;
+        const Vec3f d = abs(p.asVector()) - b;
         return (max(d, Vec3f::broadcast(0.0f))).length() + std::min<float>(std::max<float>(d.x, std::max<float>(d.y, d.z)), 0.0f);
     FINALIZE_SDF_EXPRESSION
 
@@ -246,8 +246,8 @@ namespace ray
         // with extents of r._
         const Vec3f& r = get<0>();
 
-        const float k0 = (p / r).length();
-        const float k1 = (p / (r*r)).length();
+        const float k0 = (p.asVector() / r).length();
+        const float k1 = (p.asVector() / (r*r)).length();
         return k0 * (k0 - 1.0f) / k1;
     FINALIZE_SDF_EXPRESSION
 
