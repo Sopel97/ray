@@ -55,5 +55,24 @@ namespace ray
                 return *this;
             }
         };
+
+        template <int I>
+        struct ReadonlyScalarAccessor : ScalarAccessor<I>
+        {
+            ReadonlyScalarAccessor(const ReadonlyScalarAccessor& other) = delete;
+            ReadonlyScalarAccessor(ReadonlyScalarAccessor&& other) = delete;
+
+            ReadonlyScalarAccessor& operator=(const ReadonlyScalarAccessor& other) = delete;
+
+            ReadonlyScalarAccessor& operator=(ReadonlyScalarAccessor&& other) = delete;
+
+            template <int J>
+            ReadonlyScalarAccessor& operator=(const ScalarAccessor<J>& other) = delete;
+
+            template <int J>
+            ReadonlyScalarAccessor& operator=(ScalarAccessor<J>&& other) = delete;
+
+            ReadonlyScalarAccessor& operator=(float s) = delete;
+        };
     }
 }

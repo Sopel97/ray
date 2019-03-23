@@ -36,9 +36,9 @@ namespace ray
     {
         union {
             __m128 xmm;
-            m128::ScalarAccessor<0> x;
-            m128::ScalarAccessor<1> y;
-            m128::ScalarAccessor<2> z;
+            m128::ReadonlyScalarAccessor<0> x;
+            m128::ReadonlyScalarAccessor<1> y;
+            m128::ReadonlyScalarAccessor<2> z;
         };
 
         RAY_GEN_MEMBER_SWIZZLE3_ALL(Normal3<float>)
