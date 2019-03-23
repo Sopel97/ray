@@ -384,7 +384,6 @@ int __cdecl main()
 
     auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m4s }, { &m4m } });
 
-    /*
     csgs.emplace_back(
         (
             (
@@ -406,7 +405,6 @@ int __cdecl main()
         )
         | sumPart16
     );
-    */
 
     //csgs.emplace_back(sumPart16);
 
@@ -546,6 +544,7 @@ int __cdecl main()
     );
     */
 
+    /*
     sdfs.emplace_back(
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
@@ -562,6 +561,7 @@ int __cdecl main()
             { { &m7s }, { &m7m } }
         )
     );
+    */
 
     using ShapesT = Shapes<ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
     using PartitionerType = StaticBvhObjectMeanPartitioner;

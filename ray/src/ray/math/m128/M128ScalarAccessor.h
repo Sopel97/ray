@@ -32,18 +32,6 @@ namespace ray
                 return operator=(static_cast<float>(other));
             }
 
-            template <int J>
-            ScalarAccessor& operator=(const ScalarAccessor<J>& other)
-            {
-                return operator=(static_cast<float>(other));
-            }
-
-            template <int J>
-            ScalarAccessor& operator=(ScalarAccessor<J>&& other)
-            {
-                return operator=(static_cast<float>(other));
-            }
-
             operator float() const
             {
                 return extract<I>(xmm);
@@ -66,13 +54,47 @@ namespace ray
 
             ReadonlyScalarAccessor& operator=(ReadonlyScalarAccessor&& other) = delete;
 
-            template <int J>
-            ReadonlyScalarAccessor& operator=(const ScalarAccessor<J>& other) = delete;
-
-            template <int J>
-            ReadonlyScalarAccessor& operator=(ScalarAccessor<J>&& other) = delete;
-
             ReadonlyScalarAccessor& operator=(float s) = delete;
+        };
+
+        template <int Size, int I, int J>
+        struct ScalarMatrixAccessor
+        {
+            static_assert(I >= 0 && I <= 3);
+            static_assert(J >= 0 && J <= 3);
+            static_assert(Size > 0);
+
+            __m128 xmm[Size];
+
+            ScalarMatrixAccessor(const ScalarMatrixAccessor& other)
+            {
+                operator=(static_cast<float>(other));
+            }
+            ScalarMatrixAccessor(ScalarMatrixAccessor&& other)
+            {
+                operator=(static_cast<float>(other));
+            }
+
+            ScalarMatrixAccessor& operator=(const ScalarMatrixAccessor& other)
+            {
+                return operator=(static_cast<float>(other));
+            }
+
+            ScalarMatrixAccessor& operator=(ScalarMatrixAccessor&& other)
+            {
+                return operator=(static_cast<float>(other));
+            }
+
+            operator float() const
+            {
+                return extract<J>(xmm[I]);
+            }
+
+            ScalarMatrixAccessor& operator=(float s)
+            {
+                xmm[I] = insert<J>(xmm[I], s);
+                return *this;
+            }
         };
     }
 }

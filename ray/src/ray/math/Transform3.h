@@ -250,15 +250,15 @@ namespace ray
         {
             // just multiply the diagonal
             SelfType ret{};
-            ret.m_values[0][0] = lhs.m_values[0][0] * rhs.m_values[0][0];
-            ret.m_values[1][1] = lhs.m_values[1][1] * rhs.m_values[1][1];
-            ret.m_values[2][2] = lhs.m_values[2][2] * rhs.m_values[2][2];
+            ret.m00 = lhs.m00 * rhs.m00;
+            ret.m11 = lhs.m11 * rhs.m11;
+            ret.m22 = lhs.m22 * rhs.m22;
             return ret;
         }
 
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
-            const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m_values[0][0], lhs.m_values[1][1], lhs.m_values[2][2]);
+            const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m00, lhs.m11, lhs.m22);
             return (Vec3<float>(rhs) * invS).normalized();
         }
 
@@ -274,9 +274,9 @@ namespace ray
 
         void invert()
         {
-            m_values[0][0] = 1.0f / m_values[0][0];
-            m_values[1][1] = 1.0f / m_values[1][1];
-            m_values[2][2] = 1.0f / m_values[2][2];
+            m00 = 1.0f / m00;
+            m11 = 1.0f / m11;
+            m22 = 1.0f / m22;
         }
 
         [[nodiscard]] SelfType inverse() const
@@ -575,15 +575,15 @@ namespace ray
         {
             // just multiply the diagonal
             SelfType ret{};
-            ret.m_values[0][0] = lhs.m_values[0][0] * rhs.m_values[0][0];
-            ret.m_values[1][1] = lhs.m_values[1][1] * rhs.m_values[1][1];
-            ret.m_values[2][2] = lhs.m_values[2][2] * rhs.m_values[2][2];
+            ret.m00 = lhs.m00 * rhs.m00;
+            ret.m11 = lhs.m11 * rhs.m11;
+            ret.m22 = lhs.m22 * rhs.m22;
             return ret;
         }
 
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
-            const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m_values[0][0], lhs.m_values[1][1], lhs.m_values[2][2]);
+            const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m00, lhs.m11, lhs.m22);
             return (Vec3<float>(rhs) * invS).normalized();
         }
 
@@ -599,9 +599,9 @@ namespace ray
 
         void invert()
         {
-            m_values[0][0] = 1.0f / m_values[0][0];
-            m_values[1][1] = 1.0f / m_values[1][1];
-            m_values[2][2] = 1.0f / m_values[2][2];
+            m00 = 1.0f / m00;
+            m11 = 1.0f / m11;
+            m22 = 1.0f / m22;
         }
 
         [[nodiscard]] SelfType inverse() const
@@ -917,7 +917,7 @@ namespace ray
 
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
-            const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m_values[0][0], lhs.m_values[1][1], lhs.m_values[2][2]);
+            const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m00, lhs.m11, lhs.m22);
             return (Vec3<float>(rhs) * invS).normalized();
         }
 
