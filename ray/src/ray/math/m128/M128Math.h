@@ -6,6 +6,8 @@
 #include <xmmintrin.h>
 #include <smmintrin.h>
 
+#include <ray/utility/UtilityMacroDef.h>
+
 namespace ray
 {
     namespace m128
@@ -50,9 +52,11 @@ namespace ray
                 return extract<1>(xmm);
             case 2:
                 return extract<2>(xmm);
-            default:
+            case 3:
                 return extract<3>(xmm);
             }
+
+            RAY_UNREACHABLE();
         }
 
         template <int I>
@@ -74,9 +78,11 @@ namespace ray
                 return insert<1>(xmm, s);
             case 2:
                 return insert<2>(xmm, s);
-            default:
+            case 3:
                 return insert<3>(xmm, s);
             }
+
+            RAY_UNREACHABLE();
         }
 
         template <bool X, bool Y, bool Z, bool W>
@@ -377,3 +383,5 @@ namespace ray
         }
     }
 }
+
+#include <ray/utility/UtilityMacroUndef.h>

@@ -389,5 +389,11 @@
     <ClInclude Include="src\ray\math\m128\M128ScalarAccessor.h">
       <Filter>Header Files\src\math\m128</Filter>
     </ClInclude>
+    <ClInclude Include="src\ray\utility\UtilityMacroUndef.h">
+      <Filter>Header Files\src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray\utility\UtilityMacroDef.h">
+      <Filter>Header Files\src\utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

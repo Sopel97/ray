@@ -1,18 +1,6 @@
 #pragma once
 
-#if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)
-
-#define RAY_UNREACHABLE() (__builtin_unreachable())
-
-#elif defined(_MSC_VER)
-
-#define RAY_UNREACHABLE() (__assume(0))
-
-#else
-
-#define RAY_UNREACHABLE() ((void)0)
-
-#endif
+#include <ray/utility/UtilityMacroDef.h>
 
 namespace ray
 {
@@ -110,4 +98,4 @@ namespace ray
     }
 }
 
-#undef RAY_UNREACHABLE
+#include <ray/utility/UtilityMacroUndef.h>
