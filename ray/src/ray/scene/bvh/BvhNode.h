@@ -37,6 +37,7 @@ namespace ray
     {
         [[nodiscard]] virtual bool nextHit(const Ray& ray, BvhNodeHitQueue<BvShapeT>& queue, ResolvableRaycastHit& hit) const = 0;
         virtual void gatherLights(std::vector<LightHandle>& lights) const = 0;
+        virtual ~StaticBvhNode() = default;
     };
 
     template <typename BvShapeT>

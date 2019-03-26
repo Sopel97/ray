@@ -14,6 +14,7 @@ namespace ray
     struct SurfaceShader
     {
         [[nodiscard]] virtual SurfaceShaderOutput shade(const ShapeT& shape, const RaycastHit& hit, const MaterialPtrStorageView& surfaceMaterial) const = 0;
+        virtual ~SurfaceShader() = default;
     };
 
     template <typename ShapeT>

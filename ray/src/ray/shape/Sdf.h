@@ -95,7 +95,7 @@ namespace ray
 
         }
 
-        [[nodiscard]] virtual std::unique_ptr<SdfBase> clone() const override
+        [[nodiscard]] std::unique_ptr<SdfBase> clone() const override
         {
             return std::make_unique<ExprType>(*static_cast<const ExprType*>(this));
         }
@@ -270,7 +270,7 @@ namespace ray
         {
         }
 
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override
+        [[nodiscard]] float signedDistance(const Point3f& p) const override
         {
             const TransformT& transformInverse = get<0>();
             return get()->signedDistance(transformInverse * p);

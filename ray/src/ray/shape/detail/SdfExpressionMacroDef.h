@@ -8,7 +8,7 @@
         using BaseType = SdfExpression<TypeName, std::tuple<__VA_ARGS__>>; \
         using BaseType::BaseType; \
         using BaseType::parts; \
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override; \
+        [[nodiscard]] float signedDistance(const Point3f& p) const override; \
     protected: \
         template <int I> \
         [[nodiscard]] decltype(auto) get() const \
@@ -27,7 +27,7 @@
         using BaseType = SdfExpression<TypeName, std::tuple<LhsExprT, __VA_ARGS__>>; \
         using BaseType::BaseType; \
         using BaseType::parts; \
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override; \
+        [[nodiscard]] float signedDistance(const Point3f& p) const override; \
     protected: \
         template <int I> \
         [[nodiscard]] decltype(auto) get() const \
@@ -55,7 +55,7 @@
         using BaseType = SdfExpression<TypeName, std::tuple<LhsExprT, RhsExprT, __VA_ARGS__>>; \
         using BaseType::BaseType; \
         using BaseType::parts; \
-        [[nodiscard]] virtual float signedDistance(const Point3f& p) const override; \
+        [[nodiscard]] float signedDistance(const Point3f& p) const override; \
     protected: \
         template <int I> \
         [[nodiscard]] decltype(auto) get() const \

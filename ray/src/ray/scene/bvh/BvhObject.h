@@ -27,6 +27,7 @@ namespace ray
         [[nodiscard]] virtual const BvShapeT& boundingVolume() const = 0;
         [[nodiscard]] virtual const Box3& aabb() const = 0;
         [[nodiscard]] virtual const Point3f& center() const = 0;
+        virtual ~BoundedStaticBvhObject() = default;
     };
 
     template <typename BvhParamsT>

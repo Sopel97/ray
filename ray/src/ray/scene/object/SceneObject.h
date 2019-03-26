@@ -148,6 +148,7 @@ namespace ray
             [[nodiscard]] virtual bool raycastIntervals(const Ray& ray, CsgHitIntervals& hitIntervals, CsgHitIntervalsStackIter scratchHitIntervals, bool invert = false) const = 0;
             [[nodiscard]] virtual Box3 aabb() const = 0;
             [[nodiscard]] virtual int depth() const = 0;
+            virtual ~CsgNode() = default;
         };
 
     public:
@@ -160,6 +161,7 @@ namespace ray
             [[nodiscard]] virtual MaterialStorageViewType materialsView() const = 0;
             [[nodiscard]] virtual bool isLight() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
+            virtual ~CsgPrimitiveBase() = default;
         };
 
     private:
@@ -502,6 +504,7 @@ namespace ray
             [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
             [[nodiscard]] virtual bool isLight() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
+            virtual ~PolymorphicSceneObjectBase() = default;
         };
 
         template <typename ShapeT>
@@ -678,6 +681,7 @@ namespace ray
             [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
             [[nodiscard]] virtual bool isLight() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
+            virtual ~PolymorphicSceneObjectBase() = default;
         };
 
         template <typename ShapeT>
@@ -842,6 +846,7 @@ namespace ray
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
+            virtual ~PolymorphicSceneObjectBase() = default;
         };
 
         template <typename ShapeT>
@@ -995,6 +1000,7 @@ namespace ray
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
+            virtual ~PolymorphicSceneObjectBase() = default;
         };
 
         template <typename ShapeT>

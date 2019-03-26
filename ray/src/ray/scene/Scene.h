@@ -18,5 +18,6 @@ namespace ray
         [[nodiscard]] virtual const ColorRGBf& backgroundColor() const = 0;
         [[nodiscard]] virtual const MediumMaterial* mediumMaterial() const = 0;
         [[nodiscard]] virtual float backgroundDistance() const = 0;
+        virtual ~Scene() = default;
     };
 }
