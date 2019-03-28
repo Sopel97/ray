@@ -258,7 +258,7 @@ int __cdecl main()
     auto& m5m = matDb.emplaceMedium("mat5", ColorRGBf(0, 0, 0), 1.1f);
     auto& m6m = matDb.emplaceMedium("mat6", ColorRGBf(0, 0, 0), 1.1f);
     auto& m7m = matDb.emplaceMedium("mat7", ColorRGBf(0.5f, 0.5f, 0.2f), 1.13f);
-    auto& m7am = matDb.emplaceMedium("mat7a", ColorRGBf(0.5f, 0.5f, 0.2f), 1.0f);
+    auto& m7am = matDb.emplaceMedium("mat7a", ColorRGBf(0.5f, 0.5f, 0.2f), 1.10f);
     auto& m8m = matDb.emplaceMedium("mat8", ColorRGBf(0, 0, 0), 1.13f);
     auto& m9m = matDb.emplaceMedium("mat9", ColorRGBf(0, 0, 0), 1.0f);
     auto& m10m = matDb.emplaceMedium("mat10", ColorRGBf(0, 0, 0), 1.0f);
@@ -409,142 +409,13 @@ int __cdecl main()
     */
     //csgs.emplace_back(sumPart16);
 
-    //auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { &m7a });
-    //auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { &m7a });
-    //csgs.emplace_back(lensPart1 | lensPart2);
-
-    struct SphereSdf : SdfBase
-    {
-        Sphere s;
-
-        SphereSdf(Sphere s) :
-            s(s)
-        {
-
-        }
-
-        [[nodiscard]] float signedDistance(const Point3f& p) const override
-        {
-            return s.signedDistance(p);
-        }
-        [[nodiscard]] std::unique_ptr<SdfBase> clone() const override
-        {
-            return std::make_unique<SphereSdf>(*this);
-        }
-        [[nodiscard]] SphereSdf* operator->()
-        {
-            return this;
-        }
-
-        [[nodiscard]] const SphereSdf* operator->() const
-        {
-            return this;
-        }
-    };
-
-
-    struct RoundedConeSdf : SdfBase
-    {
-        Vec3f translation;
-        float r1, r2, h;
-
-        RoundedConeSdf(Point3f center, float r1, float r2, float h) :
-            translation(Vec3f(center)),
-            r1(r1),
-            r2(r2),
-            h(h)
-        {
-
-        }
-
-        [[nodiscard]] float signedDistance(const Point3f& pp) const override
-        {
-            const Point3f p = pp - translation;
-            Vec2f q = Vec2f(Vec2f(p.x, p.z).length(), p.y);
-
-            float b = (r1 - r2) / h;
-            float a = std::sqrt(1.0f - b * b);
-            float k = dot(q, Vec2f(-b, a));
-
-            if (k < 0.0) return q.length() - r1;
-            if (k > a*h) return (q - Vec2f(0.0f, h)).length() - r2;
-
-            return dot(q, Vec2f(a, b)) - r1;
-        }
-        [[nodiscard]] std::unique_ptr<SdfBase> clone() const override
-        {
-            return std::make_unique<RoundedConeSdf>(*this);
-        }
-        [[nodiscard]] RoundedConeSdf* operator->()
-        {
-            return this;
-        }
-
-        [[nodiscard]] const RoundedConeSdf* operator->() const
-        {
-            return this;
-        }
-    };
+    /*
+    auto lensPart1 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4 + 3), 3.5), { { &m7as }, { &m7am } });
+    auto lensPart2 = SceneObject<CsgShape>(Sphere(Point3f(0, 0, -4- 3), 3.5), { { &m7as }, { &m7am } });
+    csgs.emplace_back(lensPart1 & lensPart2);
+    */
 
     auto sdfSphere = Sphere(Point3f(0.0, 0, -7), 3.5);
-    /*
-    sdfs.emplace_back(
-        SceneObject<ClippedSdf<Sphere>>(
-            ClippedSdf<Sphere>(
-                sdfSphere,
-                std::make_unique<SphereSdf>(sdfSphere)
-            ), 
-            { { &m7s }, { &m7m } }
-        )
-    );
-    */
-
-    /*
-    sdfs.emplace_back(
-        SceneObject<ClippedSdf<Sphere>>(
-            ClippedSdf<Sphere>(
-                sdfSphere,
-                std::make_unique<RoundedConeSdf>(sdfSphere.center(), 1.0f, 2.0f, 3.0f)
-                ),
-            { { &m7s }, { &m7m } }
-            )
-    );
-    */
-
-    /*
-    sdfs.emplace_back(
-        SceneObject<ClippedSdf<Sphere>>(
-            ClippedSdf<Sphere>(
-                sdfSphere,
-                SdfUnion(
-                    RoundedConeSdf(sdfSphere.center(), 1.0f, 2.0f, 3.0f),
-                    SphereSdf(Sphere(Point3f(0.0, 0, -7), 2.2))
-                ).clone()
-            ),
-        { { &m7s }, { &m7m } }
-        )
-    );
-    */
-
-    /*
-    sdfs.emplace_back(
-        SceneObject<ClippedSdf<Sphere>>(
-            ClippedSdf<Sphere>(
-                sdfSphere,
-                SdfOnion(
-                    SdfSmoothUnion(
-                        std::make_unique<PolySdfTranslation>(std::make_unique<SdfRoundedCone>(1.0f, 2.0f, 3.0f), Vec3f(sdfSphere.center())),
-                        std::make_unique<PolySdfTranslation>(std::make_unique<SdfSphere>(2.2f), Vec3f(sdfSphere.center())),
-                        0.25f
-                    ),
-                    0.2f
-                ).clone()
-            ),
-            { { &m7s }, { &m7m } }
-        )
-    );
-    */
-
     sdfs.emplace_back(
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
