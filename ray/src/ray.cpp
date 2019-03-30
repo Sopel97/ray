@@ -425,7 +425,7 @@ int __cdecl main()
                 // in shapes vector
                 PolySdfOnion(
                     SdfSmoothUnion(
-                        SdfTranslation(SdfRoundedCone(1.0f, 2.0f, 3.0f), Vec3f(sdfSphere.center())),
+                        SdfTranslation(SdfRoundedCone(SdfRoundedConeParams(1.0f, 2.0f, 3.0f)), Vec3f(sdfSphere.center())),
                         SdfTranslation(SdfSphere(2.2f), Vec3f(sdfSphere.center())),
                         0.25f
                     ),

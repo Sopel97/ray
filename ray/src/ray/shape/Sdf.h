@@ -259,9 +259,30 @@ namespace ray
         return (pa - ba * h).length() - r;
     FINALIZE_SDF_EXPRESSION
 
-    DEFINE_SDF_EXPRESSION_0(SdfRoundedCone, float, float, float)
+    struct SdfRoundedConeParams
+    {
+        SdfRoundedConeParams(float r1, float r2, float h) :
+            r1(r1),
+            r2(r2),
+            h(h),
+            b((r1 - r2) / h),
+            a(std::sqrt(1.0f - b * b))
+        {
+
+        }
+
+        float r1;
+        float r2;
+        float h;
+        float b;
+        float a;
+    };
+
+    DEFINE_SDF_EXPRESSION_0(SdfRoundedCone, SdfRoundedConeParams)
         // starts at origin with radius r1
         // end at (0, h, 0) with radius r2
+        /*
+        // base version
         const float r1 = self.get<0>();
         const float r2 = self.get<1>();
         const float h = self.get<2>();
@@ -276,6 +297,55 @@ namespace ray
         if (k > a*h) return (q - Vec2f(0.0f, h)).length() - r2;
 
         return dot(q, Vec2f(a, b)) - r1;
+        */
+
+        /*
+        // semi-optimized, using precomputed parameters
+        const auto& params = self.get<0>();
+        const float r1 = params.r1;
+        const float r2 = params.r2;
+        const float h = params.h;
+        const float b = params.b;
+        const float a = params.a;
+
+        const float xz_len = Vec2f(p.x, p.z).length();
+
+        //const float b = (r1 - r2) / h;
+        //const float a = std::sqrt(1.0f - b * b);
+        const float apy = a * p.y;
+        const float bxz_len = b * xz_len;
+
+        if (apy < bxz_len) return p.asVector().length() - r1;
+        const float k = apy - bxz_len;
+        if (k > a*h) return std::sqrt(xz_len * xz_len + (p.y-h)*(p.y-h)) - r2;
+
+        return a * xz_len + b * p.y - r1;
+        */
+
+        // fully optimized
+        const auto& params = self.get<0>();
+        const float r1 = params.r1;
+        const float r2 = params.r2;
+        const float b = params.b;
+        const float a = params.a;
+        const float babsb = b * std::abs(b);
+
+        const float xz_dot = p.x * p.x + p.z * p.z;
+        const float py = p.y;
+
+        const float apy = a * py;
+        const float babsb_xz_dot = babsb * xz_dot;
+
+        // using the fact that a < b <=> a*abs(a) < b*abs(b)
+        // b2xz_dot always positive so b2xz_dot = xz_len * abs(xz_len)
+        if (apy * std::abs(apy) < babsb_xz_dot) return std::sqrt(xz_dot + py * py) - r1;
+        const float xz_len = std::sqrt(xz_dot);
+        const float bxz_len = b * xz_len;
+        const float k = apy - bxz_len;
+        const float h = params.h;
+        if (k > a*h) return std::sqrt(xz_dot + (py - h)*(py - h)) - r2;
+
+        return a * xz_len + b * py - r1;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfEllipsoid, Vec3f)
