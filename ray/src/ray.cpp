@@ -420,7 +420,10 @@ int __cdecl main()
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
                 sdfSphere,
-                SdfOnion(
+                // clipped sdf requires a polymophic sdf function
+                // otherwise each one being rendered would need a separate type
+                // in shapes vector
+                PolySdfOnion(
                     SdfSmoothUnion(
                         SdfTranslation(SdfRoundedCone(1.0f, 2.0f, 3.0f), Vec3f(sdfSphere.center())),
                         SdfTranslation(SdfSphere(2.2f), Vec3f(sdfSphere.center())),

@@ -82,14 +82,17 @@ namespace ray
 
     // This class is always instantiated as a parent of some expression using CRTP
     // Because of that it is safe to use it as if it was ExprType
+    // Note that both this and specific SDF functions have normal
+    // and Poly___ versions explicitly defined so devirtualization is not needed.
+    // Required to prevent unnecessary virtual calls with MSVC.
     template <typename ExprT, typename PartsT>
-    struct SdfExpression : SdfBase, private PartsT
+    struct PolySdfExpression : SdfBase, private PartsT
     {
         using PartsType = PartsT;
         using ExprType = ExprT;
 
         template <typename... PartsFwdTs>
-        SdfExpression(PartsFwdTs&&... parts) :
+        PolySdfExpression(PartsFwdTs&&... parts) :
             PartsType(std::forward<PartsFwdTs>(parts)...)
         {
 
@@ -117,6 +120,40 @@ namespace ray
         }
     };
 
+    template <typename ExprT, typename PartsT>
+    struct SdfExpression : private PartsT
+    {
+        using PartsType = PartsT;
+        using ExprType = ExprT;
+
+        template <typename... PartsFwdTs>
+        SdfExpression(PartsFwdTs&&... parts) :
+            PartsType(std::forward<PartsFwdTs>(parts)...)
+        {
+
+        }
+
+        [[nodiscard]] std::unique_ptr<ExprType> clone() const
+        {
+            return std::make_unique<ExprType>(*static_cast<const ExprType*>(this));
+        }
+
+        [[nodiscard]] ExprType* operator->()
+        {
+            return static_cast<ExprType*>(this);
+        }
+
+        [[nodiscard]] const ExprType* operator->() const
+        {
+            return static_cast<const ExprType*>(this);
+        }
+
+    protected:
+        const PartsType& parts() const
+        {
+            return *this;
+        }
+    };
 #include "detail/SdfExpressionMacroDef.h"
 
     // http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
@@ -125,96 +162,96 @@ namespace ray
 
     DEFINE_SDF_EXPRESSION_2(SdfUnion)
         return std::min(
-            lhs()->signedDistance(p),
-            rhs()->signedDistance(p)
+            self.lhs()->signedDistance(p),
+            self.rhs()->signedDistance(p)
         );
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_2(SdfDifference)
         return std::max(
-            lhs()->signedDistance(p),
-            -rhs()->signedDistance(p)
+            self.lhs()->signedDistance(p),
+            -self.rhs()->signedDistance(p)
         );
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_2(SdfIntersection)
         return std::max(
-            lhs()->signedDistance(p),
-            rhs()->signedDistance(p)
+            self.lhs()->signedDistance(p),
+            self.rhs()->signedDistance(p)
         );
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_2(SdfSmoothUnion, float)
-        const float d1 = lhs()->signedDistance(p);
-        const float d2 = rhs()->signedDistance(p);
-        const float k = get<0>();
+        const float d1 = self.lhs()->signedDistance(p);
+        const float d2 = self.rhs()->signedDistance(p);
+        const float k = self.get<0>();
         const float h = std::clamp(0.5f + 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
         return mix(d2, d1, h) - k*h*(1.0f - h);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_2(SdfSmoothDifference, float)
-        const float d1 = lhs()->signedDistance(p);
-        const float d2 = -rhs()->signedDistance(p);
-        const float k = get<0>();
+        const float d1 = self.lhs()->signedDistance(p);
+        const float d2 = -self.rhs()->signedDistance(p);
+        const float k = self.get<0>();
         const float h = std::clamp(0.5f - 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
         return mix(d2, d1, h) - k * h*(1.0f - h);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_2(SdfSmoothIntersection, float)
-        const float d1 = lhs()->signedDistance(p);
-        const float d2 = rhs()->signedDistance(p);
-        const float k = get<0>();
+        const float d1 = self.lhs()->signedDistance(p);
+        const float d2 = self.rhs()->signedDistance(p);
+        const float k = self.get<0>();
         const float h = std::clamp(0.5f - 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
         return mix(d2, d1, h) - k * h*(1.0f - h);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfRound, float)
-        const float d = arg()->signedDistance(p);
-        const float r = get<0>();
+        const float d = self.arg()->signedDistance(p);
+        const float r = self.get<0>();
         return d - r;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfOnion, float)
-        const float d = arg()->signedDistance(p);
-        const float r = get<0>();
+        const float d = self.arg()->signedDistance(p);
+        const float r = self.get<0>();
         return std::abs(d) - r;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfRepeat, Vec3f)
-        const Vec3f& period = get<0>();
+        const Vec3f& period = self.get<0>();
         const Vec3f q = mod(p, period) - 0.5f*period;
-        return arg()->signedDistance(q);
+        return self.arg()->signedDistance(q);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfTranslation, Vec3f)
-        const Vec3f& t = get<0>();
-        return arg()->signedDistance(p - t);
+        const Vec3f& t = self.get<0>();
+        return self.arg()->signedDistance(p - t);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfScale, float)
         // scales by a uniform amount in all directions
-        const float s = get<0>();
-        return arg()->signedDistance(p/s)*s;
+        const float s = self.get<0>();
+        return self.arg()->signedDistance(p/s)*s;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfSphere, float)
         // centered at the origin
-        const float r = get<0>();
+        const float r = self.get<0>();
         return Vec3f(p).length() - r;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfBox, Vec3f)
         // centered at the origin
         // b._ is half of the extent in a given direction
-        const Vec3f& b = get<0>();
+        const Vec3f& b = self.get<0>();
         const Vec3f d = abs(Vec3f(p)) - b;
         return (max(d, Vec3f::broadcast(0.0f))).length() + std::min(std::max(d.x, std::max(d.y, d.z)), 0.0f);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfCapsule, Point3f, Point3f, float)
-        const Point3f& a = get<0>();
-        const Point3f& b = get<1>();
-        const float r = get<2>(); 
+        const Point3f& a = self.get<0>();
+        const Point3f& b = self.get<1>();
+        const float r = self.get<2>();
 
         const Vec3f pa = p - a;
         const Vec3f ba = b - a;
@@ -225,9 +262,9 @@ namespace ray
     DEFINE_SDF_EXPRESSION_0(SdfRoundedCone, float, float, float)
         // starts at origin with radius r1
         // end at (0, h, 0) with radius r2
-        const float r1 = get<0>();
-        const float r2 = get<1>();
-        const float h = get<2>();
+        const float r1 = self.get<0>();
+        const float r2 = self.get<1>();
+        const float h = self.get<2>();
 
         const Vec2f q = Vec2f(Vec2f(p.x, p.z).length(), p.y);
 
@@ -244,7 +281,7 @@ namespace ray
     DEFINE_SDF_EXPRESSION_0(SdfEllipsoid, Vec3f)
         // centered at the origin
         // with extents of r._
-        const Vec3f& r = get<0>();
+        const Vec3f& r = self.get<0>();
 
         const float k0 = (p.asVector() / r).length();
         const float k1 = (p.asVector() / (r*r)).length();
