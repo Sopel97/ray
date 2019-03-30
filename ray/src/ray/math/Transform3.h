@@ -1069,6 +1069,9 @@ namespace ray
         }
     }
 
+    template <typename LhsMatrixT, typename RhsMatrixT>
+    using MatrixMultiplyResult = decltype(std::declval<LhsMatrixT>() * std::declval<RhsMatrixT>());
+
     static_assert(std::is_same_v<decltype(std::declval<Identity4f>() * std::declval<Identity4f>()), Identity4f>);
     static_assert(std::is_same_v<decltype(std::declval<Rotation4f>() * std::declval<Rotation4f>()), Rotation4f>);
     static_assert(std::is_same_v<decltype(std::declval<Scale4f>() * std::declval<Scale4f>()), Scale4f>);
