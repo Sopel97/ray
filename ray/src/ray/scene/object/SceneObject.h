@@ -116,6 +116,30 @@ namespace ray
             return m_id;
         }
 
+        [[nodiscard]] bool isLocallyContinuable() const
+        {
+            return ShapeTraits::isLocallyContinuable;
+        }
+
+        [[nodiscard]] bool hasVolume() const
+        {
+            return ShapeTraits::hasVolume;
+        }
+
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
+        {
+            return ray::raycast(ray, m_shape, hit);
+        }
+
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner = nullptr) const
+        {
+            auto[surface, medium] = m_materials.at(hit.materialIndex);
+            return ResolvedRaycastHit(
+                m_shader->shade(m_shape, hit, m_materials.view()),
+                hit.shapeNo, medium, owner, hit.isInside, hasVolume(), isLocallyContinuable()
+            );
+        }
+
     private:
         ShapeType m_shape;
         MaterialStorageType m_materials;
@@ -157,7 +181,7 @@ namespace ray
             using MaterialStorageViewType = MaterialPtrStorageView;
 
             [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner = nullptr) const = 0;
             [[nodiscard]] virtual MaterialStorageViewType materialsView() const = 0;
             [[nodiscard]] virtual bool isLight() const = 0;
             [[nodiscard]] virtual SceneObjectId id() const = 0;
@@ -210,12 +234,12 @@ namespace ray
                 
                 return false;
             }
-            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner) const override
             {
                 auto[surface, medium] = materialsView().material(hit.materialIndex);
                 return ResolvedRaycastHit(
                     m_shader->shade(m_shape, hit, materialsView()),
-                    hit.shapeNo, medium, nullptr, hit.isInside, true, true
+                    hit.shapeNo, medium, owner, hit.isInside, true, true
                 );
             }
             [[nodiscard]] MaterialStorageViewType materialsView() const override
@@ -432,10 +456,10 @@ namespace ray
             return nullptr;
         }
 
-        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner = nullptr) const
         {
             const CsgPrimitiveBase* obj = static_cast<const CsgPrimitiveBase*>(hit.additionalData);
-            return obj->resolveHit(hit);
+            return obj->resolveHit(hit, owner);
         }
 
         [[nodiscard]] decltype(auto) aabb() const
@@ -500,7 +524,7 @@ namespace ray
             [[nodiscard]] virtual Point3f center() const = 0;
             [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
             [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
-            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner = nullptr) const = 0;
             [[nodiscard]] virtual bool hasVolume() const = 0;
             [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
             [[nodiscard]] virtual Box3 aabb() const = 0;
@@ -534,9 +558,9 @@ namespace ray
             {
                 return std::make_unique<PolymorphicSceneObject>(*this);
             }
-            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner) const override
             {
-                return m_object.resolveHit(hit);
+                return m_object.resolveHit(hit, owner);
             }
             [[nodiscard]] bool hasVolume() const override
             {
@@ -602,9 +626,9 @@ namespace ray
             return m_obj->raycast(ray, hit);
         }
 
-        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner = nullptr) const
         {
-            return m_obj->resolveHit(hit);
+            return m_obj->resolveHit(hit, owner);
         }
 
         [[nodiscard]] bool hasVolume() const
@@ -625,647 +649,6 @@ namespace ray
         std::unique_ptr<PolymorphicSceneObjectBase> m_obj;
     };
 
-    // TODO: think how to merge the following cases nicely
-
-    // Stores any shape in a polymorphic wrapper.
-    // Only supports single shapes
-    // Copy performs deep copy of the shape, material array, and id
-    template <>
-    struct SceneObject<BoundedUniqueAnyShape>
-    {
-    private:
-        struct PolymorphicSceneObjectBase
-        {
-            using MaterialStorageViewType = MaterialPtrStorageView;
-
-            [[nodiscard]] virtual Point3f center() const = 0;
-            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
-            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
-            [[nodiscard]] virtual bool hasVolume() const = 0;
-            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
-            [[nodiscard]] virtual Box3 aabb() const = 0;
-            [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
-            [[nodiscard]] virtual bool isLight() const = 0;
-            [[nodiscard]] virtual SceneObjectId id() const = 0;
-            virtual ~PolymorphicSceneObjectBase() = default;
-        };
-
-        template <typename ShapeT>
-        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
-        {
-            static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
-            static constexpr bool isPack = numShapesInPack > 1;
-            static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
-            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
-            static_assert(!isPack, "Only a single object can be made polymorphic.");
-            static_assert(isBounded, "Must be bounded.");
-            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
-            using MaterialStorageViewType = MaterialPtrStorageView;
-            using SurfaceShaderType = SurfaceShader<ShapeT>;
-            using SurfaceShaderPtrType = const SurfaceShaderType*;
-
-            template <typename... ArgsTs>
-            PolymorphicSceneObject(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
-                m_shape(shape),
-                m_materials(materials),
-                m_shader(&shader),
-                m_id(detail::gNextSceneObjectId.fetch_add(1))
-            {
-
-            }
-
-            [[nodiscard]] Point3f center() const override
-            {
-                return m_shape.center();
-            }
-            [[nodiscard]] Box3 aabb() const override
-            {
-                return boundingVolume<Box3>(m_shape);
-            }
-            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
-            {
-                return ray::raycast(ray, m_shape, hit);
-            }
-            [[nodiscard]] std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
-            {
-                return std::make_unique<PolymorphicSceneObject<ShapeT>>(*this);
-            }
-            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
-            {
-                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
-                return ResolvedRaycastHit(
-                    m_shader->shade(m_shape, hit, materialsView()),
-                    hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
-                );
-            }
-            [[nodiscard]] bool hasVolume() const override
-            {
-                return ShapeTraits<ShapeT>::hasVolume;
-            }
-            [[nodiscard]] bool isLocallyContinuable() const override
-            {
-                return ShapeTraits<ShapeT>::isLocallyContinuable;
-            }
-            [[nodiscard]] MaterialStorageViewType material() const override
-            {
-                return m_materials.view();
-            }
-            [[nodiscard]] bool isLight() const override
-            {
-                return m_materials.isEmissive();
-            }
-            [[nodiscard]] SceneObjectId id() const override
-            {
-                return m_id;
-            }
-
-        private:
-            ShapeT m_shape;
-            MaterialStorageType m_materials;
-            SurfaceShaderPtrType m_shader;
-            SceneObjectId m_id;
-        };
-
-    public:
-        using ShapeType = BoundedUniqueAnyShape;
-
-        template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, shader))
-        {
-
-        }
-
-        template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, defaultShader<ShapeT>))
-        {
-
-        }
-
-        SceneObject(const SceneObject& other) :
-            m_obj(other.m_obj->clone())
-        {
-
-        }
-        SceneObject& operator=(const SceneObject& other)
-        {
-            m_obj = other.m_obj->clone();
-        }
-
-        SceneObject(SceneObject&&) noexcept = default;
-        SceneObject& operator=(SceneObject&&) noexcept = default;
-
-        [[nodiscard]] SceneObjectId id() const
-        {
-            return m_obj->id();
-        }
-
-        [[nodiscard]] Point3f center() const
-        {
-            return m_obj->center();
-        }
-
-        [[nodiscard]] Box3 aabb() const
-        {
-            return m_obj->aabb();
-        }
-
-        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
-        {
-            return m_obj->raycast(ray, hit);
-        }
-
-        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
-        {
-            return m_obj->resolveHit(hit);
-        }
-
-        [[nodiscard]] bool hasVolume() const
-        {
-            return m_obj->hasVolume();
-        }
-        [[nodiscard]] bool isLocallyContinuable() const
-        {
-            return m_obj->isLocallyContinuable();
-        }
-
-        [[nodiscard]] MaterialPtrStorageView materialsView() const
-        {
-            return m_obj->materials();
-        }
-
-        [[nodiscard]] bool isLight() const
-        {
-            return m_obj->isLight();
-        }
-
-    private:
-        std::unique_ptr<PolymorphicSceneObjectBase> m_obj;
-    };
-
-    // Stores any shape in a polymorphic wrapper.
-    // Only supports single shapes
-    // A copy is shallow, ie. all data is shared.
-    template <>
-    struct SceneObject<BoundedSharedAnyShape>
-    {
-    private:
-        struct PolymorphicSceneObjectBase
-        {
-            using MaterialStorageViewType = MaterialPtrStorageView;
-
-            [[nodiscard]] virtual Point3f center() const = 0;
-            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
-            [[nodiscard]] virtual bool hasVolume() const = 0;
-            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
-            [[nodiscard]] virtual Box3 aabb() const = 0;
-            [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
-            [[nodiscard]] virtual bool isLight() const = 0;
-            [[nodiscard]] virtual SceneObjectId id() const = 0;
-            virtual ~PolymorphicSceneObjectBase() = default;
-        };
-
-        template <typename ShapeT>
-        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
-        {
-            static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
-            static constexpr bool isPack = numShapesInPack > 1;
-            static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
-            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
-            static_assert(!isPack, "Only a single object can be made polymorphic.");
-            static_assert(isBounded, "Must be bounded.");
-            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
-            using MaterialStorageViewType = MaterialPtrStorageView;
-            using SurfaceShaderType = SurfaceShader<ShapeT>;
-            using SurfaceShaderPtrType = const SurfaceShaderType*;
-
-            template <typename... ArgsTs>
-            PolymorphicSceneObject(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
-                m_shape(shape),
-                m_materials(materials),
-                m_shader(&shader),
-                m_id(detail::gNextSceneObjectId.fetch_add(1))
-            {
-
-            }
-
-            [[nodiscard]] Point3f center() const override
-            {
-                return m_shape.center();
-            }
-            [[nodiscard]] Box3 aabb() const override
-            {
-                return boundingVolume<Box3>(m_shape);
-            }
-            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
-            {
-                return ray::raycast(ray, m_shape, hit);
-            }
-            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
-            {
-                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
-                return ResolvedRaycastHit(
-                    m_shader->shade(m_shape, hit, materialsView()),
-                    hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
-                );
-            }
-            [[nodiscard]] bool hasVolume() const override
-            {
-                return ShapeTraits<ShapeT>::hasVolume;
-            }
-            [[nodiscard]] bool isLocallyContinuable() const override
-            {
-                return ShapeTraits<ShapeT>::isLocallyContinuable;
-            }
-            [[nodiscard]] MaterialStorageViewType materials() const override
-            {
-                return m_materials.view();
-            }
-            [[nodiscard]] bool isLight() const override
-            {
-                return m_materials.isEmissive();
-            }
-            [[nodiscard]] SceneObjectId id() const override
-            {
-                return m_id;
-            }
-
-        private:
-            ShapeT m_shape;
-            MaterialStorageType m_materials;
-            SurfaceShaderPtrType m_shader;
-            SceneObjectId m_id;
-        };
-
-    public:
-        using ShapeType = BoundedSharedAnyShape;
-
-        template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, shader))
-        {
-
-        }
-
-        template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, defaultShader<ShapeT>))
-        {
-
-        }
-
-        SceneObject(const SceneObject&) = default;
-        SceneObject(SceneObject&&) noexcept = default;
-        SceneObject& operator=(const SceneObject&) = default;
-        SceneObject& operator=(SceneObject&&) noexcept = default;
-
-        [[nodiscard]] SceneObjectId id() const
-        {
-            return m_obj->id();
-        }
-
-        [[nodiscard]] Point3f center() const
-        {
-            return m_obj->center();
-        }
-
-        [[nodiscard]] Box3 aabb() const
-        {
-            return m_obj->aabb();
-        }
-
-        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
-        {
-            return m_obj->raycast(ray, hit);
-        }
-
-        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
-        {
-            return m_obj->resolveHit(hit);
-        }
-
-        [[nodiscard]] bool hasVolume() const
-        {
-            return m_obj->hasVolume();
-        }
-
-        [[nodiscard]] bool isLocallyContinuable() const
-        {
-            return m_obj->isLocallyContinuable();
-        }
-
-        [[nodiscard]] MaterialPtrStorageView materialsView() const
-        {
-            return m_obj->materials();
-        }
-
-        [[nodiscard]] bool isLight() const
-        {
-            return m_obj->isLight();
-        }
-
-    private:
-        std::shared_ptr<PolymorphicSceneObjectBase> m_obj;
-    };
-
-
-    // Stores any shape in a polymorphic wrapper.
-    // Only supports single shapes
-    // Copy performs deep copy of the shape, material array, and id
-    template <>
-    struct SceneObject<UnboundedUniqueAnyShape>
-    {
-    private:
-        struct PolymorphicSceneObjectBase
-        {
-            using MaterialStorageViewType = MaterialPtrStorageView;
-
-            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
-            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
-            [[nodiscard]] virtual bool hasVolume() const = 0;
-            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
-            [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
-            [[nodiscard]] virtual SceneObjectId id() const = 0;
-            virtual ~PolymorphicSceneObjectBase() = default;
-        };
-
-        template <typename ShapeT>
-        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
-        {
-            static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
-            static constexpr bool isPack = numShapesInPack > 1;
-            static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
-            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
-            static_assert(!isPack, "Only a single object can be made polymorphic.");
-            static_assert(!isBounded, "Must not be bounded.");
-            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
-            using MaterialStorageViewType = MaterialPtrStorageView;
-            using SurfaceShaderType = SurfaceShader<ShapeT>;
-            using SurfaceShaderPtrType = const SurfaceShaderType*;
-
-            template <typename... ArgsTs>
-            PolymorphicSceneObject(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
-                m_shape(shape),
-                m_materials(materials),
-                m_shader(&shader),
-                m_id(detail::gNextSceneObjectId.fetch_add(1))
-            {
-
-            }
-
-            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
-            {
-                return ray::raycast(ray, m_shape, hit);
-            }
-            [[nodiscard]] std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
-            {
-                return std::make_unique<PolymorphicSceneObject<ShapeT>>(*this);
-            }
-            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
-            {
-                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
-                return ResolvedRaycastHit(
-                    m_shader->shade(m_shape, hit, materialsView()),
-                    hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
-                );
-            }
-            [[nodiscard]] bool hasVolume() const override
-            {
-                return ShapeTraits<ShapeT>::hasVolume;
-            }
-            [[nodiscard]] bool isLocallyContinuable() const override
-            {
-                return ShapeTraits<ShapeT>::isLocallyContinuable;
-            }
-            [[nodiscard]] MaterialStorageViewType material() const override
-            {
-                return m_materials.view();
-            }
-            [[nodiscard]] SceneObjectId id() const override
-            {
-                return m_id;
-            }
-
-        private:
-            ShapeT m_shape;
-            MaterialStorageType m_materials;
-            SurfaceShaderPtrType m_shader;
-            SceneObjectId m_id;
-        };
-
-    public:
-        using ShapeType = UnboundedUniqueAnyShape;
-
-        template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, shader))
-        {
-
-        }
-
-        template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, defaultShader<ShapeT>))
-        {
-
-        }
-
-        SceneObject(const SceneObject& other) :
-            m_obj(other.m_obj->clone())
-        {
-
-        }
-        SceneObject& operator=(const SceneObject& other)
-        {
-            m_obj = other.m_obj->clone();
-        }
-
-        SceneObject(SceneObject&&) noexcept = default;
-        SceneObject& operator=(SceneObject&&) noexcept = default;
-
-        [[nodiscard]] SceneObjectId id() const
-        {
-            return m_obj->id();
-        }
-
-        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
-        {
-            return m_obj->raycast(ray, hit);
-        }
-
-        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
-        {
-            return m_obj->resolveHit(hit);
-        }
-
-        [[nodiscard]] bool hasVolume() const
-        {
-            return m_obj->hasVolume();
-        }
-
-        [[nodiscard]] bool isLocallyContinuable() const
-        {
-            return m_obj->isLocallyContinuable();
-        }
-
-        [[nodiscard]] MaterialPtrStorageView materialsView() const
-        {
-            return m_obj->materials();
-        }
-
-        [[nodiscard]] bool isLight() const
-        {
-            // unbounded objects cannot be light emitters
-            return false;
-        }
-
-    private:
-        std::unique_ptr<PolymorphicSceneObjectBase> m_obj;
-    };
-
-    // Stores any shape in a polymorphic wrapper.
-    // Only supports single shapes
-    // A copy is shallow, ie. all data is shared.
-    template <>
-    struct SceneObject<UnboundedSharedAnyShape>
-    {
-    private:
-        struct PolymorphicSceneObjectBase
-        {
-            using MaterialStorageViewType = MaterialPtrStorageView;
-
-            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
-            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
-            [[nodiscard]] virtual bool hasVolume() const = 0;
-            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
-            [[nodiscard]] virtual MaterialStorageViewType materials() const = 0;
-            [[nodiscard]] virtual SceneObjectId id() const = 0;
-            virtual ~PolymorphicSceneObjectBase() = default;
-        };
-
-        template <typename ShapeT>
-        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
-        {
-            static constexpr int numShapesInPack = ShapeTraits<ShapeT>::numShapes;
-            static constexpr bool isPack = numShapesInPack > 1;
-            static constexpr int numMaterialsPerShape = ShapeTraits<ShapeT>::numMaterialsPerShape;
-            static constexpr bool isBounded = ShapeTraits<ShapeT>::isBounded;
-            static_assert(!isPack, "Only a single object can be made polymorphic.");
-            static_assert(!isBounded, "Must not be bounded.");
-            using MaterialStorageType = MaterialPtrStorageType<ShapeT>;
-            using MaterialStorageViewType = MaterialPtrStorageView;
-            using SurfaceShaderType = SurfaceShader<ShapeT>;
-            using SurfaceShaderPtrType = const SurfaceShaderType*;
-
-            template <typename... ArgsTs>
-            PolymorphicSceneObject(const ShapeT& shape, const MaterialStorageType& materials, const SurfaceShaderType& shader) :
-                m_shape(shape),
-                m_materials(materials),
-                m_shader(&shader),
-                m_id(detail::gNextSceneObjectId.fetch_add(1))
-            {
-
-            }
-
-            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
-            {
-                return ray::raycast(ray, m_shape, hit);
-            }
-            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
-            {
-                auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
-                return ResolvedRaycastHit(
-                    m_shader->shade(m_shape, hit, materialsView()),
-                    hit.shapeNo, medium, nullptr, hit.isInside, hasVolume(), isLocallyContinuable()
-                );
-            }
-            [[nodiscard]] bool hasVolume() const override
-            {
-                return ShapeTraits<ShapeT>::hasVolume;
-            }
-            [[nodiscard]] bool isLocallyContinuable() const override
-            {
-                return ShapeTraits<ShapeT>::isLocallyContinuable;
-            }
-            [[nodiscard]] MaterialStorageViewType materials() const override
-            {
-                return m_materials.view();
-            }
-            [[nodiscard]] SceneObjectId id() const override
-            {
-                return m_id;
-            }
-
-        private:
-            ShapeT m_shape;
-            MaterialStorageType m_materials;
-            SurfaceShaderPtrType m_shader;
-            SceneObjectId m_id;
-        };
-
-    public:
-        using ShapeType = UnboundedSharedAnyShape;
-
-        template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials, const SurfaceShader<ShapeT>& shader) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, shader))
-        {
-
-        }
-
-        template <typename ShapeT>
-        SceneObject(const ShapeT& shape, const MaterialPtrStorageType<ShapeT>& materials) :
-            m_obj(std::make_unique<PolymorphicSceneObject<ShapeT>>(shape, materials, defaultShader<ShapeT>))
-        {
-
-        }
-
-        SceneObject(const SceneObject&) = default;
-        SceneObject(SceneObject&&) noexcept = default;
-        SceneObject& operator=(const SceneObject&) = default;
-        SceneObject& operator=(SceneObject&&) noexcept = default;
-
-        [[nodiscard]] SceneObjectId id() const
-        {
-            return m_obj->id();
-        }
-
-        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
-        {
-            return m_obj->raycast(ray, hit);
-        }
-
-        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
-        {
-            return m_obj->resolveHit(hit);
-        }
-
-        [[nodiscard]] bool hasVolume() const
-        {
-            return m_obj->hasVolume();
-        }
-
-        [[nodiscard]] bool isLocallyContinuable() const
-        {
-            return m_obj->isLocallyContinuable();
-        }
-
-        [[nodiscard]] MaterialPtrStorageView materialsView() const
-        {
-            return m_obj->materials();
-        }
-
-        [[nodiscard]] bool isLight() const
-        {
-            // unbounded objects cannot be light emitters
-            return false;
-        }
-
-    private:
-        std::shared_ptr<PolymorphicSceneObjectBase> m_obj;
-    };
+    using AnyBoundedSceneObject = SceneObject<AnyBoundedShape>;
+    using AnyUboundedSceneObject = SceneObject<AnyUnboundedShape>;
 }

@@ -168,30 +168,6 @@ namespace ray
     };
 
     template <>
-    struct ShapeTraits<BoundedUniqueAnyShape>
-    {
-        static constexpr bool isBounded = true;
-    };
-
-    template <>
-    struct ShapeTraits<BoundedSharedAnyShape>
-    {
-        static constexpr bool isBounded = true;
-    };
-
-    template <>
-    struct ShapeTraits<UnboundedUniqueAnyShape>
-    {
-        static constexpr bool isBounded = false;
-    };
-
-    template <>
-    struct ShapeTraits<UnboundedSharedAnyShape>
-    {
-        static constexpr bool isBounded = false;
-    };
-
-    template <>
     struct ShapeTraits<CsgShape>
     {
         static constexpr bool isBounded = true;

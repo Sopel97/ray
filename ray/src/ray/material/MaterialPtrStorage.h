@@ -79,6 +79,21 @@ namespace ray
             return *m_mediumMaterials[i];
         }
 
+        [[nodiscard]] std::pair<const SurfaceMaterial*, const MediumMaterial*> at(const MaterialIndex& idx) const
+        {
+            const int s = idx.surfaceMaterialNo();
+            const int m = idx.mediumMaterialNo();
+
+            if (m >= 0)
+            {
+                return { m_surfaceMaterials[s], m_mediumMaterials[m] };
+            }
+            else
+            {
+                return { m_surfaceMaterials[s], nullptr };
+            }
+        }
+
         [[nodiscard]] MaterialPtrStorageView view() const
         {
             return MaterialPtrStorageView(m_surfaceMaterials.data(), m_mediumMaterials.data());

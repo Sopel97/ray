@@ -10,14 +10,10 @@ namespace ray
     // it's SceneObject's job.
     // SceneObject, SceneObjectArray should specialize for them
 
-    struct BoundedUniqueAnyShape;
-    struct BoundedSharedAnyShape;
-    struct UnboundedUniqueAnyShape;
-    struct UnboundedSharedAnyShape;
     struct CsgShape;
-    template <bool>
-    struct AnyShape;
 
+    template <bool IsBoundedV>
+    struct AnyShape;
     using AnyBoundedShape = AnyShape<true>;
     using AnyUnboundedShape = AnyShape<false>;
 }

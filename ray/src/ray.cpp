@@ -303,7 +303,7 @@ int __cdecl main()
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -7), 1.5), { &m1 }));
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-3.0, 0, -7), 1.5), { &m1 }));
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(3.0, 0, -7), 1.5), { &m1 }));
-    spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-30, 20, -20), 20), { { &m8s }, { &m8m } }));
+    anyBoundedShapes.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(-30, 20, -20), 20), { { &m8s }, { &m8m } }));
     //boxes.emplace_back(SceneObject<Box3>(Box3(Point3f(10, -2, -20), Point3f(20, 8, -10)), { &m11 }));
 
     /*

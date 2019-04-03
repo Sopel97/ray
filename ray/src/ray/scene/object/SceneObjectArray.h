@@ -104,7 +104,7 @@ namespace ray
             [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
             {
                 const auto& obj = m_objects[hit.shapeNo];
-                ResolvedRaycastHit ret = obj.resolveHit(hit);
+                ResolvedRaycastHit ret = obj.resolveHit(hit, this);
                 ret.owner = this;
                 return ret;
             }
@@ -285,14 +285,6 @@ namespace ray
     };
 
     // only the underlying scene object's structure changes
-    template <>
-    struct SceneObjectArray<BoundedUniqueAnyShape> : detail::PolymorphicSceneObjectArray<BoundedUniqueAnyShape> {};
-    template <>
-    struct SceneObjectArray<BoundedSharedAnyShape> : detail::PolymorphicSceneObjectArray<BoundedSharedAnyShape> {};
-    template <>
-    struct SceneObjectArray<UnboundedUniqueAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedUniqueAnyShape> {};
-    template <>
-    struct SceneObjectArray<UnboundedSharedAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedSharedAnyShape> {};
     template <>
     struct SceneObjectArray<CsgShape> : detail::PolymorphicSceneObjectArray<CsgShape> {};
     template <>
