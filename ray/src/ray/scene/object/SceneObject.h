@@ -436,22 +436,22 @@ namespace ray
                     // apply padding because we are raycasting it again, we don't want to miss it
                     const float dist = (interval.min > 0.0f ? interval.min : interval.max) - padding;
                     const Ray offsetRay = ray.translated(ray.direction() * dist);
-                    const CsgPrimitiveBase* shape = nullptr;
                     hit.dist -= dist;
                     if (data.shape->raycast(offsetRay, hit))
                     {
                         // technically we should always hit, but just to be safe from floating point inaccuracy
-                        shape = data.shape;
                         if (data.invert)
                         {
                             hit.isInside = !hit.isInside;
                         }
 
-                        hit.additionalData = static_cast<const void*>(shape);
+                        hit.additionalData = static_cast<const void*>(data.shape);
+                        
+                        hit.dist += dist;
+
+                        return true;
                     }
                     hit.dist += dist;
-
-                    return true;
                 }
             }
 
