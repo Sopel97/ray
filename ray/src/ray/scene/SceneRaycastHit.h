@@ -24,7 +24,6 @@ namespace ray
     {
         int shapeNo;
         const HomogeneousSceneObjectCollection* owner;
-        const void* additionalData = nullptr;
 
         [[nodiscard]] ResolvedRaycastHit resolve() const;
 

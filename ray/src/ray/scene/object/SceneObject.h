@@ -420,6 +420,8 @@ namespace ray
                         {
                             hit.isInside = !hit.isInside;
                         }
+
+                        hit.additionalData = static_cast<const void*>(shape);
                     }
                     hit.dist += dist;
 
@@ -428,6 +430,12 @@ namespace ray
             }
 
             return nullptr;
+        }
+
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        {
+            const CsgPrimitiveBase* obj = static_cast<const CsgPrimitiveBase*>(hit.additionalData);
+            return obj->resolveHit(hit);
         }
 
         [[nodiscard]] decltype(auto) aabb() const
@@ -479,6 +487,142 @@ namespace ray
     private:
         std::shared_ptr<CsgNode> m_obj;
         SceneObjectId m_id;
+    };
+
+    template <bool IsBoundedV>
+    struct SceneObject<AnyShape<IsBoundedV>>
+    {
+    private:
+        struct PolymorphicSceneObjectBase
+        {
+            using MaterialStorageViewType = MaterialPtrStorageView;
+
+            [[nodiscard]] virtual Point3f center() const = 0;
+            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
+            [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const = 0;
+            [[nodiscard]] virtual bool hasVolume() const = 0;
+            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
+            [[nodiscard]] virtual Box3 aabb() const = 0;
+            [[nodiscard]] virtual bool isLight() const = 0;
+            [[nodiscard]] virtual SceneObjectId id() const = 0;
+            virtual ~PolymorphicSceneObjectBase() = default;
+        };
+
+        template <typename SceneObjectT>
+        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
+        {
+            PolymorphicSceneObject(SceneObjectT&& object) :
+                m_object(std::move(object))
+            {
+
+            }
+
+            [[nodiscard]] Point3f center() const override
+            {
+                return m_object.center();
+            }
+            [[nodiscard]] Box3 aabb() const override
+            {
+                return m_object.aabb();
+            }
+            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
+            {
+                return m_object.raycast(ray, hit);
+            }
+            [[nodiscard]] std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
+            {
+                return std::make_unique<PolymorphicSceneObject>(*this);
+            }
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
+            {
+                return m_object.resolveHit(hit);
+            }
+            [[nodiscard]] bool hasVolume() const override
+            {
+                return m_object.hasVolume();
+            }
+            [[nodiscard]] bool isLocallyContinuable() const override
+            {
+                return m_object.isLocallyContinuable();
+            }
+            [[nodiscard]] bool isLight() const override
+            {
+                return m_object.isEmissive();
+            }
+            [[nodiscard]] SceneObjectId id() const override
+            {
+                return m_object.id();
+            }
+
+        private:
+            SceneObjectT m_object;
+        };
+
+    public:
+        using ShapeType = AnyShape<IsBoundedV>;
+
+        template <typename SceneObjectT>
+        SceneObject(SceneObjectT&& object) :
+            m_obj(std::make_unique<PolymorphicSceneObject<SceneObjectT>>(std::forward<SceneObjectT>(object)))
+        {
+
+        }
+
+        SceneObject(const SceneObject& other) :
+            m_obj(other.m_obj->clone())
+        {
+
+        }
+        SceneObject& operator=(const SceneObject& other)
+        {
+            m_obj = other.m_obj->clone();
+        }
+
+        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject& operator=(SceneObject&&) noexcept = default;
+
+        [[nodiscard]] SceneObjectId id() const
+        {
+            return m_obj->id();
+        }
+
+        [[nodiscard]] Point3f center() const
+        {
+            return m_obj->center();
+        }
+
+        [[nodiscard]] Box3 aabb() const
+        {
+            return m_obj->aabb();
+        }
+
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
+        {
+            return m_obj->raycast(ray, hit);
+        }
+
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        {
+            return m_obj->resolveHit(hit);
+        }
+
+        [[nodiscard]] bool hasVolume() const
+        {
+            return m_obj->hasVolume();
+        }
+        [[nodiscard]] bool isLocallyContinuable() const
+        {
+            return m_obj->isLocallyContinuable();
+        }
+
+        [[nodiscard]] bool isLight() const
+        {
+            return m_obj->isLight();
+        }
+
+    private:
+        std::unique_ptr<PolymorphicSceneObjectBase> m_obj;
     };
 
     // TODO: think how to merge the following cases nicely

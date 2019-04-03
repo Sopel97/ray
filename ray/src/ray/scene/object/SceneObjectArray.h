@@ -324,7 +324,6 @@ namespace ray
                 {
                     anyHit = true;
                     hit.shapeNo = shapeNo;
-                    hit.additionalData = static_cast<const void*>(shapePtr);
                 }
             }
 
@@ -342,7 +341,6 @@ namespace ray
             {
                 hit.shapeNo = shapeNo;
                 hit.owner = this;
-                hit.additionalData = static_cast<const void*>(shapePtr);
                 return true;
             }
 
@@ -351,10 +349,7 @@ namespace ray
 
         [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
         {
-            ShapePtrType obj = static_cast<ShapePtrType>(hit.additionalData);
-            ResolvedRaycastHit ret = obj->resolveHit(hit);
-            ret.owner = this;
-            return ret;
+            return m_objects[hit.shapeNo].resolveHit(hit);
         }
 
         void gatherLights(std::vector<LightHandle>& lights) const

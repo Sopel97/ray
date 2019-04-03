@@ -15,4 +15,6 @@ namespace ray
     struct UnboundedUniqueAnyShape;
     struct UnboundedSharedAnyShape;
     struct CsgShape;
+    template <bool>
+    struct AnyShape;
 }

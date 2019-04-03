@@ -18,5 +18,6 @@ namespace ray
         int shapeInPackNo;
         MaterialIndex materialIndex;
         bool isInside;
+        const void* additionalData;
     };
 }

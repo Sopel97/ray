@@ -197,6 +197,12 @@ namespace ray
         static constexpr bool isBounded = true;
     };
 
+    template <bool IsBoundedV>
+    struct ShapeTraits<AnyShape<IsBoundedV>>
+    {
+        static constexpr bool isBounded = IsBoundedV;
+    };
+
     struct ShapePredicates
     {
         struct IsBounded
