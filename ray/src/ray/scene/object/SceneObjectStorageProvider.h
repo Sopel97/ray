@@ -44,6 +44,12 @@ namespace ray
             using Type = SceneObjectArray<CsgShape>;
         };
 
+        template <bool V>
+        struct Storage<AnyShape<V>>
+        {
+            using Type = SceneObjectArray<AnyShape<V>>;
+        };
+
         template <typename ShapeT>
         using ArrayType = typename Storage<ShapeT>::Type;
     };

@@ -270,6 +270,7 @@ int __cdecl main()
 
     //*
     using ShapeT = Sphere;
+    std::vector<SceneObject<AnyBoundedShape>> anyBoundedShapes;
     std::vector<SceneObject<ShapeT>> spheres;
     std::vector<SceneObject<Plane>> planes;
     std::vector<SceneObject<Box3>> boxes;
@@ -385,7 +386,8 @@ int __cdecl main()
     auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m4s }, { &m4m } });
 
     
-    csgs.emplace_back(
+    anyBoundedShapes.emplace_back(
+    //csgs.emplace_back(
         (
             (
                 (
@@ -438,10 +440,10 @@ int __cdecl main()
     );
     */
 
-    using ShapesT = Shapes<ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
+    using ShapesT = Shapes<AnyBoundedShape, ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
     using PartitionerType = StaticBvhObjectMeanPartitioner;
     using BvhParamsType = BvhParams<ShapesT, Box3, PackedSceneObjectStorageProvider>;
-    RawSceneObjectBlob<ShapesT> shapes(std::move(sdfs), std::move(trSpheres), std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
+    RawSceneObjectBlob<ShapesT> shapes(std::move(anyBoundedShapes), std::move(sdfs), std::move(trSpheres), std::move(obbs), std::move(spheres), std::move(planes), std::move(boxes), std::move(tris), std::move(closedTris), std::move(csgs), std::move(discs), std::move(cylinders), std::move(capsules));
     StaticScene<StaticBvh<BvhParamsType, PartitionerType>> scene(shapes, 3);
     //StaticScene<PackedSceneObjectBlob<ShapesT>> scene(shapes);
     //*/

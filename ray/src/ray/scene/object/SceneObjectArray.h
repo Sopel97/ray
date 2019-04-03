@@ -295,4 +295,8 @@ namespace ray
     struct SceneObjectArray<UnboundedSharedAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedSharedAnyShape> {};
     template <>
     struct SceneObjectArray<CsgShape> : detail::PolymorphicSceneObjectArray<CsgShape> {};
+    template <>
+    struct SceneObjectArray<AnyShape<true>> : detail::PolymorphicSceneObjectArray<AnyShape<true>> {};
+    template <>
+    struct SceneObjectArray<AnyShape<false>> : detail::PolymorphicSceneObjectArray<AnyShape<false>> {};
 }

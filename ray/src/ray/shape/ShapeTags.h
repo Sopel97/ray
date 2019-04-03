@@ -17,4 +17,7 @@ namespace ray
     struct CsgShape;
     template <bool>
     struct AnyShape;
+
+    using AnyBoundedShape = AnyShape<true>;
+    using AnyUnboundedShape = AnyShape<false>;
 }

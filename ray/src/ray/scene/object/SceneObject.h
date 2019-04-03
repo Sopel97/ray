@@ -548,7 +548,7 @@ namespace ray
             }
             [[nodiscard]] bool isLight() const override
             {
-                return m_object.isEmissive();
+                return m_object.isLight();
             }
             [[nodiscard]] SceneObjectId id() const override
             {
