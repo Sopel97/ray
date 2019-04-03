@@ -31,6 +31,8 @@ namespace ray
         {
             using ShapeStorageType = std::vector<SceneObject<AnyShapeT>>;
 
+            static constexpr bool isBounded = ShapeTraits<AnyShapeT>::isBounded;
+
             PolymorphicSceneObjectArray() noexcept
             {
 
@@ -105,6 +107,21 @@ namespace ray
                 ResolvedRaycastHit ret = obj.resolveHit(hit);
                 ret.owner = this;
                 return ret;
+            }
+
+            void gatherLights(std::vector<LightHandle>& lights) const
+            {
+                if constexpr (isBounded)
+                {
+                    for (int i = 0; i < m_objects.size(); ++i)
+                    {
+                        const auto& obj = m_objects[i];
+                        if (obj.isLight())
+                        {
+                            lights.emplace_back(obj.center(), obj.id());
+                        }
+                    }
+                }
             }
 
         private:
@@ -276,94 +293,6 @@ namespace ray
     struct SceneObjectArray<UnboundedUniqueAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedUniqueAnyShape> {};
     template <>
     struct SceneObjectArray<UnboundedSharedAnyShape> : detail::PolymorphicSceneObjectArray<UnboundedSharedAnyShape> {};
-
     template <>
-    struct SceneObjectArray<CsgShape> : HomogeneousSceneObjectCollection
-    {
-        using ShapeStorageType = std::vector<SceneObject<CsgShape>>;
-        using ShapeType = SceneObject<CsgShape>::CsgPrimitiveBase;
-        using ShapePtrType = const ShapeType*;
-
-        SceneObjectArray()
-        {
-
-        }
-
-        SceneObjectArray(const SceneObjectArray&) = default;
-        SceneObjectArray(SceneObjectArray&&) noexcept = default;
-        SceneObjectArray& operator=(const SceneObjectArray&) = default;
-        SceneObjectArray& operator=(SceneObjectArray&&) noexcept = default;
-
-        void add(const SceneObject<CsgShape>& so)
-        {
-            m_objects.emplace_back(so);
-        }
-
-        void add(SceneObject<CsgShape>&& so)
-        {
-            m_objects.emplace_back(std::move(so));
-        }
-
-        [[nodiscard]] int size() const
-        {
-            return static_cast<int>(m_objects.size());
-        }
-
-        [[nodiscard]] SceneObjectId id(int shapeNo) const
-        {
-            return m_objects[shapeNo].id();
-        }
-
-        [[nodiscard]] bool queryNearest(const Ray& ray, ResolvableRaycastHit& hit) const
-        {
-            const int size = static_cast<int>(m_objects.size());
-            bool anyHit = false;
-            for (int shapeNo = 0; shapeNo < size; ++shapeNo)
-            {
-                if (ShapePtrType shapePtr = m_objects[shapeNo].raycast(ray, hit))
-                {
-                    anyHit = true;
-                    hit.shapeNo = shapeNo;
-                }
-            }
-
-            if (anyHit)
-            {
-                hit.owner = this;
-            }
-
-            return anyHit;
-        }
-
-        [[nodiscard]] bool queryLocal(const Ray& ray, int shapeNo, ResolvableRaycastHit& hit) const override
-        {
-            if (ShapePtrType shapePtr = m_objects[shapeNo].raycast(ray, hit))
-            {
-                hit.shapeNo = shapeNo;
-                hit.owner = this;
-                return true;
-            }
-
-            return false;
-        }
-
-        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
-        {
-            return m_objects[hit.shapeNo].resolveHit(hit);
-        }
-
-        void gatherLights(std::vector<LightHandle>& lights) const
-        {
-            for (const auto& obj : m_objects)
-            {
-                if (obj.isLight())
-                {
-                    lights.emplace_back(obj.center(), obj.id());
-                }
-            }
-        }
-
-    private:
-        ShapeStorageType m_objects;
-    };
+    struct SceneObjectArray<CsgShape> : detail::PolymorphicSceneObjectArray<CsgShape> {};
 }
