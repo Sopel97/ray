@@ -156,6 +156,8 @@ namespace ray
     public:
         struct CsgPrimitiveBase;
 
+        static constexpr bool isBounded = true;
+
     private:
         struct CsgIntervalData
         {
@@ -401,7 +403,7 @@ namespace ray
         SceneObject& operator=(const SceneObject&) = default;
         SceneObject& operator=(SceneObject&&) noexcept = default;
 
-        [[nodiscard]] const CsgPrimitiveBase* raycast(const Ray& ray, RaycastHit& hit) const
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
         {
             thread_local CsgHitIntervalsStack allHitIntervals;
 
@@ -449,11 +451,11 @@ namespace ray
                     }
                     hit.dist += dist;
 
-                    return shape;
+                    return true;
                 }
             }
 
-            return nullptr;
+            return false;
         }
 
         [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner = nullptr) const
@@ -513,9 +515,142 @@ namespace ray
         SceneObjectId m_id;
     };
 
-    template <bool IsBoundedV>
-    struct SceneObject<AnyShape<IsBoundedV>>
+    template <>
+    struct SceneObject<AnyShape<false>>
     {
+        static constexpr bool isBounded = false;
+
+    private:
+        struct PolymorphicSceneObjectBase
+        {
+            using MaterialStorageViewType = MaterialPtrStorageView;
+
+            [[nodiscard]] virtual bool raycast(const Ray& ray, RaycastHit& hit) const = 0;
+            [[nodiscard]] virtual std::unique_ptr<PolymorphicSceneObjectBase> clone() const = 0;
+            [[nodiscard]] virtual ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner = nullptr) const = 0;
+            [[nodiscard]] virtual bool hasVolume() const = 0;
+            [[nodiscard]] virtual bool isLocallyContinuable() const = 0;
+            [[nodiscard]] virtual Box3 aabb() const = 0;
+            [[nodiscard]] virtual bool isLight() const = 0;
+            [[nodiscard]] virtual SceneObjectId id() const = 0;
+            virtual ~PolymorphicSceneObjectBase() = default;
+        };
+
+        template <typename SceneObjectT>
+        struct PolymorphicSceneObject : PolymorphicSceneObjectBase
+        {
+            static_assert(isBounded == SceneObjectT::isBounded, "Boundedness must match");
+
+            PolymorphicSceneObject(SceneObjectT&& object) :
+                m_object(std::move(object))
+            {
+
+            }
+
+            [[nodiscard]] Box3 aabb() const override
+            {
+                return m_object.aabb();
+            }
+            [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const override
+            {
+                return m_object.raycast(ray, hit);
+            }
+            [[nodiscard]] std::unique_ptr<PolymorphicSceneObjectBase> clone() const override
+            {
+                return std::make_unique<PolymorphicSceneObject>(*this);
+            }
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner) const override
+            {
+                return m_object.resolveHit(hit, owner);
+            }
+            [[nodiscard]] bool hasVolume() const override
+            {
+                return m_object.hasVolume();
+            }
+            [[nodiscard]] bool isLocallyContinuable() const override
+            {
+                return m_object.isLocallyContinuable();
+            }
+            [[nodiscard]] bool isLight() const override
+            {
+                return m_object.isLight();
+            }
+            [[nodiscard]] SceneObjectId id() const override
+            {
+                return m_object.id();
+            }
+
+        private:
+            SceneObjectT m_object;
+        };
+
+    public:
+        using ShapeType = AnyShape<false>;
+
+        template <typename SceneObjectT>
+        SceneObject(SceneObjectT&& object) :
+            m_obj(std::make_unique<PolymorphicSceneObject<SceneObjectT>>(std::forward<SceneObjectT>(object)))
+        {
+
+        }
+
+        SceneObject(const SceneObject& other) :
+            m_obj(other.m_obj->clone())
+        {
+
+        }
+        SceneObject& operator=(const SceneObject& other)
+        {
+            m_obj = other.m_obj->clone();
+        }
+
+        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject& operator=(SceneObject&&) noexcept = default;
+
+        [[nodiscard]] SceneObjectId id() const
+        {
+            return m_obj->id();
+        }
+
+        [[nodiscard]] Box3 aabb() const
+        {
+            return m_obj->aabb();
+        }
+
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
+        {
+            return m_obj->raycast(ray, hit);
+        }
+
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit, const HomogeneousSceneObjectCollection* owner = nullptr) const
+        {
+            return m_obj->resolveHit(hit, owner);
+        }
+
+        [[nodiscard]] bool hasVolume() const
+        {
+            return m_obj->hasVolume();
+        }
+        [[nodiscard]] bool isLocallyContinuable() const
+        {
+            return m_obj->isLocallyContinuable();
+        }
+
+        [[nodiscard]] bool isLight() const
+        {
+            return m_obj->isLight();
+        }
+
+    private:
+        std::unique_ptr<PolymorphicSceneObjectBase> m_obj;
+    };
+
+
+    template <>
+    struct SceneObject<AnyShape<true>>
+    {
+        static constexpr bool isBounded = true;
+
     private:
         struct PolymorphicSceneObjectBase
         {
@@ -536,6 +671,8 @@ namespace ray
         template <typename SceneObjectT>
         struct PolymorphicSceneObject : PolymorphicSceneObjectBase
         {
+            static_assert(isBounded == SceneObjectT::isBounded, "Boundedness must match");
+
             PolymorphicSceneObject(SceneObjectT&& object) :
                 m_object(std::move(object))
             {
@@ -584,7 +721,7 @@ namespace ray
         };
 
     public:
-        using ShapeType = AnyShape<IsBoundedV>;
+        using ShapeType = AnyShape<true>;
 
         template <typename SceneObjectT>
         SceneObject(SceneObjectT&& object) :
