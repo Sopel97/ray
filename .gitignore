@@ -48,6 +48,8 @@ Debug
 *.ipch
 *.db
 *.opendb
+*.asm
+*.CopyComplete
 
 # =========================
 # Operating System Files

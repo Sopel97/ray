@@ -10,7 +10,7 @@ namespace ray
     struct Cylinder
     {
         Point3f begin;
-        Normal3f axis;
+        UnitVec3f axis;
         float length;
         float radius;
 

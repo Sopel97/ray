@@ -68,8 +68,8 @@ namespace ray
 
         [[nodiscard]] static Box3 get(const Cylinder& cyl)
         {
-            Disc3 dBegin(cyl.begin, cyl.axis, cyl.radius);
-            Disc3 dEnd(cyl.begin + cyl.axis * cyl.length, cyl.axis, cyl.radius);
+            Disc3 dBegin(cyl.begin, Normal3f(cyl.axis), cyl.radius);
+            Disc3 dEnd(cyl.begin + cyl.axis * cyl.length, Normal3f(cyl.axis), cyl.radius);
             Box3 bb = get(dBegin);
             bb.extend(get(dEnd));
             return bb;

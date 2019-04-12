@@ -17,7 +17,7 @@ namespace ray
     {
         constexpr static float viewportDistance = 1.0f;
 
-        Camera(const Point3f& position, const Normal3f& direction, const Normal3f& up, int width, int height, Angle2f fov) noexcept :
+        Camera(const Point3f& position, const UnitVec3f& direction, const UnitVec3f& up, int width, int height, Angle2f fov) noexcept :
             m_position(position),
             m_direction(direction),
             m_up(up),
@@ -94,20 +94,20 @@ namespace ray
             return m_position;
         }
 
-        [[nodiscard]] const Normal3f& direction() const
+        [[nodiscard]] const UnitVec3f& direction() const
         {
             return m_direction;
         }
 
-        [[nodiscard]] const Normal3f& up() const
+        [[nodiscard]] const UnitVec3f& up() const
         {
             return m_up;
         }
 
     private:
         Point3f m_position;
-        Normal3f m_direction;
-        Normal3f m_up;
+        UnitVec3f m_direction;
+        UnitVec3f m_up;
         int m_width;
         int m_height;
         Angle2f m_fov;

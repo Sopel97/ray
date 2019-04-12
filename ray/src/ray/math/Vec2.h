@@ -12,53 +12,53 @@ namespace ray
     struct Vec2;
 
     template <typename T>
-    struct Normal2
+    struct UnitVec2
     {
-        detail::OwnedReadOnlyProperty<T, Normal2<T>> x, y;
+        detail::OwnedReadOnlyProperty<T, UnitVec2<T>> x, y;
 
-        [[nodiscard]] constexpr static Normal2<T> xAxis() noexcept
+        [[nodiscard]] constexpr static UnitVec2<T> xAxis() noexcept
         {
-            return Normal2<T>(AssumeNormalized{}, 1, 0);
+            return UnitVec2<T>(AssumeNormalized{}, 1, 0);
         }
 
-        [[nodiscard]] constexpr static Normal2<T> yAxis() noexcept
+        [[nodiscard]] constexpr static UnitVec2<T> yAxis() noexcept
         {
-            return Normal2<T>(AssumeNormalized{}, 0, 1);
+            return UnitVec2<T>(AssumeNormalized{}, 0, 1);
         }
 
-        constexpr Normal2() noexcept :
+        constexpr UnitVec2() noexcept :
             x(1),
             y(0)
         {
         }
 
-        constexpr Normal2(const T& x, const T& y) noexcept :
-            Normal2(Vec2<T>(x, y).normalized())
+        constexpr UnitVec2(const T& x, const T& y) noexcept :
+            UnitVec2(Vec2<T>(x, y).normalized())
         {
         }
 
-        constexpr explicit Normal2(const Vec2<T>& v) noexcept :
-            Normal2(v.normalized())
+        constexpr explicit UnitVec2(const Vec2<T>& v) noexcept :
+            UnitVec2(v.normalized())
         {
         }
 
-        constexpr Normal2(AssumeNormalized, const T& x, const T& y) noexcept :
+        constexpr UnitVec2(AssumeNormalized, const T& x, const T& y) noexcept :
             x(x),
             y(y)
         {
         }
 
-        constexpr Normal2(AssumeNormalized, const Vec2<T>& v) noexcept :
+        constexpr UnitVec2(AssumeNormalized, const Vec2<T>& v) noexcept :
             x(v.x),
             y(v.y)
         {
         }
 
-        constexpr Normal2(const Normal2<T>&) noexcept = default;
-        constexpr Normal2(Normal2<T>&&) noexcept = default;
+        constexpr UnitVec2(const UnitVec2<T>&) noexcept = default;
+        constexpr UnitVec2(UnitVec2<T>&&) noexcept = default;
 
-        constexpr Normal2<T>& operator=(const Normal2<T>&) noexcept = default;
-        constexpr Normal2<T>& operator=(Normal2<T>&&) noexcept = default;
+        constexpr UnitVec2<T>& operator=(const UnitVec2<T>&) noexcept = default;
+        constexpr UnitVec2<T>& operator=(UnitVec2<T>&&) noexcept = default;
 
         [[nodiscard]] constexpr explicit operator Vec2<T>() const
         {
@@ -72,6 +72,14 @@ namespace ray
                 static_cast<T>(1) / y
                 );
         }
+    };
+
+    using UnitVec2f = UnitVec2<float>;
+
+    template <typename T>
+    struct Normal2 : UnitVec2<T>
+    {
+        using UnitVec2<T>::UnitVec2;
     };
 
     using Normal2f = Normal2<float>;
@@ -172,14 +180,14 @@ namespace ray
             *this *= invLength();
         }
 
-        [[nodiscard]] constexpr Normal2<T> assumeNormalized() const
+        [[nodiscard]] constexpr UnitVec2<T> assumeNormalized() const
         {
-            return Normal2<T>(AssumeNormalized{}, *this);
+            return UnitVec2<T>(AssumeNormalized{}, *this);
         }
 
-        [[nodiscard]] constexpr Normal2<T> normalized() const
+        [[nodiscard]] constexpr UnitVec2<T> normalized() const
         {
-            return Normal2<T>(AssumeNormalized{}, *this * invLength());
+            return UnitVec2<T>(AssumeNormalized{}, *this * invLength());
         }
 
         [[nodiscard]] constexpr T max() const
@@ -324,7 +332,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> operator*(const Normal2<T>& lhs, const T& rhs)
+    [[nodiscard]] constexpr Vec2<T> operator*(const UnitVec2<T>& lhs, const T& rhs)
     {
         return Vec2<T>(
             lhs.x * rhs,
@@ -351,7 +359,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> operator*(const T& lhs, const Normal2<T>& rhs)
+    [[nodiscard]] constexpr Vec2<T> operator*(const T& lhs, const UnitVec2<T>& rhs)
     {
         return Vec2<T>(
             lhs * rhs.x,
@@ -360,7 +368,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> operator/(const Normal2<T>& lhs, const T& rhs)
+    [[nodiscard]] constexpr Vec2<T> operator/(const UnitVec2<T>& lhs, const T& rhs)
     {
         return Vec2<T>(
             lhs.x / rhs,
@@ -377,7 +385,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr T dot(const Normal2<T>& lhs, const Vec2<T>& rhs)
+    [[nodiscard]] constexpr T dot(const UnitVec2<T>& lhs, const Vec2<T>& rhs)
     {
         return
             lhs.x * rhs.x +
@@ -385,7 +393,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr T dot(const Vec2<T>& lhs, const Normal2<T>& rhs)
+    [[nodiscard]] constexpr T dot(const Vec2<T>& lhs, const UnitVec2<T>& rhs)
     {
         return
             lhs.x * rhs.x +
@@ -393,7 +401,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr T dot(const Normal2<T>& lhs, const Normal2<T>& rhs)
+    [[nodiscard]] constexpr T dot(const UnitVec2<T>& lhs, const UnitVec2<T>& rhs)
     {
         return
             lhs.x * rhs.x +
@@ -409,7 +417,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> cross(const Normal2<T>& lhs, const Vec2<T>& rhs)
+    [[nodiscard]] constexpr Vec2<T> cross(const UnitVec2<T>& lhs, const Vec2<T>& rhs)
     {
         return
             lhs.x * rhs.y -
@@ -417,7 +425,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> cross(const Vec2<T>& lhs, const Normal2<T>& rhs)
+    [[nodiscard]] constexpr Vec2<T> cross(const Vec2<T>& lhs, const UnitVec2<T>& rhs)
     {
         return
             lhs.x * rhs.y -
@@ -425,7 +433,7 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> cross(const Normal2<T>& lhs, const Normal2<T>& rhs)
+    [[nodiscard]] constexpr Vec2<T> cross(const UnitVec2<T>& lhs, const UnitVec2<T>& rhs)
     {
         return
             lhs.x * rhs.y -
@@ -473,21 +481,21 @@ namespace ray
 
     // projection of v on n
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> projection(const Vec2<T>& v, const Normal2<T>& n)
+    [[nodiscard]] constexpr Vec2<T> projection(const Vec2<T>& v, const UnitVec2<T>& n)
     {
         return n * dot(v, n);
     }
 
     // projection of v on n
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> projection(const Normal2<T>& v, const Vec2<T>& n)
+    [[nodiscard]] constexpr Vec2<T> projection(const UnitVec2<T>& v, const Vec2<T>& n)
     {
         return n * (dot(v, n) / dot(n, n));
     }
 
     // projection of v on n
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> projection(const Normal2<T>& v, const Normal2<T>& n)
+    [[nodiscard]] constexpr Vec2<T> projection(const UnitVec2<T>& v, const UnitVec2<T>& n)
     {
         return n * dot(v, n);
     }
@@ -501,21 +509,21 @@ namespace ray
 
     // reflection of v from a surface with normal n (like light reflection)
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> reflection(const Vec2<T>& v, const Normal2<T>& n)
+    [[nodiscard]] constexpr Vec2<T> reflection(const Vec2<T>& v, const UnitVec2<T>& n)
     {
         return v - static_cast<T>(2) * projection(v, n);
     }
 
     // reflection of v from a surface with normal n (like light reflection)
     template <typename T>
-    [[nodiscard]] constexpr Normal2<T> reflection(const Normal2<T>& v, const Vec2<T>& n)
+    [[nodiscard]] constexpr UnitVec2<T> reflection(const UnitVec2<T>& v, const Vec2<T>& n)
     {
         return (Vec2<T>(v) - static_cast<T>(2) * projection(v, n)).assumeNormalized();
     }
 
     // reflection of v from a surface with normal n (like light reflection)
     template <typename T>
-    [[nodiscard]] constexpr Normal2<T> reflection(const Normal2<T>& v, const Normal2<T>& n)
+    [[nodiscard]] constexpr UnitVec2<T> reflection(const UnitVec2<T>& v, const UnitVec2<T>& n)
     {
         return (Vec2<T>(v) - static_cast<T>(2) * projection(v, n)).assumeNormalized();
     }
@@ -533,7 +541,7 @@ namespace ray
 
     // refraction of v through a surface with normal n with refractive index ratio of r
     template <typename T>
-    [[nodiscard]] constexpr Normal2<T> refraction(const Normal2<T>& v, const Vec2<T>& n, const T& r)
+    [[nodiscard]] constexpr UnitVec2<T> refraction(const UnitVec2<T>& v, const Vec2<T>& n, const T& r)
     {
         using std::sqrt;
 
@@ -544,7 +552,7 @@ namespace ray
 
     // refraction of v through a surface with normal n with refractive index ratio of r
     template <typename T>
-    [[nodiscard]] constexpr Vec2<T> refraction(const Vec2<T>& v, const Normal2<T>& n, const T& r)
+    [[nodiscard]] constexpr Vec2<T> refraction(const Vec2<T>& v, const UnitVec2<T>& n, const T& r)
     {
         using std::sqrt;
 
@@ -555,7 +563,7 @@ namespace ray
 
     // refraction of v through a surface with normal n with refractive index ratio of r
     template <typename T>
-    [[nodiscard]] constexpr Normal2<T> refraction(const Normal2<T>& v, const Normal2<T>& n, const T& r)
+    [[nodiscard]] constexpr UnitVec2<T> refraction(const UnitVec2<T>& v, const UnitVec2<T>& n, const T& r)
     {
         using std::sqrt;
 
@@ -565,9 +573,9 @@ namespace ray
     }
 
     template <typename T>
-    [[nodiscard]] constexpr Normal2<T> operator-(const Normal2<T>& v)
+    [[nodiscard]] constexpr UnitVec2<T> operator-(const UnitVec2<T>& v)
     {
-        return Normal2<T>(AssumeNormalized{}, -v.x, -v.y);
+        return UnitVec2<T>(AssumeNormalized{}, -v.x, -v.y);
     }
 
     template <typename T>

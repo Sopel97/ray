@@ -23,56 +23,56 @@ namespace ray
     struct Vec3;
 
     template <typename T>
-    struct Normal3
+    struct UnitVec3
     {
-        detail::OwnedReadOnlyProperty<T, Normal3<T>> x, y, z;
+        detail::OwnedReadOnlyProperty<T, UnitVec3<T>> x, y, z;
 
-        [[nodiscard]] constexpr static Normal3<T> xAxis() noexcept
+        [[nodiscard]] constexpr static UnitVec3<T> xAxis() noexcept
         {
-            return Normal3<T>(AssumeNormalized{}, 1, 0, 0);
+            return UnitVec3<T>(AssumeNormalized{}, 1, 0, 0);
         }
 
-        [[nodiscard]] constexpr static Normal3<T> yAxis() noexcept
+        [[nodiscard]] constexpr static UnitVec3<T> yAxis() noexcept
         {
-            return Normal3<T>(AssumeNormalized{}, 0, 1, 0);
+            return UnitVec3<T>(AssumeNormalized{}, 0, 1, 0);
         }
 
-        [[nodiscard]] constexpr static Normal3<T> zAxis() noexcept
+        [[nodiscard]] constexpr static UnitVec3<T> zAxis() noexcept
         {
-            return Normal3<T>(AssumeNormalized{}, 0, 0, 1);
+            return UnitVec3<T>(AssumeNormalized{}, 0, 0, 1);
         }
 
-        constexpr Normal3() noexcept :
+        constexpr UnitVec3() noexcept :
             x(1),
             y(0),
             z(0)
         {
         }
 
-        constexpr Normal3(const T& x, const T& y, const T& z) noexcept :
-            Normal3(Vec3<T>(x, y, z).normalized())
+        constexpr UnitVec3(const T& x, const T& y, const T& z) noexcept :
+            UnitVec3(Vec3<T>(x, y, z).normalized())
         {
         }
 
-        constexpr Normal3(AssumeNormalized, const T& x, const T& y, const T& z) noexcept :
+        constexpr UnitVec3(AssumeNormalized, const T& x, const T& y, const T& z) noexcept :
             x(x),
             y(y),
             z(z)
         {
         }
 
-        constexpr Normal3(AssumeNormalized, const Vec3<T>& v) noexcept :
+        constexpr UnitVec3(AssumeNormalized, const Vec3<T>& v) noexcept :
             x(v.x),
             y(v.y),
             z(v.z)
         {
         }
 
-        constexpr Normal3(const Normal3<T>&) noexcept = default;
-        constexpr Normal3(Normal3<T>&&) noexcept = default;
+        constexpr UnitVec3(const UnitVec3<T>&) noexcept = default;
+        constexpr UnitVec3(UnitVec3<T>&&) noexcept = default;
 
-        constexpr Normal3<T>& operator=(const Normal3<T>&) noexcept = default;
-        constexpr Normal3<T>& operator=(Normal3<T>&&) noexcept = default;
+        constexpr UnitVec3<T>& operator=(const UnitVec3<T>&) noexcept = default;
+        constexpr UnitVec3<T>& operator=(UnitVec3<T>&&) noexcept = default;
 
         [[nodiscard]] constexpr operator Vec3<T>() const
         {
@@ -89,8 +89,21 @@ namespace ray
         }
     };
 
-    using Normal3f = Normal3<float>;
+    using UnitVec3f = UnitVec3<float>;
 
+    template <typename T>
+    struct Normal3 : UnitVec3<T>
+    {
+        using UnitVec3<T>::UnitVec3;
+
+        explicit Normal3(const UnitVec3<T>& n) :
+            UnitVec3<T>(n)
+        {
+
+        }
+    };
+
+    using Normal3f = Normal3<float>;
 
     template <typename T>
     struct Vec3
@@ -188,14 +201,14 @@ namespace ray
             *this *= invLength();
         }
 
-        [[nodiscard]] constexpr Normal3<T> assumeNormalized() const
+        [[nodiscard]] constexpr UnitVec3<T> assumeNormalized() const
         {
-            return Normal3<T>(AssumeNormalized{}, *this);
+            return UnitVec3<T>(AssumeNormalized{}, *this);
         }
 
-        [[nodiscard]] constexpr Normal3<T> normalized() const
+        [[nodiscard]] constexpr UnitVec3<T> normalized() const
         {
-            return Normal3<T>(AssumeNormalized{}, *this * invLength());
+            return UnitVec3<T>(AssumeNormalized{}, *this * invLength());
         }
 
         [[nodiscard]] constexpr T max() const
@@ -415,21 +428,21 @@ namespace ray
 
     // projection of v on n
     template <typename T>
-    [[nodiscard]] constexpr Vec3<T> projection(const Vec3<T>& v, const Normal3<T>& n)
+    [[nodiscard]] constexpr Vec3<T> projection(const Vec3<T>& v, const UnitVec3<T>& n)
     {
         return n * dot(v, n);
     }
 
     // projection of v on n
     template <typename T>
-    [[nodiscard]] constexpr Vec3<T> projection(const Normal3<T>& v, const Vec3<T>& n)
+    [[nodiscard]] constexpr Vec3<T> projection(const UnitVec3<T>& v, const Vec3<T>& n)
     {
         return n * (dot(v, n) / dot(n, n));
     }
 
     // projection of v on n
     template <typename T>
-    [[nodiscard]] constexpr Vec3<T> projection(const Normal3<T>& v, const Normal3<T>& n)
+    [[nodiscard]] constexpr Vec3<T> projection(const UnitVec3<T>& v, const UnitVec3<T>& n)
     {
         return n * dot(v, n);
     }
@@ -443,21 +456,21 @@ namespace ray
 
     // reflection of v from a surface with normal n (like light reflection)
     template <typename T>
-    [[nodiscard]] constexpr Vec3<T> reflection(const Vec3<T>& v, const Normal3<T>& n)
+    [[nodiscard]] constexpr Vec3<T> reflection(const Vec3<T>& v, const UnitVec3<T>& n)
     {
         return v - static_cast<T>(2) * projection(v, n);
     }
 
     // reflection of v from a surface with normal n (like light reflection)
     template <typename T>
-    [[nodiscard]] constexpr Normal3<T> reflection(const Normal3<T>& v, const Vec3<T>& n)
+    [[nodiscard]] constexpr UnitVec3<T> reflection(const UnitVec3<T>& v, const Vec3<T>& n)
     {
         return (Vec3<T>(v) - static_cast<T>(2) * projection(v, n)).assumeNormalized();
     }
 
     // reflection of v from a surface with normal n (like light reflection)
     template <typename T>
-    [[nodiscard]] constexpr Normal3<T> reflection(const Normal3<T>& v, const Normal3<T>& n)
+    [[nodiscard]] constexpr UnitVec3<T> reflection(const UnitVec3<T>& v, const UnitVec3<T>& n)
     {
         return (Vec3<T>(v) - static_cast<T>(2) * projection(v, n)).assumeNormalized();
     }
@@ -475,7 +488,7 @@ namespace ray
 
     // refraction of v through a surface with normal n with refractive index ratio of r
     template <typename T>
-    [[nodiscard]] constexpr Normal3<T> refraction(const Normal3<T>& v, const Vec3<T>& n, const T& r)
+    [[nodiscard]] constexpr UnitVec3<T> refraction(const UnitVec3<T>& v, const Vec3<T>& n, const T& r)
     {
         using std::sqrt;
 
@@ -486,7 +499,7 @@ namespace ray
 
     // refraction of v through a surface with normal n with refractive index ratio of r
     template <typename T>
-    [[nodiscard]] constexpr Vec3<T> refraction(const Vec3<T>& v, const Normal3<T>& n, const T& r)
+    [[nodiscard]] constexpr Vec3<T> refraction(const Vec3<T>& v, const UnitVec3<T>& n, const T& r)
     {
         using std::sqrt;
 
@@ -497,13 +510,19 @@ namespace ray
 
     // refraction of v through a surface with normal n with refractive index ratio of r
     template <typename T>
-    [[nodiscard]] constexpr Normal3<T> refraction(const Normal3<T>& v, const Normal3<T>& n, const T& r)
+    [[nodiscard]] constexpr UnitVec3<T> refraction(const UnitVec3<T>& v, const UnitVec3<T>& n, const T& r)
     {
         using std::sqrt;
 
         const T c = -dot(v, n);
         const T s = sqrt(static_cast<T>(1) - r * r*(static_cast<T>(1) - c * c));
         return (r * v + (r*c - s)*n).assumeNormalized();
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr UnitVec3<T> operator-(const UnitVec3<T>& v)
+    {
+        return UnitVec3<T>(AssumeNormalized{}, -v.x, -v.y, -v.z);
     }
 
     template <typename T>

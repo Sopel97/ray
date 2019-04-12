@@ -138,7 +138,7 @@ ClosedTriangleMesh createIcosahedron(const Vec3f& offset, float radius, const Su
     for (const Index3& face : basicMesh.faces)
     {
         Vec3f centerOffset = (basicMesh.vertices[face.i].asVector() + basicMesh.vertices[face.j].asVector() + basicMesh.vertices[face.k].asVector()) * 0.333333333333f;
-        Normal3f normal = centerOffset.normalized();
+        Normal3f normal(centerOffset.normalized());
         mesh.addVertex(ClosedTriangleMeshVertex{ basicMesh.vertices[face.i] + offset, normal, {} });
         mesh.addVertex(ClosedTriangleMeshVertex{ basicMesh.vertices[face.j] + offset, normal, {} });
         mesh.addVertex(ClosedTriangleMeshVertex{ basicMesh.vertices[face.k] + offset, normal, {} });
@@ -160,7 +160,7 @@ ClosedTriangleMesh createSmoothIcosahedron(const Vec3f& offset, float radius, co
 
     for (const Point3f& vertex : basicMesh.vertices)
     {
-        Normal3f normal = Vec3f(vertex).normalized();
+        Normal3f normal(Vec3f(vertex).normalized());
         mesh.addVertex(ClosedTriangleMeshVertex{ vertex + offset, normal, {} });
     }
 
@@ -188,7 +188,7 @@ void matrixTests()
     RotationScale4f rs1(basis);
     std::cout << (rs1 * rs1.inverse()).isAlmostIdentity() << '\n';
 
-    auto ob = OrthonormalBasis3f(Normal3f(1, 0, 3), Normal3f(2, -3, 1), Normal3f(-1, 4, -2));
+    auto ob = OrthonormalBasis3f(UnitVec3f(1, 0, 3), UnitVec3f(2, -3, 1), UnitVec3f(-1, 4, -2));
     RotationTranslation4f rs2(ob, Vec3f(10, -10, 13));
     // std::cout << dot(ob.x(), ob.y()) << '\n';
     // std::cout << dot(ob.x(), ob.z()) << '\n';
@@ -210,7 +210,7 @@ void matrixTests()
     ScaleTranslation4f scatra(2.0f, -0.4f, 12.0f, Vec3f(10.0f, -2.0f, -12.2f));
     std::cout << (scatra * scatra.inverse()).isAlmostIdentity() << '\n';
 
-    auto ob2 = OrthonormalBasis3f(Normal3f(-1, 0, 3), Normal3f(2, -3, -1), Normal3f(-1, -4, -2));
+    auto ob2 = OrthonormalBasis3f(UnitVec3f(-1, 0, 3), UnitVec3f(2, -3, -1), UnitVec3f(-1, -4, -2));
     Rotation4f r2(ob2);
     std::cout << (r2 * r2.inverse()).isAlmostIdentity() << '\n';
 }
@@ -288,7 +288,7 @@ int __cdecl main()
     ClosedTriangleMesh mesh = createIcosahedron(Vec3f(0, 0, -7), 3.5f / 2.0f, &m7s, &m7m);
 
     //spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, -10004, -20), 10000), { &m1 }));
-    //planes.emplace_back(SceneObject<Plane>(Plane(Normal3f(0.0, -1.0, 0.0), 4), { &m1 }));
+    //planes.emplace_back(SceneObject<Plane>(Plane(UnitVec3f(0.0, -1.0, 0.0), 4), { &m1 }));
     discs.emplace_back(SceneObject<Disc3>(Disc3(Point3f(0, -4, 0), Normal3f(0.0, -1.0, 0.0), 100), { { &m1s } }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(0.0, 0, -20), 3.5), { { &m2s }, { &m2m } }));
     spheres.emplace_back(SceneObject<ShapeT>(Sphere(Point3f(5.0, -1, -15), 2), { { &m3s }, { &m3m } })); // this sphere looks weird, is it right?
@@ -343,8 +343,8 @@ int __cdecl main()
     tris.emplace_back(SceneObject<Triangle3>(Triangle3(Point3f(10, 18 - 10, -10), Point3f(20, 18 - 10, -10), Point3f(10, 18 - 10, -20)), { &m11 }));
     */
 
-    Normal3f n1(-1.0f, 0.5f, 0.0f);
-    Normal3f n2(1.0f, 2.0f, 1.0f);
+    UnitVec3f n1(-1.0f, 0.5f, 0.0f);
+    UnitVec3f n2(1.0f, 2.0f, 1.0f);
     auto obb = OrientedBox3{
         Point3f(0, 0, -7),
         Vec3f(1, 2, 3),
@@ -353,7 +353,7 @@ int __cdecl main()
     //obbs.emplace_back(SceneObject<OrientedBox3>(obb, { &m11 }));
 
     auto trSphere0 = TransformedShape3<AffineTransformation4f, Sphere>(
-        Rotation4f(OrthonormalBasis3f(Normal3f(1, 2, 3), Normal3f(4, 3, 2), Handedness3::Right)) 
+        Rotation4f(OrthonormalBasis3f(UnitVec3f(1, 2, 3), UnitVec3f(4, 3, 2), Handedness3::Right)) 
         * AffineTransformation4f(
             Basis3f(Vec3f(1.0f, 1.0f, 0), Vec3f(0, 1.0f, 0), Vec3f(0, 0, 1.0f)),
             Vec3f(0, 0, -7)
@@ -497,7 +497,7 @@ int __cdecl main()
     auto t0 = std::chrono::high_resolution_clock().now();
 #endif
     Raytracer raytracer(scene);
-    auto camera = Camera({ 0, 0.5f, 0 }, Normal3f(0, 0, -1), Normal3f(0, 1, 0), width, height, Angle2f::degrees(45));
+    auto camera = Camera({ 0, 0.5f, 0 }, UnitVec3f(0, 0, -1), UnitVec3f(0, 1, 0), width, height, Angle2f::degrees(45));
     //auto sampler = UniformGridMultisampler(1);
     //auto sampler = JitteredMultisampler(1, 256, 0.66f);
     //auto sampler = QuincunxMultisampler();
@@ -525,7 +525,7 @@ int __cdecl main()
     sprite.setTexture(texture, true);
 
     /*
-    Camera camera(Image(7, 5), {}, Normal3f(0, 0, -1), Normal3f(0, 1, 0), Angle2f::degrees(45));
+    Camera camera(Image(7, 5), {}, UnitVec3f(0, 0, -1), UnitVec3f(0, 1, 0), Angle2f::degrees(45));
     camera.forEachPixelRay([](auto r) {std::cout << r.direction().x << '\n'; });
     */
 
@@ -538,7 +538,7 @@ int __cdecl main()
     /*
     //expected 2 - sqrt(3)/2 = ~1.133
     const Point3f O(0, 0.5f, 0);
-    std::cout << raycast(Ray(O, Normal3f(0, 0, -1)), Sphere(O, 6.0f)).value().point.z;
+    std::cout << raycast(Ray(O, UnitVec3f(0, 0, -1)), Sphere(O, 6.0f)).value().point.z;
     */
 
     for (;;)

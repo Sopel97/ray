@@ -119,7 +119,7 @@ namespace ray
     [[nodiscard]] inline bool intersect(const Ray& ray, const Sphere& sphere)
     {
         const Point3f O = ray.origin();
-        const Normal3f D = ray.direction();
+        const UnitVec3f D = ray.direction();
         const Point3f C = sphere.center();
         const float R = sphere.radius();
 
@@ -172,7 +172,7 @@ namespace ray
 
         /*
         const Point3f O = ray.origin();
-        const Normal3f D = ray.direction();
+        const UnitVec3f D = ray.direction();
         const Point3f C = sphere.center();
         const float R = sphere.radius();
 
@@ -222,7 +222,7 @@ namespace ray
         */
 
         const Point3f O = ray.origin();
-        const Normal3f D = ray.direction();
+        const UnitVec3f D = ray.direction();
         const Point3f C = sphere.center();
         const float R = sphere.radius();
 
@@ -249,7 +249,7 @@ namespace ray
 #endif
 
         const Point3f hitPoint = O + t * D;
-        Normal3f normal = ((hitPoint - C) / R).assumeNormalized();
+        Normal3f normal = Normal3f(((hitPoint - C) / R).assumeNormalized());
         if (isInside) normal = -normal;
 
         hit.dist = t;
@@ -313,7 +313,7 @@ namespace ray
 #endif
 
         const Point3f O = ray.origin();
-        const Normal3f D = ray.direction();
+        const UnitVec3f D = ray.direction();
         const Point3f C = sphere.center();
         const float R = sphere.radius();
 
@@ -337,7 +337,7 @@ namespace ray
             perf::gThreadLocalPerfStats.addObjectRaycastHit<HalfSphere>();
 #endif
 
-            Normal3f normal = ((hitPointMin - C) / R).assumeNormalized();
+            Normal3f normal(((hitPointMin - C) / R).assumeNormalized());
 
             hit.dist = tmin;
             hit.point = hitPointMin;
@@ -353,7 +353,7 @@ namespace ray
             perf::gThreadLocalPerfStats.addObjectRaycastHit<HalfSphere>();
 #endif
 
-            Normal3f normal = ((hitPointMax - C) / R).assumeNormalized();
+            Normal3f normal(((hitPointMax - C) / R).assumeNormalized());
 
             hit.dist = tmax;
             hit.point = hitPointMax;
@@ -485,9 +485,9 @@ namespace ray
 
         // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
         const Point3f& P = ray.origin();
-        const Normal3f& d = ray.direction();
+        const UnitVec3f& d = ray.direction();
         const Point3f& A = cyl.begin;
-        const Normal3f& v = cyl.axis;
+        const UnitVec3f& v = cyl.axis;
         const float r = cyl.radius;
 
         // infinite cylinder
@@ -534,7 +534,7 @@ namespace ray
 
                 // we hit the shaft
                 const Point3f pointL = A + pl * v;
-                const Normal3f normal = ((point - pointL) / r).assumeNormalized();
+                const Normal3f normal(((point - pointL) / r).assumeNormalized());
 
                 hit.dist = t;
                 hit.point = point;
@@ -549,8 +549,8 @@ namespace ray
 
         // parallel or we didn't hit the shaft in the proper range
         // we may hit the caps
-        const Disc3 d0(A, -v, cyl.radius);
-        const Disc3 d1(A + v * cyl.length, v, cyl.radius);
+        const Disc3 d0(A, Normal3f(-v), cyl.radius);
+        const Disc3 d1(A + v * cyl.length, Normal3f(v), cyl.radius);
         if (raycast(ray, d0, hit) || raycast(ray, d1, hit))
         {
 #if defined(RAY_GATHER_PERF_STATS)
@@ -572,9 +572,9 @@ namespace ray
 
         // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
         const Point3f& P = ray.origin();
-        const Normal3f& d = ray.direction();
+        const UnitVec3f& d = ray.direction();
         const Point3f& A = cyl.begin;
-        const Normal3f& v = cyl.axis;
+        const UnitVec3f& v = cyl.axis;
         const float r = cyl.radius;
 
         // infinite cylinder
@@ -621,7 +621,7 @@ namespace ray
 
                 // we hit the shaft
                 const Point3f pointL = A + pl * v;
-                const Normal3f normal = ((point - pointL) / r).assumeNormalized();
+                const Normal3f normal(((point - pointL) / r).assumeNormalized());
 
                 hit.dist = t;
                 hit.point = point;
@@ -662,7 +662,7 @@ namespace ray
         
         const Point3f orig = ray.origin();
         const Vec3f invDir = ray.invDirection();
-        const Normal3f nor = tri.plane().normal;
+        const UnitVec3f nor = tri.plane().normal;
         const float dist = tri.plane().distance;
 
         const float nd = dot3(invDir, nor);
@@ -672,7 +672,7 @@ namespace ray
         if (t < 0.0f) return false;
         if (t >= hit.dist) return false;
 
-        const Normal3f dir = ray.direction();
+        const UnitVec3f dir = ray.direction();
         const Point3f point = orig + dir * t;
 
         const Vec3f v0v1 = tri.e01();
@@ -747,7 +747,7 @@ namespace ray
 
         hit.dist = t;
         hit.point = ray.origin() + ray.direction() * t;
-        hit.normal = (tri.normal(0) * u + tri.normal(1) * v + tri.normal(2) * w).normalized();
+        hit.normal = Normal3f((tri.normal(0) * u + tri.normal(1) * v + tri.normal(2) * w).normalized());
         if (det < 0.0f) hit.normal = -hit.normal;
         hit.shapeInPackNo = 0;
         hit.materialIndex = MaterialIndex(0);
@@ -795,7 +795,7 @@ namespace ray
         const bool isInside = det < 0.0f;
         hit.dist = t;
         hit.point = ray.origin() + ray.direction() * t;
-        hit.normal = (tri.vertex(0).normal * u + tri.vertex(1).normal * v + tri.vertex(2).normal * w).normalized();
+        hit.normal = Normal3f((tri.vertex(0).normal * u + tri.vertex(1).normal * v + tri.vertex(2).normal * w).normalized());
         if(isInside) hit.normal = -hit.normal;
         hit.shapeInPackNo = 0;
         hit.materialIndex = MaterialIndex(0, 0);
@@ -814,7 +814,7 @@ namespace ray
 #endif
 
         const Point3f O = ray.origin();
-        const Normal3f D = ray.direction();
+        const UnitVec3f D = ray.direction();
         const Point3f C = sphere.center();
         const float R = sphere.radius();
 
@@ -926,7 +926,7 @@ namespace ray
 #endif
 
         const Point3f O = ray.origin();
-        const Normal3f D = ray.direction();
+        const UnitVec3f D = ray.direction();
         const Point3f C = sphere.center();
         const float R = sphere.radius();
 
@@ -981,9 +981,9 @@ namespace ray
 
         // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
         const Point3f& P = ray.origin();
-        const Normal3f& d = ray.direction();
+        const UnitVec3f& d = ray.direction();
         const Point3f& A = cyl.begin;
-        const Normal3f& v = cyl.axis;
+        const UnitVec3f& v = cyl.axis;
         const float r = cyl.radius;
 
         // infinite cylinder
@@ -1133,9 +1133,9 @@ namespace ray
 
         // https://mrl.nyu.edu/~dzorin/rend05/lecture2.pdf
         const Point3f& P = ray.origin();
-        const Normal3f& d = ray.direction();
+        const UnitVec3f& d = ray.direction();
         const Point3f& A = cyl.begin;
-        const Normal3f& v = cyl.axis;
+        const UnitVec3f& v = cyl.axis;
         const float r = cyl.radius;
 
         // infinite cylinder
@@ -1277,7 +1277,7 @@ namespace ray
         }
 
         Point3f origin = ray.origin();
-        Normal3f direction = ray.direction();
+        UnitVec3f direction = ray.direction();
         const int maxIters = sh.maxIters();
         const float accuracy = sh.accuracy();
 
@@ -1316,11 +1316,11 @@ namespace ray
         auto normal = [&sdfAbsolute, sign](const Point3f& p) {
             constexpr float eps = 0.0001f;
 
-            return (Vec3f(
+            return Normal3f((Vec3f(
                 sdfAbsolute(Point3f(p.x + eps, p.y, p.z)) - sdfAbsolute(Point3f(p.x - eps, p.y, p.z)),
                 sdfAbsolute(Point3f(p.x, p.y + eps, p.z)) - sdfAbsolute(Point3f(p.x, p.y - eps, p.z)),
                 sdfAbsolute(Point3f(p.x, p.y, p.z + eps)) - sdfAbsolute(Point3f(p.x, p.y, p.z - eps))
-            ) * sign).normalized();
+            ) * sign).normalized());
         };
 
         // precaution to prevent early exit when going away from a surface that was just hit
@@ -1363,8 +1363,6 @@ namespace ray
         }
 
         return false;
-
-
     }
 
     template <typename TransformT, typename ShapeT>
@@ -1382,7 +1380,7 @@ namespace ray
         //   - if not:
         //     - transform the previous hit's distance back
 
-        const Vec3f D = sh.worldToLocal.withoutTranslation() * Vec3f(ray.direction()); // it's not a surface normal
+        const Vec3f D = sh.worldToLocal.withoutTranslation() * ray.direction();
         const float DLen = D.length();
         Ray localRay(
             sh.worldToLocal * ray.origin(),
@@ -1423,7 +1421,7 @@ namespace ray
         //   - if not:
         //     - we don't have to do anything
 
-        const Vec3f D = sh.worldToLocal.withoutTranslation() * Vec3f(ray.direction()); // it's not a surface normal
+        const Vec3f D = sh.worldToLocal.withoutTranslation() * ray.direction();
         const float DLen = D.length();
         Ray localRay(
             sh.worldToLocal * ray.origin(),

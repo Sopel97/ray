@@ -19,7 +19,7 @@ namespace ray
 
         }
 
-        HalfSphere(const Point3f& center, const Normal3f& normal, float radius) noexcept :
+        HalfSphere(const Point3f& center, const UnitVec3f& normal, float radius) noexcept :
             m_center(center),
             m_normal(normal),
             m_radius(radius)
@@ -32,7 +32,7 @@ namespace ray
             return m_center;
         }
 
-        [[nodiscard]] const Normal3f& normal() const
+        [[nodiscard]] const UnitVec3f& normal() const
         {
             return m_normal;
         }
@@ -64,7 +64,7 @@ namespace ray
 
     private:
         Point3f m_center;
-        Normal3f m_normal;
+        UnitVec3f m_normal;
         float m_radius;
     };
 }

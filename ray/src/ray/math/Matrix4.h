@@ -74,11 +74,18 @@ namespace ray
             m_values[3][3] = 0.0f;
         }
 
+        [[nodiscard]] friend Normal3<float> operator*(const Matrix4<float>& lhs, const Normal3<float>& rhs);
+
         [[nodiscard]] friend Matrix4<float> operator*(const Matrix4<float>& lhs, const Matrix4<float>& rhs)
         {
             Matrix4<float> ret{};
             m128::mulMat4Mat4(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
+        }
+
+        [[nodiscard]] friend Vec3<float> operator*(const Matrix4<float>& lhs, const UnitVec3<float>& rhs)
+        {
+            return Vec3<float>(m128::mulMat4Vec3(lhs.m_columns, rhs.xmm));
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const Matrix4<float>& lhs, const Vec3<float>& rhs)

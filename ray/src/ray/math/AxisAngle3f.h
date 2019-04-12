@@ -10,7 +10,7 @@ namespace ray
     {
     public:
         constexpr AxisAngle3() noexcept = default;
-        constexpr AxisAngle3(const Normal3<T>& axis, const Angle2<T>& angle) noexcept :
+        constexpr AxisAngle3(const UnitVec3<T>& axis, const Angle2<T>& angle) noexcept :
             m_axis(axis),
             m_angle(angle)
         {
@@ -21,7 +21,7 @@ namespace ray
         constexpr AxisAngle3<T>& operator=(const AxisAngle3<T>&) noexcept = default;
         constexpr AxisAngle3<T>& operator=(AxisAngle3<T>&&) noexcept = default;
 
-        [[nodiscard]] constexpr const Normal3<T>& axis() const
+        [[nodiscard]] constexpr const UnitVec3<T>& axis() const
         {
             return m_axis;
         }
@@ -32,7 +32,7 @@ namespace ray
         }
 
     private:
-        Normal3<T> m_axis;
+        UnitVec3<T> m_axis;
         Angle2<T> m_angle;
     };
 

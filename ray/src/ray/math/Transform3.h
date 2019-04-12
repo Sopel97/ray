@@ -80,6 +80,11 @@ namespace ray
             return lhs;
         }
 
+        [[nodiscard]] friend UnitVec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return rhs;
+        }
+
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             return rhs;
@@ -165,9 +170,14 @@ namespace ray
             return ret;
         }
 
-        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend UnitVec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
+        }
+
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        {
+            return Normal3<float>(Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -256,10 +266,15 @@ namespace ray
             return ret;
         }
 
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+        }
+
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m_values[0][0], lhs.m_values[1][1], lhs.m_values[2][2]);
-            return (Vec3<float>(rhs) * invS).normalized();
+            return Normal3<float>((Vec3<float>(rhs) * invS).normalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -339,11 +354,16 @@ namespace ray
             return ret;
         }
 
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+        }
+
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             __m128 cols[3];
             m128::invertTransposeMat3(lhs.m_columns, cols);
-            return Vec3<float>(m128::mulMat3Vec3(cols, rhs.xmm)).normalized();
+            return Normal3<float>(Vec3<float>(m128::mulMat3Vec3(cols, rhs.xmm)).normalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -407,6 +427,11 @@ namespace ray
         [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             return lhs;
+        }
+
+        [[nodiscard]] friend UnitVec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return rhs;
         }
 
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
@@ -492,9 +517,14 @@ namespace ray
             return ret;
         }
 
-        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        [[nodiscard]] friend UnitVec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
+        }
+
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        {
+            return Normal3<float>(Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -581,10 +611,15 @@ namespace ray
             return ret;
         }
 
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+        }
+
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m_values[0][0], lhs.m_values[1][1], lhs.m_values[2][2]);
-            return (Vec3<float>(rhs) * invS).normalized();
+            return Normal3<float>((Vec3<float>(rhs) * invS).normalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -666,6 +701,11 @@ namespace ray
             );
         }
 
+        [[nodiscard]] friend UnitVec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return rhs;
+        }
+
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             return rhs;
@@ -745,17 +785,23 @@ namespace ray
         {
         }
 
-        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
-        {
-            // rotation without scaling preserves length
-            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
-        }
-
         [[nodiscard]] friend SelfType operator*(const SelfType& lhs, const SelfType& rhs)
         {
             SelfType ret{};
             m128::mulMatAffineMatAffine(lhs.m_columns, rhs.m_columns, ret.m_columns);
             return ret;
+        }
+
+        [[nodiscard]] friend UnitVec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            // rotation without scaling preserves length
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized();
+        }
+
+        [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
+        {
+            // rotation without scaling preserves length
+            return Normal3<float>(Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm)).assumeNormalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -828,11 +874,16 @@ namespace ray
             return ret;
         }
 
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+        }
+
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             __m128 cols[3];
             m128::invertTransposeMat3(lhs.m_columns, cols);
-            return Vec3<float>(m128::mulMat3Vec3(cols, rhs.xmm)).normalized();
+            return Normal3<float>(Vec3<float>(m128::mulMat3Vec3(cols, rhs.xmm)).normalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -915,10 +966,15 @@ namespace ray
             return ret;
         }
 
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return Vec3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
+        }
+
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             const Vec3<float> invS = 1.0f / Vec3<float>(lhs.m_values[0][0], lhs.m_values[1][1], lhs.m_values[2][2]);
-            return (Vec3<float>(rhs) * invS).normalized();
+            return Normal3<float>((Vec3<float>(rhs) * invS).normalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)
@@ -992,11 +1048,16 @@ namespace ray
             return ret;
         }
 
+        [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const UnitVec3<float>& rhs)
+        {
+            return Vec3<float>(m128::mulMatAffineVec3(lhs.m_columns, rhs.xmm));
+        }
+
         [[nodiscard]] friend Normal3<float> operator*(const SelfType& lhs, const Normal3<float>& rhs)
         {
             __m128 cols[3];
             m128::invertTransposeMat3(lhs.m_columns, cols);
-            return Vec3<float>(m128::mulMat3Vec3(cols, rhs.xmm)).normalized();
+            return Normal3<float>(Vec3<float>(m128::mulMat3Vec3(cols, rhs.xmm)).normalized());
         }
 
         [[nodiscard]] friend Vec3<float> operator*(const SelfType& lhs, const Vec3<float>& rhs)

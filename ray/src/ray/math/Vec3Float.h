@@ -31,7 +31,7 @@ namespace ray
     };
 
     template <>
-    struct alignas(alignof(__m128)) Normal3<float>
+    struct alignas(alignof(__m128)) UnitVec3<float>
     {
         union {
             struct {
@@ -40,46 +40,46 @@ namespace ray
             __m128 xmm;
         };
 
-        RAY_GEN_MEMBER_SWIZZLE3_ALL(Normal3<float>)
+        RAY_GEN_MEMBER_SWIZZLE3_ALL(UnitVec3<float>)
 
-        [[nodiscard]] static Normal3<float> xAxis() noexcept
+        [[nodiscard]] static UnitVec3<float> xAxis() noexcept
         {
-            return Normal3<float>(AssumeNormalized{}, 1, 0, 0);
+            return UnitVec3<float>(AssumeNormalized{}, 1, 0, 0);
         }
 
-        [[nodiscard]] static Normal3<float> yAxis() noexcept
+        [[nodiscard]] static UnitVec3<float> yAxis() noexcept
         {
-            return Normal3<float>(AssumeNormalized{}, 0, 1, 0);
+            return UnitVec3<float>(AssumeNormalized{}, 0, 1, 0);
         }
 
-        [[nodiscard]] static Normal3<float> zAxis() noexcept
+        [[nodiscard]] static UnitVec3<float> zAxis() noexcept
         {
-            return Normal3<float>(AssumeNormalized{}, 0, 0, 1);
+            return UnitVec3<float>(AssumeNormalized{}, 0, 0, 1);
         }
 
-        Normal3() noexcept :
+        UnitVec3() noexcept :
             xmm(_mm_set_ps(0.0f, 0.0f, 0.0f, 1.0f))
         {
         }
 
-        Normal3(AssumeNormalized, __m128 xmm) noexcept :
+        UnitVec3(AssumeNormalized, __m128 xmm) noexcept :
             xmm(xmm)
         {
         }
 
-        Normal3(float x, float y, float z) noexcept;
-        Normal3(AssumeNormalized, const Vec3<float>& vec) noexcept;
+        UnitVec3(float x, float y, float z) noexcept;
+        UnitVec3(AssumeNormalized, const Vec3<float>& vec) noexcept;
 
-        Normal3(AssumeNormalized, float x, float y, float z) noexcept :
+        UnitVec3(AssumeNormalized, float x, float y, float z) noexcept :
             xmm(_mm_set_ps(0.0f, z, y, x))
         {
         }
 
-        Normal3(const Normal3<float>&) noexcept = default;
-        Normal3(Normal3<float>&&) noexcept = default;
+        UnitVec3(const UnitVec3<float>&) noexcept = default;
+        UnitVec3(UnitVec3<float>&&) noexcept = default;
 
-        Normal3<float>& operator=(const Normal3<float>&) noexcept = default;
-        Normal3<float>& operator=(Normal3<float>&&) noexcept = default;
+        UnitVec3<float>& operator=(const UnitVec3<float>&) noexcept = default;
+        UnitVec3<float>& operator=(UnitVec3<float>&&) noexcept = default;
 
         [[nodiscard]] operator Vec3<float>() const;
 
@@ -89,11 +89,13 @@ namespace ray
         }
 
     protected:
-        explicit Normal3(__m128 xmm) noexcept :
+        explicit UnitVec3(__m128 xmm) noexcept :
             xmm(xmm)
         {
         }
     };
+    static_assert(sizeof(UnitVec3f) == sizeof(__m128));
+
     static_assert(sizeof(Normal3f) == sizeof(__m128));
 
     template <>
@@ -191,14 +193,14 @@ namespace ray
             *this *= invLength();
         }
 
-        [[nodiscard]] Normal3<float> assumeNormalized() const
+        [[nodiscard]] UnitVec3<float> assumeNormalized() const
         {
-            return Normal3<float>(AssumeNormalized{}, *this);
+            return UnitVec3<float>(AssumeNormalized{}, *this);
         }
 
-        [[nodiscard]] Normal3<float> normalized() const
+        [[nodiscard]] UnitVec3<float> normalized() const
         {
-            return Normal3<float>(AssumeNormalized{}, m128::mul(xmm, invLength()));
+            return UnitVec3<float>(AssumeNormalized{}, m128::mul(xmm, invLength()));
         }
 
         [[nodiscard]] float max() const
@@ -288,17 +290,17 @@ namespace ray
     };
     static_assert(sizeof(Point3f) == sizeof(__m128));
 
-    inline Normal3<float>::Normal3(float x, float y, float z) noexcept :
-        Normal3(Vec3<float>(x, y, z).normalized())
+    inline UnitVec3<float>::UnitVec3(float x, float y, float z) noexcept :
+        UnitVec3(Vec3<float>(x, y, z).normalized())
     {
     }
 
-    inline Normal3<float>::Normal3(AssumeNormalized, const Vec3<float>& vec) noexcept :
-        Normal3(AssumeNormalized{}, vec.xmm)
+    inline UnitVec3<float>::UnitVec3(AssumeNormalized, const Vec3<float>& vec) noexcept :
+        UnitVec3(AssumeNormalized{}, vec.xmm)
     {
     }
 
-    [[nodiscard]] inline Normal3<float>::operator Vec3<float>() const
+    [[nodiscard]] inline UnitVec3<float>::operator Vec3<float>() const
     {
         return Vec3<float>(xmm);
     }
@@ -427,9 +429,9 @@ namespace ray
         return Vec3<float>(m128::abs(v.xmm));
     }
 
-    [[nodiscard]] inline Normal3<float> abs(const Normal3<float>& v)
+    [[nodiscard]] inline UnitVec3<float> abs(const UnitVec3<float>& v)
     {
-        return Normal3<float>(AssumeNormalized{}, m128::abs(v.xmm));
+        return UnitVec3<float>(AssumeNormalized{}, m128::abs(v.xmm));
     }
 
     [[nodiscard]] inline Point3<float> abs(const Point3<float>& v)
@@ -475,6 +477,11 @@ namespace ray
         return Vec3<float>(m128::sqrt(lhs.xmm));
     }
 
+
+    [[nodiscard]] inline UnitVec3<float> operator-(const UnitVec3<float>& vec)
+    {
+        return UnitVec3<float>(AssumeNormalized{}, m128::neg(vec.xmm));
+    }
 
     [[nodiscard]] inline Normal3<float> operator-(const Normal3<float>& vec)
     {

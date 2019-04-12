@@ -13,8 +13,8 @@ namespace ray
         int heightPixels;
         float pixelWidth;
         float pixelHeight;
-        Normal3f right;
-        Normal3f down;
+        UnitVec3f right;
+        UnitVec3f down;
         Point3f center;
         Point3f topLeft;
         Point3f origin;
@@ -26,7 +26,7 @@ namespace ray
                    + coords.y * pixelHeight * down);
         }
 
-        [[nodiscard]] Normal3f directionAt(const Point2f& coords) const
+        [[nodiscard]] UnitVec3f directionAt(const Point2f& coords) const
         {
             return (at(coords) - origin).normalized();
         }

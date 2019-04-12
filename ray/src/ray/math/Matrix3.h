@@ -47,6 +47,13 @@ namespace ray
             return ret;
         }
 
+        [[nodiscard]] friend Normal3<float> operator*(const Matrix3<float>& lhs, const Normal3<float>& rhs);
+
+        [[nodiscard]] friend Vec3<float> operator*(const Matrix3<float>& lhs, const UnitVec3<float>& rhs)
+        {
+            return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));
+        }
+
         [[nodiscard]] friend Vec3<float> operator*(const Matrix3<float>& lhs, const Vec3<float>& rhs)
         {
             return Vec3<float>(m128::mulMat3Vec3(lhs.m_columns, rhs.xmm));

@@ -14,7 +14,7 @@ namespace ray
             return Ray(from, (to - from).normalized());
         }
 
-        Ray(const Point3f& origin, const Normal3f& direction) noexcept :
+        Ray(const Point3f& origin, const UnitVec3f& direction) noexcept :
             m_origin(origin),
             m_direction(direction),
             m_invDirection(safeInv(m_direction)),
@@ -28,7 +28,7 @@ namespace ray
             return m_origin;
         }
 
-        [[nodiscard]] constexpr const Normal3f& direction() const
+        [[nodiscard]] constexpr const UnitVec3f& direction() const
         {
             return m_direction;
         }
@@ -48,7 +48,7 @@ namespace ray
             m_origin = newOrigin;
         }
 
-        void setDirection(const Normal3f& newDirection)
+        void setDirection(const UnitVec3f& newDirection)
         {
             m_direction = newDirection;
             m_invDirection = safeInv(m_direction);
@@ -67,11 +67,11 @@ namespace ray
 
     private:
         Point3f m_origin;
-        Normal3f m_direction;
+        UnitVec3f m_direction;
         Vec3f m_invDirection;
         Vec3Mask<float> m_signs;
 
-        [[nodiscard]] Vec3f safeInv(const Normal3f& n) const
+        [[nodiscard]] Vec3f safeInv(const UnitVec3f& n) const
         {
             return rcp(Vec3f::blend(n, Vec3f::broadcast(0.00001f), abs(n) < 0.00001f));
         }

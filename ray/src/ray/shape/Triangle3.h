@@ -21,7 +21,7 @@ namespace ray
             m_e02(v2 - v0),
             m_uvs{ {0, 0}, {1, 0}, {1, 1} }
         {
-            m_normals[0] = m_normals[1] = m_normals[2] = cross(m_e01, m_e02).normalized();
+            m_normals[0] = m_normals[1] = m_normals[2] = Normal3f(cross(m_e01, m_e02).normalized());
         }
         
         Triangle3(
