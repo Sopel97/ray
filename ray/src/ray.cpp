@@ -385,7 +385,7 @@ int __cdecl main()
 
     auto sumPart16 = SceneObject<CsgShape>(trSphere0, { { &m4s }, { &m4m } });
 
-    
+    /*
     anyBoundedShapes.emplace_back(
     //csgs.emplace_back(
         (
@@ -408,6 +408,7 @@ int __cdecl main()
         )
         | sumPart16
     );
+    */
     
     //csgs.emplace_back(sumPart16);
 
@@ -417,28 +418,25 @@ int __cdecl main()
     csgs.emplace_back(lensPart1 & lensPart2);
     */
 
-    /*
+    
     auto sdfSphere = Sphere(Point3f(0.0, 0, -7), 3.5);
     sdfs.emplace_back(
         SceneObject<ClippedSdf<Sphere>>(
             ClippedSdf<Sphere>(
                 sdfSphere,
-                // clipped sdf requires a polymophic sdf function
-                // otherwise each one being rendered would need a separate type
-                // in shapes vector
-                PolySdfOnion(
+                SdfOnion(
                     SdfSmoothUnion(
                         SdfTranslation(SdfRoundedCone(SdfRoundedConeParams(1.0f, 2.0f, 3.0f)), Vec3f(sdfSphere.center())),
                         SdfTranslation(SdfSphere(2.2f), Vec3f(sdfSphere.center())),
                         0.25f
                     ),
                     0.2f
-                ).clone()
+                )
                 ),
             { { &m7s }, { &m7m } }
         )
     );
-    */
+    
 
     using ShapesT = Shapes<AnyBoundedShape, ShapeT, ClippedSdf<Sphere>, Plane, Box3, Triangle3, ClosedTriangleMeshFace, CsgShape, Disc3, Cylinder, Capsule, OrientedBox3, TransformedShape3<AffineTransformation4f, Sphere>>;
     using PartitionerType = StaticBvhObjectMeanPartitioner;

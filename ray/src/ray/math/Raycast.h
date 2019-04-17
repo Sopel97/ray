@@ -1269,100 +1269,12 @@ namespace ray
     template <typename ClippingShapeT>
     [[nodiscard]] inline bool raycast(const Ray& ray, const ClippedSdf<ClippingShapeT>& sh, RaycastHit& hit)
     {
-        constexpr int numStartupIters = 4;
-
         if (!intersect(ray, sh.clippingShape()))
         {
             return false;
         }
 
-        Point3f origin = ray.origin();
-        UnitVec3f direction = ray.direction();
-        const int maxIters = sh.maxIters();
-        const float accuracy = sh.accuracy();
-
-        // first determine whether we are inside or outside
-        // set a multiplier accordingly, -1 if we're inside
-
-        // when we start inside the shape we have to flip the sign
-        // of the distance function, because if we didn't
-        // we would be going back (negative increments)
-        // Effectively when we're inside we're raymarching the shape's inverse
-        float sign = 1.0f;
-        float depth = 0.0f;
-
-        auto sdfAbsolute = [&sh](const Point3f& p) {
-            const float shape_sd = sh.signedDistance(p);
-            const float clip_sd = sh.clippingShape().signedDistance(p);
-            return std::max(shape_sd, clip_sd);
-        };
-
-        const float maxDepth = sh.clippingShape().maxDistance(origin); // so we know when we can stop and reject
-        {
-            float sd = sdfAbsolute(origin);
-            if (sd < 0.0f)
-            {
-                // we have started inside the shape
-                sign = -1.0f;
-                sd = -sd;
-            }
-            depth += sd;
-        }
-
-        auto sdfAsIfOutside = [&sdfAbsolute, &sh, sign](const Point3f& p) {
-            return sdfAbsolute(p) * sign;
-        };
-
-        auto normal = [&sdfAbsolute, sign](const Point3f& p) {
-            constexpr float eps = 0.0001f;
-
-            return Normal3f((Vec3f(
-                sdfAbsolute(Point3f(p.x + eps, p.y, p.z)) - sdfAbsolute(Point3f(p.x - eps, p.y, p.z)),
-                sdfAbsolute(Point3f(p.x, p.y + eps, p.z)) - sdfAbsolute(Point3f(p.x, p.y - eps, p.z)),
-                sdfAbsolute(Point3f(p.x, p.y, p.z + eps)) - sdfAbsolute(Point3f(p.x, p.y, p.z - eps))
-            ) * sign).normalized());
-        };
-
-        // precaution to prevent early exit when going away from a surface that was just hit
-        for (int i = 0; i < numStartupIters; ++i)
-        {
-            const float sd = sdfAsIfOutside(origin + direction * depth);
-            depth += sd;
-
-            if (depth > maxDepth)
-            {
-                return false;
-            }
-        }
-
-        for (int i = 0; i < maxIters; ++i)
-        {
-            const float sd = sdfAsIfOutside(origin + direction * depth);
-
-            depth += sd;
-
-            if (sd < accuracy)
-            {
-                // we have a hit
-
-                const Point3f point = origin + direction * depth;
-                hit.dist = depth;
-                hit.point = point;
-                hit.normal = normal(point);
-                hit.shapeInPackNo = 0;
-                hit.materialIndex = MaterialIndex(0, 0);
-                hit.isInside = sign < 0.0f; // if we're inside then we have negated the sdf
-
-                return true;
-            }
-
-            if (depth > maxDepth)
-            {
-                return false;
-            }
-        }
-
-        return false;
+        return sh.raycast(ray, hit);
     }
 
     template <typename TransformT, typename ShapeT>

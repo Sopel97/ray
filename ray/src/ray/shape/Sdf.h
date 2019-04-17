@@ -2,9 +2,13 @@
 
 #include "ShapeTraits.h"
 
+#include <ray/math/Ray.h>
+#include <ray/math/RaycastHit.h>
 #include <ray/math/Transform3.h>
 #include <ray/math/Vec2.h>
 #include <ray/math/Vec3.h>
+
+#include <ray/shape/Sphere.h>
 
 #include <ray/utility/CloneableUniquePtr.h>
 #include <ray/utility/Util.h>
@@ -18,66 +22,13 @@ namespace ray
     struct SdfBase
     {
         [[nodiscard]] virtual float signedDistance(const Point3f& p) const = 0;
+        // TODO: generic bounding shape
+        // for now only allow spheres as clipping shapes
+        // it's a reasonable assumption
+        // and it allows reducing virtual calls in iteration loop
+        [[nodiscard]] virtual bool raycast(const Ray& ray, const Sphere& bounds, int maxIters, float accuracy, RaycastHit& hit) const = 0;
         [[nodiscard]] virtual std::unique_ptr<SdfBase> clone() const = 0;
         virtual ~SdfBase() = default;
-    };
-
-    template <typename ClippingShapeT>
-    struct ClippedSdf
-    {
-        static_assert(ShapeTraits<ClippingShapeT>::hasVolume);
-        static_assert(ShapeTraits<ClippingShapeT>::isBounded);
-        static_assert(ShapeTraits<ClippingShapeT>::isLocallyContinuable);
-
-        using ClippingShapeType = ClippingShapeT;
-
-        ClippedSdf(const ClippingShapeType& clippingShape, std::unique_ptr<SdfBase>&& sdf, int maxIters = 64, float accuracy = 0.0001f) :
-            m_clippingShape(clippingShape),
-            m_sdf(std::move(sdf)),
-            m_maxIters(maxIters),
-            m_accuracy(accuracy)
-        {
-        }
-
-        ClippedSdf(const ClippedSdf<ClippingShapeType>& other) :
-            m_clippingShape(other.m_clippingShape),
-            m_sdf(other.m_sdf->clone()),
-            m_maxIters(other.m_maxIters),
-            m_accuracy(other.m_accuracy)
-        {
-
-        }
-
-        [[nodiscard]] float signedDistance(const Point3f& p) const
-        {
-            return m_sdf->signedDistance(p);
-        }
-
-        [[nodiscard]] Point3f center() const
-        {
-            return m_clippingShape.center();
-        }
-
-        [[nodiscard]] const ClippingShapeType& clippingShape() const
-        {
-            return m_clippingShape;
-        }
-
-        [[nodiscard]] int maxIters() const
-        {
-            return m_maxIters;
-        }
-
-        [[nodiscard]] float accuracy() const
-        {
-            return m_accuracy;
-        }
-
-    private:
-        ClippingShapeType m_clippingShape;
-        std::unique_ptr<SdfBase> m_sdf;
-        int m_maxIters;
-        float m_accuracy;
     };
 
     // This class is always instantiated as a parent of some expression using CRTP
@@ -112,6 +63,11 @@ namespace ray
         {
             return static_cast<const ExprType*>(this);
         }
+        
+        // TODO: think what to do with raycast
+        //       it's best to have PolyIdentity at the root, so this should never be called
+        //       warning would be ideal but there's no way to emit it
+        //       don't implement for now
 
     protected:
         const PartsType& parts() const
@@ -146,6 +102,100 @@ namespace ray
         [[nodiscard]] const ExprType* operator->() const
         {
             return static_cast<const ExprType*>(this);
+        }
+
+        // raycasting is deferred up to here because here we know exact types
+        // of all sdf shapes used
+        // so we can avoid all virtual calls inside the loop
+        [[nodiscard]] bool raycast(const Ray& ray, const Sphere& bounds, int maxIters, float accuracy, RaycastHit& hit) const
+        {
+            constexpr int numStartupIters = 4;
+
+            Point3f origin = ray.origin();
+            UnitVec3f direction = ray.direction();
+
+            // first determine whether we are inside or outside
+            // set a multiplier accordingly, -1 if we're inside
+
+            // when we start inside the shape we have to flip the sign
+            // of the distance function, because if we didn't
+            // we would be going back (negative increments)
+            // Effectively when we're inside we're raymarching the shape's inverse
+            float sign = 1.0f;
+            float depth = 0.0f;
+
+            auto sdfAbsolute = [this, &bounds] (const Point3f& p) {
+                const float shape_sd = static_cast<const ExprType&>(*this).signedDistance(p);
+                const float clip_sd = bounds.signedDistance(p);
+                return std::max(shape_sd, clip_sd);
+            };
+
+            const float maxDepth = bounds.maxDistance(origin); // so we know when we can stop and reject
+            {
+                float sd = sdfAbsolute(origin);
+                if (sd < 0.0f)
+                {
+                    // we have started inside the shape
+                    sign = -1.0f;
+                    sd = -sd;
+                }
+                depth += sd;
+            }
+
+            auto sdfAsIfOutside = [&sdfAbsolute, sign] (const Point3f& p) {
+                return sdfAbsolute(p) * sign;
+            };
+
+            auto normal = [&sdfAbsolute, sign](const Point3f& p) {
+                constexpr float eps = 0.0001f;
+
+                return Normal3f((Vec3f(
+                    sdfAbsolute(Point3f(p.x + eps, p.y, p.z)) - sdfAbsolute(Point3f(p.x - eps, p.y, p.z)),
+                    sdfAbsolute(Point3f(p.x, p.y + eps, p.z)) - sdfAbsolute(Point3f(p.x, p.y - eps, p.z)),
+                    sdfAbsolute(Point3f(p.x, p.y, p.z + eps)) - sdfAbsolute(Point3f(p.x, p.y, p.z - eps))
+                ) * sign).normalized());
+            };
+
+            // precaution to prevent early exit when going away from a surface that was just hit
+            for (int i = 0; i < numStartupIters; ++i)
+            {
+                const float sd = sdfAsIfOutside(origin + direction * depth);
+                depth += sd;
+
+                if (depth > maxDepth)
+                {
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < maxIters; ++i)
+            {
+                const float sd = sdfAsIfOutside(origin + direction * depth);
+
+                depth += sd;
+
+                if (sd < accuracy)
+                {
+                    // we have a hit
+
+                    const Point3f point = origin + direction * depth;
+                    hit.dist = depth;
+                    hit.point = point;
+                    hit.normal = normal(point);
+                    hit.shapeInPackNo = 0;
+                    hit.materialIndex = MaterialIndex(0, 0);
+                    hit.isInside = sign < 0.0f; // if we're inside then we have negated the sdf
+
+                    return true;
+                }
+
+                if (depth > maxDepth)
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
     protected:
@@ -358,7 +408,8 @@ namespace ray
         return k0 * (k0 - 1.0f) / k1;
     FINALIZE_SDF_EXPRESSION
 
-
+    /* 
+    // TODO: redo with new conventions
     template <typename LhsExprT, typename TransformT> 
     struct SdfTransform : SdfExpression<SdfTransform<LhsExprT, TransformT>, std::tuple<LhsExprT, TransformT>>
     { 
@@ -401,7 +452,125 @@ namespace ray
     SdfTransform(LhsExprT, TransformT)->SdfTransform<LhsExprT, TransformT>;
     template <typename LhsExprT, typename TransformT>
     SdfTransform(std::unique_ptr<LhsExprT>, TransformT)->SdfTransform<CloneableUniquePtr<SdfBase>, TransformT>;
+    */
+
+    template <typename LhsExprT>
+    struct PolySdfIdentity : PolySdfExpression<PolySdfIdentity<LhsExprT>, std::tuple<LhsExprT>>
+    {
+        using BaseType = PolySdfExpression<PolySdfIdentity<LhsExprT>, std::tuple<LhsExprT>>;
+        using BaseType::BaseType;
+        using BaseType::parts;
+
+        template <typename LhsExprFwdT>
+        PolySdfIdentity(LhsExprFwdT&& expr) :
+            BaseType(std::forward<LhsExprFwdT>(expr))
+        {
+        }
+
+        [[nodiscard]] float signedDistance(const Point3f& p) const override
+        {
+            return arg()->signedDistance(p);
+        }
+
+        // defer to the next shape which is hopefully not polymorphic
+        // so that there are effectively no virtual calls in the iteration loop
+        [[nodiscard]] bool raycast(const Ray& ray, const Sphere& bounds, int maxIters, float accuracy, RaycastHit& hit) const override
+        {
+            return arg()->raycast(ray, bounds, maxIters, accuracy, hit);
+        }
+
+    protected:
+        template <int I>
+        [[nodiscard]] decltype(auto) get() const
+        {
+            return std::get<I + 1>(parts());
+        }
+
+        [[nodiscard]] decltype(auto) arg() const
+        {
+            return std::get<0>(parts());
+        }
+    };
+    template <typename LhsExprT>
+    PolySdfIdentity(LhsExprT)->PolySdfIdentity<LhsExprT>;
+    template <typename LhsExprT>
+    PolySdfIdentity(std::unique_ptr<LhsExprT>)->PolySdfIdentity<CloneableUniquePtr<SdfBase>>;
 
 #include "detail/SdfExpressionMacroUndef.h"
+
+    template <typename ClippingShapeT>
+    struct ClippedSdf
+    {
+        static_assert(ShapeTraits<ClippingShapeT>::hasVolume);
+        static_assert(ShapeTraits<ClippingShapeT>::isBounded);
+        static_assert(ShapeTraits<ClippingShapeT>::isLocallyContinuable);
+
+        using ClippingShapeType = ClippingShapeT;
+
+        // use identity sdf as a root so that the iteration loop doesn't have virtual calls
+        // identity defers whole raycast
+        template <typename ExprT>
+        ClippedSdf(const ClippingShapeType& clippingShape, const ExprT& sdf, int maxIters = 64, float accuracy = 0.0001f) :
+            m_clippingShape(clippingShape),
+            m_sdf(PolySdfIdentity(sdf).clone()),
+            m_maxIters(maxIters),
+            m_accuracy(accuracy)
+        {
+        }
+
+        ClippedSdf(const ClippingShapeType& clippingShape, std::unique_ptr<SdfBase>&& sdf, int maxIters = 64, float accuracy = 0.0001f) :
+            m_clippingShape(clippingShape),
+            m_sdf(std::move(sdf)),
+            m_maxIters(maxIters),
+            m_accuracy(accuracy)
+        {
+        }
+
+        ClippedSdf(const ClippedSdf<ClippingShapeType>& other) :
+            m_clippingShape(other.m_clippingShape),
+            m_sdf(other.m_sdf->clone()),
+            m_maxIters(other.m_maxIters),
+            m_accuracy(other.m_accuracy)
+        {
+
+        }
+
+        [[nodiscard]] float signedDistance(const Point3f& p) const
+        {
+            return m_sdf->signedDistance(p);
+        }
+
+        [[nodiscard]] Point3f center() const
+        {
+            return m_clippingShape.center();
+        }
+
+        [[nodiscard]] const ClippingShapeType& clippingShape() const
+        {
+            return m_clippingShape;
+        }
+
+        [[nodiscard]] int maxIters() const
+        {
+            return m_maxIters;
+        }
+
+        [[nodiscard]] float accuracy() const
+        {
+            return m_accuracy;
+        }
+
+        [[nodiscard]] bool raycast(const Ray& ray, RaycastHit& hit) const
+        {
+            return m_sdf->raycast(ray, m_clippingShape, m_maxIters, m_accuracy, hit);
+        }
+
+    private:
+        ClippingShapeType m_clippingShape;
+        std::unique_ptr<SdfBase> m_sdf;
+        int m_maxIters;
+        float m_accuracy;
+    };
+
 
 }
