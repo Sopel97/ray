@@ -43,7 +43,7 @@ namespace ray
             return m_lights;
         }
 
-        [[nodiscard]] const ColorRGBf& backgroundColor() const
+        [[nodiscard]] const ColorRGBf& backgroundColor() const override
         {
             return m_backgroundColor;
         }

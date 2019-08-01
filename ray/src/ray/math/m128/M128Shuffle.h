@@ -24,8 +24,8 @@ namespace ray
         }
 
 #define RAY_GEN_M128_SWIZZLE(X, Y, Z, W) \
-[[nodiscard]] inline __m128 permute_##X##Y##Z##W(__m128 v) { return permute<m128::lane::##X, m128::lane::##Y, m128::lane::##Z, m128::lane::##W>(v); } \
-[[nodiscard]] inline __m128 shuffle_##X##Y##Z##W(__m128 a, __m128 b) { return shuffle<m128::lane::##X, m128::lane::##Y, m128::lane::##Z, m128::lane::##W>(a, b); }
+[[nodiscard]] inline __m128 permute_##X##Y##Z##W(__m128 v) { return permute<m128::lane:: X, m128::lane:: Y, m128::lane:: Z, m128::lane:: W>(v); } \
+[[nodiscard]] inline __m128 shuffle_##X##Y##Z##W(__m128 a, __m128 b) { return shuffle<m128::lane:: X, m128::lane:: Y, m128::lane:: Z, m128::lane:: W>(a, b); }
 
         // TODO: see if the compiler can optimize less complex shuffles into other instructions
         //       if not then do it manually

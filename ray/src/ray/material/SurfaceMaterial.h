@@ -80,6 +80,7 @@ namespace ray
         SurfaceMaterial& withTexture(const Texture& tex)
         {
             texture = &tex;
+            return *this;
         }
 
         [[nodiscard]] ColorRGBf sampleTexture(const TexCoords& coords) const

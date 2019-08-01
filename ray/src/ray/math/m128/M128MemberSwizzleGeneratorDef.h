@@ -1,7 +1,7 @@
 #include "M128Shuffle.h"
 
 // use Y for the last component, because will more often hit a more optimizable case
-#define RAY_GEN_MEMBER_SWIZZLE3(T, X, Y, Z) [[nodiscard]] T X##Y##Z() const { return T(m128::permute<m128::lane::##X, m128::lane::##Y, m128::lane::##Z, m128::lane::##Y>(xmm)); }
+#define RAY_GEN_MEMBER_SWIZZLE3(T, X, Y, Z) [[nodiscard]] T X##Y##Z() const { return T(m128::permute<m128::lane:: X, m128::lane:: Y, m128::lane:: Z, m128::lane:: Y>(xmm)); }
 #define RAY_GEN_MEMBER_SWIZZLE3_ALL(T) \
 RAY_GEN_MEMBER_SWIZZLE3(T, x, x, x) \
 RAY_GEN_MEMBER_SWIZZLE3(T, x, x, y) \
@@ -70,7 +70,7 @@ RAY_GEN_MEMBER_SWIZZLE3(T, w, w, w)
 
 
 
-#define RAY_GEN_MEMBER_SWIZZLE4(T, X, Y, Z, W) [[nodiscard]] T X##Y##Z##W() const { return T(m128::permute<m128::lane::##X, m128::lane::##Y, m128::lane::##Z, m128::lane::##W>(xmm)); }
+#define RAY_GEN_MEMBER_SWIZZLE4(T, X, Y, Z, W) [[nodiscard]] T X##Y##Z##W() const { return T(m128::permute<m128::lane:: X, m128::lane:: Y, m128::lane:: Z, m128::lane:: W>(xmm)); }
 #define RAY_GEN_MEMBER_SWIZZLE4_ALL(T) \
 RAY_GEN_MEMBER_SWIZZLE4(T, x, x, x, x) \
 RAY_GEN_MEMBER_SWIZZLE4(T, x, x, x, y) \

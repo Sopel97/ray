@@ -47,7 +47,7 @@ namespace ray
             return ret;
         }
 
-        [[nodiscard]] friend Normal3<float> operator*(const Matrix3<float>& lhs, const Normal3<float>& rhs);
+        friend Normal3<float> operator*(const Matrix3<float>& lhs, const Normal3<float>& rhs) = delete;
 
         [[nodiscard]] friend Vec3<float> operator*(const Matrix3<float>& lhs, const UnitVec3<float>& rhs)
         {

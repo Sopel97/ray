@@ -25,8 +25,6 @@ namespace ray
 {
     [[nodiscard]] inline TexCoords resolveTexCoords(const Sphere& sphere, const RaycastHit& hit)
     {
-        const Normal3f normal = hit.isInside ? -hit.normal : hit.normal;
-
         // In this particular case, the normal is simular to a point on a unit sphere
         // centred around the origin. We can thus use the normal coordinates to compute
         // the spherical coordinates of Phit.

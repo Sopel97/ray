@@ -14,9 +14,9 @@ namespace ray
     {
         TextureDatabase() noexcept {}
         TextureDatabase(const TextureDatabase&) = delete;
-        TextureDatabase(TextureDatabase&&) noexcept = default;
+        TextureDatabase(TextureDatabase&&) = default;
         TextureDatabase& operator=(const TextureDatabase&) = delete;
-        TextureDatabase& operator=(TextureDatabase&&) noexcept = default;
+        TextureDatabase& operator=(TextureDatabase&&) = default;
 
         template <typename TexT, typename... ArgsTs>
         const Texture& emplace(std::string name, ArgsTs&&... args)

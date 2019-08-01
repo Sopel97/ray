@@ -88,7 +88,7 @@ namespace ray
         template <bool X, bool Y, bool Z, bool W>
         [[nodiscard]] inline __m128 blend(__m128 xmm0, __m128 xmm1)
         {
-            return _mm_blend_ps(xmm0, xmm1, lane::mask<X, Y, Z, W>());
+            return _mm_blend_ps(xmm0, xmm1, (lane::mask<X, Y, Z, W>()));
         }
 
         // for xyzw vector make it xyz0

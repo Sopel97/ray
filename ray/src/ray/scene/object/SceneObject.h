@@ -72,9 +72,9 @@ namespace ray
         }
 
         SceneObject(const SceneObject&) = default;
-        SceneObject(SceneObject&&) noexcept = default;
+        SceneObject(SceneObject&&) = default;
         SceneObject& operator=(const SceneObject&) = default;
-        SceneObject& operator=(SceneObject&&) noexcept = default;
+        SceneObject& operator=(SceneObject&&) = default;
 
         [[nodiscard]] decltype(auto) center() const
         {
@@ -417,6 +417,7 @@ namespace ray
             auto scratchHitIntervalsIter = std::next(allHitIntervals.begin());
             hitIntervals.clear();
             const bool anyHit = m_obj->raycastIntervals(ray, hitIntervals, scratchHitIntervalsIter);
+            (void)anyHit; // we don't need to know that, if false then no intervals
 
             for (const auto& interval : hitIntervals)
             {
@@ -602,10 +603,11 @@ namespace ray
         SceneObject& operator=(const SceneObject& other)
         {
             m_obj = other.m_obj->clone();
+            return *this;
         }
 
-        SceneObject(SceneObject&&) noexcept = default;
-        SceneObject& operator=(SceneObject&&) noexcept = default;
+        SceneObject(SceneObject&&) = default;
+        SceneObject& operator=(SceneObject&&) = default;
 
         [[nodiscard]] SceneObjectId id() const
         {
@@ -738,10 +740,11 @@ namespace ray
         SceneObject& operator=(const SceneObject& other)
         {
             m_obj = other.m_obj->clone();
+            return *this;
         }
 
-        SceneObject(SceneObject&&) noexcept = default;
-        SceneObject& operator=(SceneObject&&) noexcept = default;
+        SceneObject(SceneObject&&) = default;
+        SceneObject& operator=(SceneObject&&) = default;
 
         [[nodiscard]] SceneObjectId id() const
         {

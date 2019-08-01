@@ -324,7 +324,7 @@ namespace ray
         using std::cos;
         using std::acos;
 
-        static constexpr T eps = T(0.01);
+        constexpr T eps = T(0.01);
 
         Quat4<T> q = rhs;
         T cosTheta = std::clamp(lhs.dot(rhs), T(-1.0), T(1.0));

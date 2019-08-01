@@ -74,7 +74,7 @@ namespace ray
             m_values[3][3] = 0.0f;
         }
 
-        [[nodiscard]] friend Normal3<float> operator*(const Matrix4<float>& lhs, const Normal3<float>& rhs);
+        friend Normal3<float> operator*(const Matrix4<float>& lhs, const Normal3<float>& rhs) = delete;
 
         [[nodiscard]] friend Matrix4<float> operator*(const Matrix4<float>& lhs, const Matrix4<float>& rhs)
         {

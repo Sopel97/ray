@@ -440,7 +440,6 @@ namespace ray
         perf::gThreadLocalPerfStats.addObjectRaycast<Box3>();
 #endif
 
-        const Point3f origin = ray.origin();
         const Vec3f invDir = ray.invDirection();
 
         const Vec3f t0 = (box.min - ray.origin()) * invDir;
@@ -1151,7 +1150,7 @@ namespace ray
 
             const float a = dot(dvv, dvv);
             const float b = 2.0f * dot(dvv, dPvv);
-            const float c = dot(dPvv, dPvv) - (cyl.radius * cyl.radius);
+            const float c = dot(dPvv, dPvv) - (r * r);
 
             const float delta = b * b - 4.0f*a*c;
             if (delta < 0.0f)
@@ -1172,7 +1171,7 @@ namespace ray
                 if (p1v < 0.0f)
                 {
                     // we are before A for the far hit
-                    const HalfSphere d0(A, -v, cyl.radius);
+                    const HalfSphere d0(A, -v, r);
                     float tmin, tmax;
                     if (raycastMinMax(ray, d0, tmin, tmax))
                     {
@@ -1187,7 +1186,7 @@ namespace ray
                 else if (p1v > cyl.length)
                 {
                     // we are after B for the far hit
-                    const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
+                    const HalfSphere d1(A + v * cyl.length, v, r);
                     float tmin, tmax;
                     if (raycastMinMax(ray, d1, tmin, tmax))
                     {
@@ -1204,7 +1203,7 @@ namespace ray
                 if (p0v < 0.0f)
                 {
                     // we are before A for the near hit
-                    const HalfSphere d0(A, -v, cyl.radius);
+                    const HalfSphere d0(A, -v, r);
                     float tmin, tmax;
                     if (raycastMinMax(ray, d0, tmin, tmax))
                     {
@@ -1218,7 +1217,7 @@ namespace ray
                 else if (p0v > cyl.length)
                 {
                     // we are after B for the near hit
-                    const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
+                    const HalfSphere d1(A + v * cyl.length, v, r);
                     float tmin, tmax;
                     if (raycastMinMax(ray, d1, tmin, tmax))
                     {
@@ -1244,7 +1243,7 @@ namespace ray
             // we are parallel
             // we can only go through the caps
             const HalfSphere d0(A, -v, cyl.radius);
-            const HalfSphere d1(A + v * cyl.length, v, cyl.radius);
+            const HalfSphere d1(A + v * cyl.length, v, r);
             float t0min, t0max, t1min, t1max;
             if (raycastMinMax(ray, d0, t0min, t0max) && raycastMinMax(ray, d1, t1min, t1max))
             {

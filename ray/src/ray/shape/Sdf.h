@@ -234,7 +234,7 @@ namespace ray
     DEFINE_SDF_EXPRESSION_2(SdfSmoothUnion, float)
         const float d1 = self.lhs()->signedDistance(p);
         const float d2 = self.rhs()->signedDistance(p);
-        const float k = self.get<0>();
+        const float k = self.template get<0>();
         const float h = std::clamp(0.5f + 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
         return mix(d2, d1, h) - k*h*(1.0f - h);
     FINALIZE_SDF_EXPRESSION
@@ -242,7 +242,7 @@ namespace ray
     DEFINE_SDF_EXPRESSION_2(SdfSmoothDifference, float)
         const float d1 = self.lhs()->signedDistance(p);
         const float d2 = -self.rhs()->signedDistance(p);
-        const float k = self.get<0>();
+        const float k = self.template get<0>();
         const float h = std::clamp(0.5f - 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
         return mix(d2, d1, h) - k * h*(1.0f - h);
     FINALIZE_SDF_EXPRESSION
@@ -250,58 +250,58 @@ namespace ray
     DEFINE_SDF_EXPRESSION_2(SdfSmoothIntersection, float)
         const float d1 = self.lhs()->signedDistance(p);
         const float d2 = self.rhs()->signedDistance(p);
-        const float k = self.get<0>();
+        const float k = self.template get<0>();
         const float h = std::clamp(0.5f - 0.5f*(d2 - d1) / k, 0.0f, 1.0f);
         return mix(d2, d1, h) - k * h*(1.0f - h);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfRound, float)
         const float d = self.arg()->signedDistance(p);
-        const float r = self.get<0>();
+        const float r = self.template get<0>();
         return d - r;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfOnion, float)
         const float d = self.arg()->signedDistance(p);
-        const float r = self.get<0>();
+        const float r = self.template get<0>();
         return std::abs(d) - r;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfRepeat, Vec3f)
-        const Vec3f& period = self.get<0>();
+        const Vec3f& period = self.template get<0>();
         const Vec3f q = mod(p, period) - 0.5f*period;
         return self.arg()->signedDistance(q);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfTranslation, Vec3f)
-        const Vec3f& t = self.get<0>();
+        const Vec3f& t = self.template get<0>();
         return self.arg()->signedDistance(p - t);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_1(SdfScale, float)
         // scales by a uniform amount in all directions
-        const float s = self.get<0>();
+        const float s = self.template get<0>();
         return self.arg()->signedDistance(p/s)*s;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfSphere, float)
         // centered at the origin
-        const float r = self.get<0>();
+        const float r = self.template get<0>();
         return Vec3f(p).length() - r;
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfBox, Vec3f)
         // centered at the origin
         // b._ is half of the extent in a given direction
-        const Vec3f& b = self.get<0>();
+        const Vec3f& b = self.template get<0>();
         const Vec3f d = abs(Vec3f(p)) - b;
         return (max(d, Vec3f::broadcast(0.0f))).length() + std::min(std::max(d.x, std::max(d.y, d.z)), 0.0f);
     FINALIZE_SDF_EXPRESSION
 
     DEFINE_SDF_EXPRESSION_0(SdfCapsule, Point3f, Point3f, float)
-        const Point3f& a = self.get<0>();
-        const Point3f& b = self.get<1>();
-        const float r = self.get<2>();
+        const Point3f& a = self.template get<0>();
+        const Point3f& b = self.template get<1>();
+        const float r = self.template get<2>();
 
         const Vec3f pa = p - a;
         const Vec3f ba = b - a;
@@ -373,7 +373,7 @@ namespace ray
         */
 
         // fully optimized
-        const auto& params = self.get<0>();
+        const auto& params = self.template get<0>();
         const float r1 = params.r1;
         const float r2 = params.r2;
         const float b = params.b;
@@ -401,7 +401,7 @@ namespace ray
     DEFINE_SDF_EXPRESSION_0(SdfEllipsoid, Vec3f)
         // centered at the origin
         // with extents of r._
-        const Vec3f& r = self.get<0>();
+        const Vec3f& r = self.template get<0>();
 
         const float k0 = (p.asVector() / r).length();
         const float k1 = (p.asVector() / (r*r)).length();

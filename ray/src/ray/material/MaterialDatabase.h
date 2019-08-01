@@ -14,9 +14,9 @@ namespace ray
     {
         MaterialDatabase() noexcept {}
         MaterialDatabase(const MaterialDatabase&) = delete;
-        MaterialDatabase(MaterialDatabase&&) noexcept = default;
+        MaterialDatabase(MaterialDatabase&&) = default;
         MaterialDatabase& operator=(const MaterialDatabase&) = delete;
-        MaterialDatabase& operator=(MaterialDatabase&&) noexcept = default;
+        MaterialDatabase& operator=(MaterialDatabase&&) = default;
 
         template <typename... ArgsTs>
         const SurfaceMaterial& emplaceSurface(std::string name, ArgsTs&&... args)

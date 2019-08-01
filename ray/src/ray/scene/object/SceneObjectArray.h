@@ -58,7 +58,7 @@ namespace ray
                 return m_objects[shapeNo].materialsView();
             }
 
-            [[nodiscard]] SceneObjectId id(int shapeNo) const
+            [[nodiscard]] SceneObjectId id(int shapeNo) const override
             {
                 return m_objects[shapeNo].id();
             }
@@ -101,7 +101,7 @@ namespace ray
                 return false;
             }
 
-            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+            [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
             {
                 const auto& obj = m_objects[hit.shapeNo];
                 ResolvedRaycastHit ret = obj.resolveHit(hit, this);
@@ -206,7 +206,7 @@ namespace ray
             return *m_shaders[shapeNo];
         }
 
-        [[nodiscard]] SceneObjectId id(int shapeNo) const
+        [[nodiscard]] SceneObjectId id(int shapeNo) const override
         {
             return m_ids[shapeNo];
         }
@@ -253,7 +253,7 @@ namespace ray
             return false;
         }
 
-        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const
+        [[nodiscard]] ResolvedRaycastHit resolveHit(const ResolvableRaycastHit& hit) const override
         {
             auto[surface, medium] = materialsView(hit.shapeNo).material(hit.materialIndex);
             return ResolvedRaycastHit(

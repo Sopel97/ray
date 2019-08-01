@@ -24,6 +24,8 @@ namespace ray
     {
         struct Options
         {
+            Options() {}
+
             // Used to ensure for example that the hit point is
             // not considered obstructed by the shape it is on
             // due to floating point inaccuracies

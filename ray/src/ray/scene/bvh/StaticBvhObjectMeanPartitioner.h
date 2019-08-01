@@ -80,8 +80,6 @@ namespace ray
                     return y;
                 };
 
-                const Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
-
                 const int size = static_cast<int>(std::distance(first, last));
                 const int parts = flp2(std::min(size, p));
                 const auto mid = partitionHalf(first, last);
@@ -103,7 +101,6 @@ namespace ray
                 const Point3fMemberPtr cmpAxis = biggestExtentAxis(first, last);
 
                 const int size = static_cast<int>(std::distance(first, last));
-                const auto mid = std::next(first, size / 2);
 
                 const float partitionPoint = std::accumulate(first, last, 0.0f, [cmpAxis](float acc, const auto& lhs) {
                     return lhs->center().*cmpAxis + acc;
